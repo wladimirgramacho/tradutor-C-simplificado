@@ -74,47 +74,47 @@ NEWLINE       "\n"
 %%
 
 
-{COND}                                          { printf("Lex: %-35s (conditional keyword)\n", yytext); mvcol(yyleng); }
-{TYPE}                                          { printf("Lex: %-35s (type keyword)\n", yytext); mvcol(yyleng); }
-{LOOP}                                          { printf("Lex: %-35s (loop keyword)\n", yytext); mvcol(yyleng); }
-{RETURN}                                        { printf("Lex: %-35s (return keyword)\n", yytext); mvcol(yyleng); }
+{COND}                                { printf("Lex: %-35s (conditional keyword)\n", yytext); mvcol(yyleng); }
+{TYPE}                                { printf("Lex: %-35s (type keyword)\n", yytext); mvcol(yyleng); }
+{LOOP}                                { printf("Lex: %-35s (loop keyword)\n", yytext); mvcol(yyleng); }
+{RETURN}                              { printf("Lex: %-35s (return keyword)\n", yytext); mvcol(yyleng); }
 
-{OPENPAR}                                       { printf("Lex: %-35s (open parentheses)\n", yytext); mvcol(yyleng); }
-{CLOSEPAR}                                      { printf("Lex: %-35s (close parentheses)\n", yytext); mvcol(yyleng); }
-{OPENBRA}                                       { printf("Lex: %-35s (open brackets)\n", yytext); mvcol(yyleng); }
-{CLOSEBRA}                                      { printf("Lex: %-35s (close brackets)\n", yytext); mvcol(yyleng); }
-{OPENCURL}                                      { printf("Lex: %-35s (open curly braces)\n", yytext); mvcol(yyleng); }
-{CLOSECURL}                                     { printf("Lex: %-35s (close curly braces)\n", yytext); mvcol(yyleng); }
-<STRING>{OPENSTRINT}                            {
-                                                  printf("Lex: %-35s (open string interpolation)\n", yytext);
-                                                  BEGIN(0);
-                                                  mvcol(yyleng);
-                                                }
-<INITIAL,STRING>{QUOTES}                        {
-                                                  printf("Lex: %-35s (quotes)\n", yytext);
-                                                  if(inside_string) { BEGIN(0);inside_string--; }
-                                                  else              { BEGIN(STRING);inside_string++; }
-                                                  mvcol(yyleng);
-                                                }
-{COLON}                                         { printf("Lex: %-35s (colon)\n", yytext); mvcol(yyleng); }
-{ADDOP}                                         { printf("Lex: %-35s (addop)\n", yytext ); mvcol(yyleng); }
-{MULOP}                                         { printf("Lex: %-35s (mulop)\n", yytext ); mvcol(yyleng); }
-{EQ}                                            { printf("Lex: %-35s (equal operator)\n", yytext ); mvcol(yyleng); }
-{RELOP}                                         { printf("Lex: %-35s (conditional operator)\n", yytext ); mvcol(yyleng); }
+{OPENPAR}                             { printf("Lex: %-35s (open parentheses)\n", yytext); mvcol(yyleng); }
+{CLOSEPAR}                            { printf("Lex: %-35s (close parentheses)\n", yytext); mvcol(yyleng); }
+{OPENBRA}                             { printf("Lex: %-35s (open brackets)\n", yytext); mvcol(yyleng); }
+{CLOSEBRA}                            { printf("Lex: %-35s (close brackets)\n", yytext); mvcol(yyleng); }
+{OPENCURL}                            { printf("Lex: %-35s (open curly braces)\n", yytext); mvcol(yyleng); }
+{CLOSECURL}                           { printf("Lex: %-35s (close curly braces)\n", yytext); mvcol(yyleng); }
+<STRING>{OPENSTRINT}                  {
+                                        printf("Lex: %-35s (open string interpolation)\n", yytext);
+                                        BEGIN(0);
+                                        mvcol(yyleng);
+                                      }
+<INITIAL,STRING>{QUOTES}              {
+                                        printf("Lex: %-35s (quotes)\n", yytext);
+                                        if(inside_string) { BEGIN(0);inside_string--; }
+                                        else              { BEGIN(STRING);inside_string++; }
+                                        mvcol(yyleng);
+                                      }
+{COLON}                               { printf("Lex: %-35s (colon)\n", yytext); mvcol(yyleng); }
+{ADDOP}                               { printf("Lex: %-35s (addop)\n", yytext ); mvcol(yyleng); }
+{MULOP}                               { printf("Lex: %-35s (mulop)\n", yytext ); mvcol(yyleng); }
+{EQ}                                  { printf("Lex: %-35s (equal operator)\n", yytext ); mvcol(yyleng); }
+{RELOP}                               { printf("Lex: %-35s (conditional operator)\n", yytext ); mvcol(yyleng); }
 
-{NUM}+                                          { printf("Lex: %-35d (integer)\n", atoi( yytext )); mvcol(yyleng); }
-<STRING>{STR}                                   { printf("Lex: %-35s (string)\n", yytext ); mvcol(yyleng); }
+{NUM}+                                { printf("Lex: %-35d (integer)\n", atoi( yytext )); mvcol(yyleng); }
+<STRING>{STR}                         { printf("Lex: %-35s (string)\n", yytext ); mvcol(yyleng); }
 
-{VAR}                                           { printf("Lex: %-35s (identifier)\n", yytext); mvcol(yyleng); }
+{VAR}                                 { printf("Lex: %-35s (identifier)\n", yytext); mvcol(yyleng); }
 
-{COMMENT}                                       { /* eat up one-line comments */ }
-{WHITESPACE}                                    { mvcol(yyleng); }
-{NEWLINE}                                       { rscol(yyleng); }
+{COMMENT}                             { /* eat up one-line comments */ }
+{WHITESPACE}                          { mvcol(yyleng); }
+{NEWLINE}                             { rscol(yyleng); }
 
-.                                               {
-                                                  error_message();
-                                                  mvcol(yyleng);
-                                                }
+.                                     {
+                                        error_message();
+                                        mvcol(yyleng);
+                                      }
 %%
 
 

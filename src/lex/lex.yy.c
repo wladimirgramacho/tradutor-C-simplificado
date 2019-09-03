@@ -578,8 +578,8 @@ char *yytext;
 #line 1 "src/lex/c_simplificado.lex"
 /* scanner for simplified C language with support to string operations */
 #line 6 "src/lex/c_simplificado.lex"
-#define RESET   "\033[0m"
-#define RED     "\033[31m"      /* Red */
+#define RESET      "\033[0m"
+#define RED        "\033[31m"             /* Red */
 #define BOLDGRAY   "\033[1m\033[38m"      /* Bold Gray */
 
 int inside_string = 0;
@@ -587,7 +587,7 @@ int column_number = 1;
 char input_filename[0xFFF];
 
 void mvcol(int length){
-  column_number += length;  
+  column_number += length;
 }
 
 void rscol(){
