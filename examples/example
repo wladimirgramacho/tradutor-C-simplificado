@@ -5,3 +5,4 @@ while
 
 int var;
 string str;
+int var[3];
