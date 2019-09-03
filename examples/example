@@ -1,7 +1,7 @@
-if(){
-  var = 3
+if(e >= 1234){
+  var = 3;
 }
-if(){}else{}
+if(a == 3){}else{}
 
 return
 while
@@ -11,3 +11,5 @@ string str;
 int var[3];
 
 func();
+
+"this is a string"
