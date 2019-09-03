@@ -1,0 +1,2 @@
+src/lex/lexer
+src/lex/lex.yy.c
