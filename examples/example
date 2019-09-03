@@ -2,3 +2,6 @@ if
 else
 return
 while
+
+int var;
+string str;

@@ -6,17 +6,26 @@
 letter        [a-zA-Z]
 digit         [0-9]
 
-ID      {letter}({letter}|{digit})*
-NUM     {digit}{digit}*
-STRING  (\\.|[^"#{}\\])*
-COND    if|else
-TYPE    int|string|void
-LOOP    while
-RETURN  return
+ID            {letter}({letter}|{digit})*
+NUM           {digit}{digit}*
+STRING        (\\.|[^"#{}\\])*
+
+COND          if|else
+TYPE          int|string|void
+LOOP          while
+RETURN        return
+
+ADDOP         "+"|"-"
+MULOP         "*"|"/"
+
+COMMENT       "//".*
+WHITESPC      [ \t\n]+
+
+
 %%
 
 
-
+{TYPE}" "{ID}\;         { printf("Lex: %-35s (var declaration)\n", yytext); }
 {COND}                  { printf("Lex: %-35s (conditional keyword)\n", yytext); }
 {TYPE}                  { printf("Lex: %-35s (type keyword)\n", yytext); }
 {LOOP}                  { printf("Lex: %-35s (loop keyword)\n", yytext); }
@@ -27,12 +36,12 @@ RETURN  return
 
 \"{STRING}\"            { printf("Lex: %-35s (string)\n", yytext ); }
 
-"+"|"-"                 { printf("Lex: %-35s (addop)\n", yytext ); }
-"*"|"/"                 { printf("Lex: %-35s (mulop)\n", yytext ); }
+{ADDOP}                 { printf("Lex: %-35s (addop)\n", yytext ); }
+{MULOP}                 { printf("Lex: %-35s (mulop)\n", yytext ); }
 
-"//".*                  { /* eat up one-line comments */ }
-[ \t\n]+                { /* eat up whitespace */ }
+{COMMENT}                { /* eat up one-line comments */ }
 
+{WHITESPC}               { /* eat up whitespace */ }
 .                       { printf( "Unrecognized character: %s\n", yytext ); }
 
 %%
