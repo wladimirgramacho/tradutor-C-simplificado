@@ -61,14 +61,12 @@ WS            [ \t\n]+
 {EQ}                                            { printf("Lex: %-35s (equal operator)\n", yytext ); }
 {RELOP}                                         { printf("Lex: %-35s (conditional operator)\n", yytext ); }
 
-
 {NUM}+                                          { printf("Lex: %-35d (integer)\n", atoi( yytext )); }
 \"{STRING}\"                                    { printf("Lex: %-35s (string)\n", yytext ); }
 
 {VAR}                                           { printf("Lex: %-35s (identifier)\n", yytext); }
 
 {COMMENT}                                       { /* eat up one-line comments */ }
-
 {WS}                                            { /* eat up whitespace */ }
 
 .                                               { printf( "Unrecognized character: %s\n", yytext ); }

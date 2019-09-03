@@ -1,15 +1,32 @@
-if(e >= 1234){
-  var = 3;
+void func(int value){
+  write(value);
+  return ;
 }
-if(a == 3){}else{}
 
-return
-while
+int main(){
+  string str = "this is a string";
+  int var = 3;
+  int arr[3];
 
-int var;
-string str;
-int var[3];
+  arr[0] = 10;
+  
+  if(arr[0] < 1000){
+    var = 5;
+  }
 
-func();
+  if(var >= 3){
+    str = "this is another string";
+  }
+  else{
+    var = 1;
+  }
 
-"this is a string"
+  // this is a comment
+
+  while(var){
+    func(var);
+    var = var - 1;
+  }
+
+  return 0;
+}

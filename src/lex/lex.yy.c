@@ -854,39 +854,39 @@ YY_RULE_SETUP
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 65 "src/lex/c_simplificado.lex"
+#line 64 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35d (integer)\n", atoi( yytext )); }
 	YY_BREAK
 case 17:
 /* rule 17 can match eol */
 YY_RULE_SETUP
-#line 66 "src/lex/c_simplificado.lex"
+#line 65 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (string)\n", yytext ); }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 68 "src/lex/c_simplificado.lex"
+#line 67 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (identifier)\n", yytext); }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 70 "src/lex/c_simplificado.lex"
+#line 69 "src/lex/c_simplificado.lex"
 { /* eat up one-line comments */ }
 	YY_BREAK
 case 20:
 /* rule 20 can match eol */
 YY_RULE_SETUP
-#line 72 "src/lex/c_simplificado.lex"
+#line 70 "src/lex/c_simplificado.lex"
 { /* eat up whitespace */ }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 74 "src/lex/c_simplificado.lex"
+#line 72 "src/lex/c_simplificado.lex"
 { printf( "Unrecognized character: %s\n", yytext ); }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 75 "src/lex/c_simplificado.lex"
+#line 73 "src/lex/c_simplificado.lex"
 ECHO;
 	YY_BREAK
 #line 893 "src/lex/lex.yy.c"
@@ -1894,7 +1894,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 75 "src/lex/c_simplificado.lex"
+#line 73 "src/lex/c_simplificado.lex"
 
 
 
