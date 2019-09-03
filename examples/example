@@ -1,8 +1,13 @@
-if
-else
+if(){
+  var = 3
+}
+if(){}else{}
+
 return
 while
 
 int var;
 string str;
 int var[3];
+
+func();
