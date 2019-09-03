@@ -1,14 +1,16 @@
 /* scanner for simplified C language with support to string operations */
 %option noyywrap
 %{
+int inside_string = 0;
 %}
+%s STRING
 
 letter        [a-zA-Z]
 digit         [0-9]
 
 ID            {letter}({letter}|{digit})*
 NUM           {digit}{digit}*
-STRING        (\\.|[^"#{}\\])*
+STR           (\\.|[^"#{}\\])*
 
 VAR           {ID}({OPENBRA}{NUM}{CLOSEBRA})?
 
@@ -35,6 +37,8 @@ OPENBRA       "["
 CLOSEBRA      "]"
 OPENCURL      "{"
 CLOSECURL     "}"
+OPENSTRINT    "#{"
+QUOTES        \"
 COLON         ";"
 
 COMMENT       "//".*
@@ -55,6 +59,8 @@ WS            [ \t\n]+
 {CLOSEBRA}                                      { printf("Lex: %-35s (close brackets)\n", yytext); }
 {OPENCURL}                                      { printf("Lex: %-35s (open curly braces)\n", yytext); }
 {CLOSECURL}                                     { printf("Lex: %-35s (close curly braces)\n", yytext); }
+<STRING>{OPENSTRINT}                            { printf("Lex: %-35s (open string interpolation)\n", yytext); BEGIN(0); }
+<INITIAL,STRING>{QUOTES}                        { printf("Lex: %-35s (quotes)\n", yytext); if(inside_string){ BEGIN(0);inside_string--; } else{ BEGIN(STRING);inside_string++; } }
 {COLON}                                         { printf("Lex: %-35s (colon)\n", yytext); }
 {ADDOP}                                         { printf("Lex: %-35s (addop)\n", yytext ); }
 {MULOP}                                         { printf("Lex: %-35s (mulop)\n", yytext ); }
@@ -62,14 +68,14 @@ WS            [ \t\n]+
 {RELOP}                                         { printf("Lex: %-35s (conditional operator)\n", yytext ); }
 
 {NUM}+                                          { printf("Lex: %-35d (integer)\n", atoi( yytext )); }
-\"{STRING}\"                                    { printf("Lex: %-35s (string)\n", yytext ); }
+<STRING>{STR}                                   { printf("Lex: %-35s (string)\n", yytext ); }
 
 {VAR}                                           { printf("Lex: %-35s (identifier)\n", yytext); }
 
 {COMMENT}                                       { /* eat up one-line comments */ }
 {WS}                                            { /* eat up whitespace */ }
 
-.                                               { printf( "Unrecognized character: %s\n", yytext ); }
+.                                               { printf( "UNRECOGNIZED CHARACTER: %s\n", yytext ); }
 %%
 
 

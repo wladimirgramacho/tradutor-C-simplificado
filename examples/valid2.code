@@ -1,0 +1,6 @@
+int main(){
+  int value = 10;
+  string str = "the value is #{value}";
+
+  return 0;
+}
