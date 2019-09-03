@@ -163,8 +163,27 @@ extern FILE *yyin, *yyout;
 #define EOB_ACT_END_OF_FILE 1
 #define EOB_ACT_LAST_MATCH 2
     
-    #define YY_LESS_LINENO(n)
-    #define YY_LINENO_REWIND_TO(ptr)
+    /* Note: We specifically omit the test for yy_rule_can_match_eol because it requires
+     *       access to the local variable yy_act. Since yyless() is a macro, it would break
+     *       existing scanners that call yyless() from OUTSIDE yylex.
+     *       One obvious solution it to make yy_act a global. I tried that, and saw
+     *       a 5% performance hit in a non-yylineno scanner, because yy_act is
+     *       normally declared as a register variable-- so it is not worth it.
+     */
+    #define  YY_LESS_LINENO(n) \
+            do { \
+                int yyl;\
+                for ( yyl = n; yyl < yyleng; ++yyl )\
+                    if ( yytext[yyl] == '\n' )\
+                        --yylineno;\
+            }while(0)
+    #define YY_LINENO_REWIND_TO(dst) \
+            do {\
+                const char *p;\
+                for ( p = yy_cp-1; p >= (dst); --p)\
+                    if ( *p == '\n' )\
+                        --yylineno;\
+            }while(0)
     
 /* Return all but the first "n" matched characters back to the input stream. */
 #define yyless(n) \
@@ -538,6 +557,12 @@ static const flex_int16_t yy_chk[322] =
       121
     } ;
 
+/* Table of booleans, true if rule could match eol. */
+static const flex_int32_t yy_rule_can_match_eol[25] =
+    {   0,
+0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 
+    0, 0, 1, 0, 0,     };
+
 static yy_state_type yy_last_accepting_state;
 static char *yy_last_accepting_cpos;
 
@@ -554,11 +579,12 @@ int yy_flex_debug = 0;
 char *yytext;
 #line 1 "src/lex/c_simplificado.lex"
 /* scanner for simplified C language with support to string operations */
-#line 4 "src/lex/c_simplificado.lex"
+#line 6 "src/lex/c_simplificado.lex"
 int inside_string = 0;
-#line 560 "src/lex/lex.yy.c"
+char input_filename[0xFFF];
+#line 586 "src/lex/lex.yy.c"
 
-#line 562 "src/lex/lex.yy.c"
+#line 588 "src/lex/lex.yy.c"
 
 #define INITIAL 0
 #define STRING 1
@@ -776,11 +802,11 @@ YY_DECL
 		}
 
 	{
-#line 48 "src/lex/c_simplificado.lex"
+#line 52 "src/lex/c_simplificado.lex"
 
 
 
-#line 784 "src/lex/lex.yy.c"
+#line 810 "src/lex/lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -826,6 +852,16 @@ yy_find_action:
 
 		YY_DO_BEFORE_ACTION;
 
+		if ( yy_act != YY_END_OF_BUFFER && yy_rule_can_match_eol[yy_act] )
+			{
+			int yyl;
+			for ( yyl = 0; yyl < yyleng; ++yyl )
+				if ( yytext[yyl] == '\n' )
+					
+    yylineno++;
+;
+			}
+
 do_action:	/* This label is used only to access EOF actions. */
 
 		switch ( yy_act )
@@ -839,127 +875,137 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 51 "src/lex/c_simplificado.lex"
+#line 55 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (conditional keyword)\n", yytext); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 52 "src/lex/c_simplificado.lex"
+#line 56 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (type keyword)\n", yytext); }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 53 "src/lex/c_simplificado.lex"
+#line 57 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (loop keyword)\n", yytext); }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 54 "src/lex/c_simplificado.lex"
+#line 58 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (return keyword)\n", yytext); }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 56 "src/lex/c_simplificado.lex"
+#line 60 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (open parentheses)\n", yytext); }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 57 "src/lex/c_simplificado.lex"
+#line 61 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (close parentheses)\n", yytext); }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 58 "src/lex/c_simplificado.lex"
+#line 62 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (open brackets)\n", yytext); }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 59 "src/lex/c_simplificado.lex"
+#line 63 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (close brackets)\n", yytext); }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 60 "src/lex/c_simplificado.lex"
+#line 64 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (open curly braces)\n", yytext); }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 61 "src/lex/c_simplificado.lex"
+#line 65 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (close curly braces)\n", yytext); }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 62 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (open string interpolation)\n", yytext); BEGIN(0); }
+#line 66 "src/lex/c_simplificado.lex"
+{ 
+                                                  printf("Lex: %-35s (open string interpolation)\n", yytext);
+                                                  BEGIN(0);
+                                                }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 63 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (quotes)\n", yytext); if(inside_string){ BEGIN(0);inside_string--; } else{ BEGIN(STRING);inside_string++; } }
+#line 70 "src/lex/c_simplificado.lex"
+{ 
+                                                  printf("Lex: %-35s (quotes)\n", yytext);
+                                                  if(inside_string) { BEGIN(0);inside_string--; }
+                                                  else              { BEGIN(STRING);inside_string++; }
+                                                }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 64 "src/lex/c_simplificado.lex"
+#line 75 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (colon)\n", yytext); }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 65 "src/lex/c_simplificado.lex"
+#line 76 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (addop)\n", yytext ); }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 66 "src/lex/c_simplificado.lex"
+#line 77 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (mulop)\n", yytext ); }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 67 "src/lex/c_simplificado.lex"
+#line 78 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (equal operator)\n", yytext ); }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 68 "src/lex/c_simplificado.lex"
+#line 79 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (conditional operator)\n", yytext ); }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 70 "src/lex/c_simplificado.lex"
+#line 81 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35d (integer)\n", atoi( yytext )); }
 	YY_BREAK
 case 19:
 /* rule 19 can match eol */
 YY_RULE_SETUP
-#line 71 "src/lex/c_simplificado.lex"
+#line 82 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (string)\n", yytext ); }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 73 "src/lex/c_simplificado.lex"
+#line 84 "src/lex/c_simplificado.lex"
 { printf("Lex: %-35s (identifier)\n", yytext); }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 75 "src/lex/c_simplificado.lex"
+#line 86 "src/lex/c_simplificado.lex"
 { /* eat up one-line comments */ }
 	YY_BREAK
 case 22:
 /* rule 22 can match eol */
 YY_RULE_SETUP
-#line 76 "src/lex/c_simplificado.lex"
+#line 87 "src/lex/c_simplificado.lex"
 { /* eat up whitespace */ }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 78 "src/lex/c_simplificado.lex"
-{ printf( "UNRECOGNIZED CHARACTER: %s\n", yytext ); }
+#line 89 "src/lex/c_simplificado.lex"
+{ 
+                                                  printf("error: unrecognized char %s\n", yytext);
+                                                  printf("\t from %s:%d\n", input_filename, yylineno);
+                                                }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 79 "src/lex/c_simplificado.lex"
+#line 93 "src/lex/c_simplificado.lex"
 ECHO;
 	YY_BREAK
-#line 963 "src/lex/lex.yy.c"
+#line 1009 "src/lex/lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(STRING):
 	yyterminate();
@@ -1328,6 +1374,10 @@ static int yy_get_next_buffer (void)
 
 	*--yy_cp = (char) c;
 
+    if ( c == '\n' ){
+        --yylineno;
+    }
+
 	(yytext_ptr) = yy_bp;
 	(yy_hold_char) = *yy_cp;
 	(yy_c_buf_p) = yy_cp;
@@ -1404,6 +1454,11 @@ static int yy_get_next_buffer (void)
 	c = *(unsigned char *) (yy_c_buf_p);	/* cast for 8-bit char's */
 	*(yy_c_buf_p) = '\0';	/* preserve yytext */
 	(yy_hold_char) = *++(yy_c_buf_p);
+
+	if ( c == '\n' )
+		
+    yylineno++;
+;
 
 	return c;
 }
@@ -1871,6 +1926,9 @@ static int yy_init_globals (void)
      * This function is called from yylex_destroy(), so don't allocate here.
      */
 
+    /* We do not touch yylineno unless the option is enabled. */
+    yylineno =  1;
+    
     (yy_buffer_stack) = NULL;
     (yy_buffer_stack_top) = 0;
     (yy_buffer_stack_max) = 0;
@@ -1965,10 +2023,18 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 79 "src/lex/c_simplificado.lex"
+#line 93 "src/lex/c_simplificado.lex"
 
 
 
-int main() {
+void main (int argc, char **argv){
+  if (argc>0){
+    sprintf(input_filename, "%s", argv[1]);
+    yyin = fopen(argv[1], "r");
+  }
+  else {
+    yyin = stdin;
+  }
+
   yylex();
 }
