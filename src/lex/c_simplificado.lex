@@ -19,6 +19,10 @@ void rscol(){
   column_number = 1;
 }
 
+void lex_print(char * str){
+  printf("Lex: %-35s (%s)\n", yytext, str);
+}
+
 void error_message(){
   printf(RED "error:" RESET);
   printf(" unrecognized char %s\n", yytext);
@@ -74,38 +78,38 @@ NEWLINE       "\n"
 %%
 
 
-{COND}                                { printf("Lex: %-35s (conditional keyword)\n", yytext); mvcol(yyleng); }
-{TYPE}                                { printf("Lex: %-35s (type keyword)\n", yytext); mvcol(yyleng); }
-{LOOP}                                { printf("Lex: %-35s (loop keyword)\n", yytext); mvcol(yyleng); }
-{RETURN}                              { printf("Lex: %-35s (return keyword)\n", yytext); mvcol(yyleng); }
+{COND}                                { lex_print("conditional keyword"); mvcol(yyleng); }
+{TYPE}                                { lex_print("type keyword"); mvcol(yyleng); }
+{LOOP}                                { lex_print("loop keyword"); mvcol(yyleng); }
+{RETURN}                              { lex_print("return keyword"); mvcol(yyleng); }
 
-{OPENPAR}                             { printf("Lex: %-35s (open parentheses)\n", yytext); mvcol(yyleng); }
-{CLOSEPAR}                            { printf("Lex: %-35s (close parentheses)\n", yytext); mvcol(yyleng); }
-{OPENBRA}                             { printf("Lex: %-35s (open brackets)\n", yytext); mvcol(yyleng); }
-{CLOSEBRA}                            { printf("Lex: %-35s (close brackets)\n", yytext); mvcol(yyleng); }
-{OPENCURL}                            { printf("Lex: %-35s (open curly braces)\n", yytext); mvcol(yyleng); }
-{CLOSECURL}                           { printf("Lex: %-35s (close curly braces)\n", yytext); mvcol(yyleng); }
+{OPENPAR}                             { lex_print("open parentheses"); mvcol(yyleng); }
+{CLOSEPAR}                            { lex_print("close parentheses"); mvcol(yyleng); }
+{OPENBRA}                             { lex_print("open brackets"); mvcol(yyleng); }
+{CLOSEBRA}                            { lex_print("close brackets"); mvcol(yyleng); }
+{OPENCURL}                            { lex_print("open curly braces"); mvcol(yyleng); }
+{CLOSECURL}                           { lex_print("close curly braces"); mvcol(yyleng); }
 <STRING>{OPENSTRINT}                  {
-                                        printf("Lex: %-35s (open string interpolation)\n", yytext);
+                                        lex_print("open string interpolation");
                                         BEGIN(0);
                                         mvcol(yyleng);
                                       }
 <INITIAL,STRING>{QUOTES}              {
-                                        printf("Lex: %-35s (quotes)\n", yytext);
+                                        lex_print("quotes");
+                                        mvcol(yyleng);
                                         if(inside_string) { BEGIN(0);inside_string--; }
                                         else              { BEGIN(STRING);inside_string++; }
-                                        mvcol(yyleng);
                                       }
-{COLON}                               { printf("Lex: %-35s (colon)\n", yytext); mvcol(yyleng); }
-{ADDOP}                               { printf("Lex: %-35s (addop)\n", yytext ); mvcol(yyleng); }
-{MULOP}                               { printf("Lex: %-35s (mulop)\n", yytext ); mvcol(yyleng); }
-{EQ}                                  { printf("Lex: %-35s (equal operator)\n", yytext ); mvcol(yyleng); }
-{RELOP}                               { printf("Lex: %-35s (conditional operator)\n", yytext ); mvcol(yyleng); }
+{COLON}                               { lex_print("colon"); mvcol(yyleng); }
+{ADDOP}                               { lex_print("addop"); mvcol(yyleng); }
+{MULOP}                               { lex_print("mulop"); mvcol(yyleng); }
+{EQ}                                  { lex_print("equal operator"); mvcol(yyleng); }
+{RELOP}                               { lex_print("conditional operator"); mvcol(yyleng); }
 
-{NUM}+                                { printf("Lex: %-35d (integer)\n", atoi( yytext )); mvcol(yyleng); }
-<STRING>{STR}                         { printf("Lex: %-35s (string)\n", yytext ); mvcol(yyleng); }
+{NUM}+                                { lex_print("integer"); mvcol(yyleng); }
+<STRING>{STR}                         { lex_print("string"); mvcol(yyleng); }
 
-{VAR}                                 { printf("Lex: %-35s (identifier)\n", yytext); mvcol(yyleng); }
+{VAR}                                 { lex_print("identifier"); mvcol(yyleng); }
 
 {COMMENT}                             { /* eat up one-line comments */ }
 {WHITESPACE}                          { mvcol(yyleng); }

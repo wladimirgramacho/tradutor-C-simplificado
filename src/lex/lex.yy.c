@@ -594,6 +594,10 @@ void rscol(){
   column_number = 1;
 }
 
+void lex_print(char * str){
+  printf("Lex: %-35s (%s)\n", yytext, str);
+}
+
 void error_message(){
   printf(RED "error:" RESET);
   printf(" unrecognized char %s\n", yytext);
@@ -601,9 +605,9 @@ void error_message(){
   printf(BOLDGRAY "%s:%d:%d\n" RESET, input_filename, yylineno, column_number);
 }
 
-#line 605 "src/lex/lex.yy.c"
+#line 609 "src/lex/lex.yy.c"
 
-#line 607 "src/lex/lex.yy.c"
+#line 611 "src/lex/lex.yy.c"
 
 #define INITIAL 0
 #define STRING 1
@@ -821,11 +825,11 @@ YY_DECL
 		}
 
 	{
-#line 74 "src/lex/c_simplificado.lex"
+#line 78 "src/lex/c_simplificado.lex"
 
 
 
-#line 829 "src/lex/lex.yy.c"
+#line 833 "src/lex/lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -894,144 +898,144 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 77 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (conditional keyword)\n", yytext); mvcol(yyleng); }
+#line 81 "src/lex/c_simplificado.lex"
+{ lex_print("conditional keyword"); mvcol(yyleng); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 78 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (type keyword)\n", yytext); mvcol(yyleng); }
+#line 82 "src/lex/c_simplificado.lex"
+{ lex_print("type keyword"); mvcol(yyleng); }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 79 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (loop keyword)\n", yytext); mvcol(yyleng); }
+#line 83 "src/lex/c_simplificado.lex"
+{ lex_print("loop keyword"); mvcol(yyleng); }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 80 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (return keyword)\n", yytext); mvcol(yyleng); }
+#line 84 "src/lex/c_simplificado.lex"
+{ lex_print("return keyword"); mvcol(yyleng); }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 82 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (open parentheses)\n", yytext); mvcol(yyleng); }
+#line 86 "src/lex/c_simplificado.lex"
+{ lex_print("open parentheses"); mvcol(yyleng); }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 83 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (close parentheses)\n", yytext); mvcol(yyleng); }
+#line 87 "src/lex/c_simplificado.lex"
+{ lex_print("close parentheses"); mvcol(yyleng); }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 84 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (open brackets)\n", yytext); mvcol(yyleng); }
+#line 88 "src/lex/c_simplificado.lex"
+{ lex_print("open brackets"); mvcol(yyleng); }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 85 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (close brackets)\n", yytext); mvcol(yyleng); }
+#line 89 "src/lex/c_simplificado.lex"
+{ lex_print("close brackets"); mvcol(yyleng); }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 86 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (open curly braces)\n", yytext); mvcol(yyleng); }
+#line 90 "src/lex/c_simplificado.lex"
+{ lex_print("open curly braces"); mvcol(yyleng); }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 87 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (close curly braces)\n", yytext); mvcol(yyleng); }
+#line 91 "src/lex/c_simplificado.lex"
+{ lex_print("close curly braces"); mvcol(yyleng); }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 88 "src/lex/c_simplificado.lex"
+#line 92 "src/lex/c_simplificado.lex"
 {
-                                                  printf("Lex: %-35s (open string interpolation)\n", yytext);
-                                                  BEGIN(0);
-                                                  mvcol(yyleng);
-                                                }
+                                        lex_print("open string interpolation");
+                                        BEGIN(0);
+                                        mvcol(yyleng);
+                                      }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 93 "src/lex/c_simplificado.lex"
+#line 97 "src/lex/c_simplificado.lex"
 {
-                                                  printf("Lex: %-35s (quotes)\n", yytext);
-                                                  if(inside_string) { BEGIN(0);inside_string--; }
-                                                  else              { BEGIN(STRING);inside_string++; }
-                                                  mvcol(yyleng);
-                                                }
+                                        lex_print("quotes");
+                                        mvcol(yyleng);
+                                        if(inside_string) { BEGIN(0);inside_string--; }
+                                        else              { BEGIN(STRING);inside_string++; }
+                                      }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 99 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (colon)\n", yytext); mvcol(yyleng); }
+#line 103 "src/lex/c_simplificado.lex"
+{ lex_print("colon"); mvcol(yyleng); }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 100 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (addop)\n", yytext ); mvcol(yyleng); }
+#line 104 "src/lex/c_simplificado.lex"
+{ lex_print("addop"); mvcol(yyleng); }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 101 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (mulop)\n", yytext ); mvcol(yyleng); }
+#line 105 "src/lex/c_simplificado.lex"
+{ lex_print("mulop"); mvcol(yyleng); }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 102 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (equal operator)\n", yytext ); mvcol(yyleng); }
+#line 106 "src/lex/c_simplificado.lex"
+{ lex_print("equal operator"); mvcol(yyleng); }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 103 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (conditional operator)\n", yytext ); mvcol(yyleng); }
+#line 107 "src/lex/c_simplificado.lex"
+{ lex_print("conditional operator"); mvcol(yyleng); }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 105 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35d (integer)\n", atoi( yytext )); mvcol(yyleng); }
+#line 109 "src/lex/c_simplificado.lex"
+{ lex_print("integer"); mvcol(yyleng); }
 	YY_BREAK
 case 19:
 /* rule 19 can match eol */
 YY_RULE_SETUP
-#line 106 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (string)\n", yytext ); mvcol(yyleng); }
+#line 110 "src/lex/c_simplificado.lex"
+{ lex_print("string"); mvcol(yyleng); }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 108 "src/lex/c_simplificado.lex"
-{ printf("Lex: %-35s (identifier)\n", yytext); mvcol(yyleng); }
+#line 112 "src/lex/c_simplificado.lex"
+{ lex_print("identifier"); mvcol(yyleng); }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 110 "src/lex/c_simplificado.lex"
+#line 114 "src/lex/c_simplificado.lex"
 { /* eat up one-line comments */ }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 111 "src/lex/c_simplificado.lex"
+#line 115 "src/lex/c_simplificado.lex"
 { mvcol(yyleng); }
 	YY_BREAK
 case 23:
 /* rule 23 can match eol */
 YY_RULE_SETUP
-#line 112 "src/lex/c_simplificado.lex"
+#line 116 "src/lex/c_simplificado.lex"
 { rscol(yyleng); }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 114 "src/lex/c_simplificado.lex"
+#line 118 "src/lex/c_simplificado.lex"
 {
-                                                  error_message();
-                                                  mvcol(yyleng);
-                                                }
+                                        error_message();
+                                        mvcol(yyleng);
+                                      }
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 118 "src/lex/c_simplificado.lex"
+#line 122 "src/lex/c_simplificado.lex"
 ECHO;
 	YY_BREAK
-#line 1035 "src/lex/lex.yy.c"
+#line 1039 "src/lex/lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(STRING):
 	yyterminate();
@@ -2049,7 +2053,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 118 "src/lex/c_simplificado.lex"
+#line 122 "src/lex/c_simplificado.lex"
 
 
 
