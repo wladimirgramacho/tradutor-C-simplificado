@@ -4,3 +4,4 @@ flex:
 	./src/lex/lexer examples/valid1.code
 	./src/lex/lexer examples/valid2.code
 	./src/lex/lexer examples/invalid1.code
+	./src/lex/lexer examples/invalid2.code
