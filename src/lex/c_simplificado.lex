@@ -3,6 +3,8 @@
 %option yylineno
 
 %{
+#include <string.h>
+
 #define RESET      "\033[0m"
 #define RED        "\033[31m"             /* Red */
 #define BOLDGRAY   "\033[1m\033[38m"      /* Bold Gray */
@@ -10,17 +12,28 @@
 int inside_string = 0;
 int column_number = 1;
 char input_filename[0xFFF];
+FILE * ftoken_stream;
 
-void mvcol(int length){
-  column_number += length;
+void token_stream(char * token){
+  fprintf(ftoken_stream, "%s %s\n", token, yytext);
+}
+
+void lex_print(char * str){
+  printf("Lex: %-35s (%s)\n", yytext, str);
+}
+
+void mvcol(){
+  column_number += yyleng;
 }
 
 void rscol(){
   column_number = 1;
 }
 
-void lex_print(char * str){
-  printf("Lex: %-35s (%s)\n", yytext, str);
+void add_token(char * token){
+  token_stream(token);
+  lex_print(token);
+  mvcol();
 }
 
 void error_message(){
@@ -41,7 +54,7 @@ ID            {letter}({letter}|{digit})*
 NUM           {digit}{digit}*
 STR           (\\.|[^"#{}\\])*
 
-VAR           {ID}({OPENBRA}{NUM}{CLOSEBRA})?
+IDENTIFIER    {ID}({OPENBRA}{NUM}{CLOSEBRA})?
 
 COND          if|else
 
@@ -78,38 +91,36 @@ NEWLINE       "\n"
 %%
 
 
-{COND}                                { lex_print("conditional keyword"); mvcol(yyleng); }
-{TYPE}                                { lex_print("type keyword"); mvcol(yyleng); }
-{LOOP}                                { lex_print("loop keyword"); mvcol(yyleng); }
-{RETURN}                              { lex_print("return keyword"); mvcol(yyleng); }
+{COND}                                { add_token("COND"); }
+{TYPE}                                { add_token("TYPE"); }
+{LOOP}                                { add_token("LOOP"); }
+{RETURN}                              { add_token("RETURN"); }
 
-{OPENPAR}                             { lex_print("open parentheses"); mvcol(yyleng); }
-{CLOSEPAR}                            { lex_print("close parentheses"); mvcol(yyleng); }
-{OPENBRA}                             { lex_print("open brackets"); mvcol(yyleng); }
-{CLOSEBRA}                            { lex_print("close brackets"); mvcol(yyleng); }
-{OPENCURL}                            { lex_print("open curly braces"); mvcol(yyleng); }
-{CLOSECURL}                           { lex_print("close curly braces"); mvcol(yyleng); }
+{OPENPAR}                             { add_token("OPENPAR"); }
+{CLOSEPAR}                            { add_token("CLOSEPAR"); }
+{OPENBRA}                             { add_token("OPENBRA"); }
+{CLOSEBRA}                            { add_token("CLOSEBRA"); }
+{OPENCURL}                            { add_token("OPENCURL"); }
+{CLOSECURL}                           { add_token("CLOSECURL"); }
 <STRING>{OPENSTRINT}                  {
-                                        lex_print("open string interpolation");
+                                        add_token("OPENSTRINT");
                                         BEGIN(0);
-                                        mvcol(yyleng);
                                       }
 <INITIAL,STRING>{QUOTES}              {
-                                        lex_print("quotes");
-                                        mvcol(yyleng);
+                                        add_token("QUOTES");
                                         if(inside_string) { BEGIN(0);inside_string--; }
                                         else              { BEGIN(STRING);inside_string++; }
                                       }
-{COLON}                               { lex_print("colon"); mvcol(yyleng); }
-{ADDOP}                               { lex_print("addop"); mvcol(yyleng); }
-{MULOP}                               { lex_print("mulop"); mvcol(yyleng); }
-{EQ}                                  { lex_print("equal operator"); mvcol(yyleng); }
-{RELOP}                               { lex_print("conditional operator"); mvcol(yyleng); }
+{COLON}                               { add_token("COLON"); }
+{ADDOP}                               { add_token("ADDOP"); }
+{MULOP}                               { add_token("MULOP"); }
+{EQ}                                  { add_token("EQ"); }
+{RELOP}                               { add_token("RELOP"); }
 
-{NUM}+                                { lex_print("integer"); mvcol(yyleng); }
-<STRING>{STR}                         { lex_print("string"); mvcol(yyleng); }
+{NUM}+                                { add_token("INT"); }
+<STRING>{STR}                         { add_token("STRING"); }
 
-{VAR}                                 { lex_print("identifier"); mvcol(yyleng); }
+{IDENTIFIER}                          { add_token("IDENTIFIER"); }
 
 {COMMENT}                             { /* eat up one-line comments */ }
 {WHITESPACE}                          { mvcol(yyleng); }
@@ -125,6 +136,12 @@ NEWLINE       "\n"
 void main (int argc, char **argv){
   if (argc>0){
     sprintf(input_filename, "%s", argv[1]);
+
+    char token_stream_name[0xFFF];
+    strcpy(token_stream_name, input_filename);
+    strcat(token_stream_name, ".tokens");
+    ftoken_stream = fopen (token_stream_name, "w+");
+
     yyin = fopen(argv[1], "r");
   }
   else {
