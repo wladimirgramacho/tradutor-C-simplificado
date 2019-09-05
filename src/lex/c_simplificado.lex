@@ -12,11 +12,7 @@
 int inside_string = 0;
 int column_number = 1;
 char input_filename[0xFFF];
-FILE * ftoken_stream;
 
-void token_stream(char * token){
-  fprintf(ftoken_stream, "%s %s\n", token, yytext);
-}
 
 void lex_print(char * str){
   printf("Lex: %-35s (%s)\n", yytext, str);
@@ -31,7 +27,6 @@ void rscol(){
 }
 
 void add_token(char * token){
-  token_stream(token);
   lex_print(token);
   mvcol();
 }
@@ -136,12 +131,6 @@ NEWLINE       "\n"
 void main (int argc, char **argv){
   if (argc>0){
     sprintf(input_filename, "%s", argv[1]);
-
-    char token_stream_name[0xFFF];
-    strcpy(token_stream_name, input_filename);
-    strcat(token_stream_name, ".tokens");
-    ftoken_stream = fopen (token_stream_name, "w+");
-
     yyin = fopen(argv[1], "r");
   }
   else {
