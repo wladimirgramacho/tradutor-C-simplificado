@@ -16,16 +16,10 @@ typedef struct symbol {
   struct symbol *next;
 } symbol;
 
-typedef struct error {
-  char name[400];
-  struct error* next;
-} error;
-
 int inside_string = 0;
 int column_number = 1;
 char input_filename[0xFFF];
 symbol *symbol_table = (symbol*)0;
-error *errors= (error*)0;
 char* currentType;
 int address = 0;
 
