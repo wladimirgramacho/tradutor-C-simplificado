@@ -33,6 +33,7 @@ void push_symbol(char *sym_name){
   symbol *aux = (symbol*) malloc(sizeof(symbol));
   strcpy(aux->name, sym_name);
   strcpy(aux->type, currentType);
+  strcpy(currentType, "");
   aux->address = address;
   aux->next = symbol_table;
   address++;
@@ -59,33 +60,6 @@ void print_symbol_table(){
   }
 }
 
-void push_error(error **list, char *error_name){
-  error *aux = (error*) malloc(sizeof(error));
-  strcpy(aux->name,error_name);
-  aux->next = (*list);
-  (*list) = aux;
-}
-
-void print_errors(error **list){
-  error *aux = *list;
-  while(aux!= NULL){    
-    printf("%s\n", aux->name);
-    aux = aux->next;
-  }
-  printf("\n");
-}
-
-int list_length(error **list){
-  int length = 0;
-  error *aux = *list;
-
-  while(aux!= NULL){    
-    aux = aux->next;
-    length++;
-  }
-  return length;
-}
-
 void push_symbol_table(char * sym_name){
   symbol* s = find_symbol(sym_name);
   if(!s){
@@ -106,7 +80,7 @@ void rscol(){
 }
 
 void add_token(char * token){
-  // lex_print(token);
+  lex_print(token);
   mvcol();
 }
 
@@ -174,6 +148,7 @@ NEWLINE       "\n"
 {TYPE}                                { 
                                         currentType = calloc(1, strlen(yytext)+1);
                                         strcpy(currentType, yytext);
+                                        add_token("TYPE");
                                       }
 {LOOP}                                { add_token("LOOP"); }
 {RETURN}                              { add_token("RETURN"); }
@@ -215,8 +190,12 @@ NEWLINE       "\n"
 %%
 
 void main (int argc, char **argv){
+  int print_table = 0;
   if (argc>0){
     sprintf(input_filename, "%s", argv[1]);
+    if(argc > 2 && !strcmp(argv[2], "-t")){
+      print_table = 1;
+    }
     yyin = fopen(argv[1], "r");
   }
   else {
@@ -224,10 +203,5 @@ void main (int argc, char **argv){
   }
 
   yylex();
-  if(list_length(&errors) > 0){
-    print_color_red();
-    print_errors(&errors);
-    print_color_end();
-  }
-  print_symbol_table();   
+  if(print_table) print_symbol_table();
 }

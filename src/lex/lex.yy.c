@@ -608,6 +608,7 @@ void push_symbol(char *sym_name){
   symbol *aux = (symbol*) malloc(sizeof(symbol));
   strcpy(aux->name, sym_name);
   strcpy(aux->type, currentType);
+  strcpy(currentType, "");
   aux->address = address;
   aux->next = symbol_table;
   address++;
@@ -634,33 +635,6 @@ void print_symbol_table(){
   }
 }
 
-void push_error(error **list, char *error_name){
-  error *aux = (error*) malloc(sizeof(error));
-  strcpy(aux->name,error_name);
-  aux->next = (*list);
-  (*list) = aux;
-}
-
-void print_errors(error **list){
-  error *aux = *list;
-  while(aux!= NULL){    
-    printf("%s\n", aux->name);
-    aux = aux->next;
-  }
-  printf("\n");
-}
-
-int list_length(error **list){
-  int length = 0;
-  error *aux = *list;
-
-  while(aux!= NULL){    
-    aux = aux->next;
-    length++;
-  }
-  return length;
-}
-
 void push_symbol_table(char * sym_name){
   symbol* s = find_symbol(sym_name);
   if(!s){
@@ -681,7 +655,7 @@ void rscol(){
 }
 
 void add_token(char * token){
-  // lex_print(token);
+  lex_print(token);
   mvcol();
 }
 
@@ -699,9 +673,9 @@ void print_color_end(){
   printf("%s", RESET);
 };
 
-#line 703 "src/lex/lex.yy.c"
+#line 677 "src/lex/lex.yy.c"
 
-#line 705 "src/lex/lex.yy.c"
+#line 679 "src/lex/lex.yy.c"
 
 #define INITIAL 0
 #define STRING 1
@@ -919,11 +893,10 @@ YY_DECL
 		}
 
 	{
-#line 172 "src/lex/c_simplificado.lex"
+#line 145 "src/lex/c_simplificado.lex"
 
 
-
-#line 927 "src/lex/lex.yy.c"
+#line 900 "src/lex/lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -992,60 +965,61 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 175 "src/lex/c_simplificado.lex"
+#line 147 "src/lex/c_simplificado.lex"
 { add_token("COND"); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 176 "src/lex/c_simplificado.lex"
+#line 148 "src/lex/c_simplificado.lex"
 { 
                                         currentType = calloc(1, strlen(yytext)+1);
                                         strcpy(currentType, yytext);
+                                        add_token("TYPE");
                                       }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 180 "src/lex/c_simplificado.lex"
+#line 153 "src/lex/c_simplificado.lex"
 { add_token("LOOP"); }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 181 "src/lex/c_simplificado.lex"
+#line 154 "src/lex/c_simplificado.lex"
 { add_token("RETURN"); }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 183 "src/lex/c_simplificado.lex"
+#line 156 "src/lex/c_simplificado.lex"
 { add_token("OPENPAR"); }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 184 "src/lex/c_simplificado.lex"
+#line 157 "src/lex/c_simplificado.lex"
 { add_token("CLOSEPAR"); }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 185 "src/lex/c_simplificado.lex"
+#line 158 "src/lex/c_simplificado.lex"
 { add_token("OPENBRA"); }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 186 "src/lex/c_simplificado.lex"
+#line 159 "src/lex/c_simplificado.lex"
 { add_token("CLOSEBRA"); }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 187 "src/lex/c_simplificado.lex"
+#line 160 "src/lex/c_simplificado.lex"
 { add_token("OPENCURL"); }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 188 "src/lex/c_simplificado.lex"
+#line 161 "src/lex/c_simplificado.lex"
 { add_token("CLOSECURL"); }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 189 "src/lex/c_simplificado.lex"
+#line 162 "src/lex/c_simplificado.lex"
 {
                                         add_token("OPENSTRINT");
                                         BEGIN(0);
@@ -1053,7 +1027,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 193 "src/lex/c_simplificado.lex"
+#line 166 "src/lex/c_simplificado.lex"
 {
                                         add_token("QUOTES");
                                         if(inside_string) { BEGIN(0);inside_string--; }
@@ -1062,64 +1036,64 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 198 "src/lex/c_simplificado.lex"
+#line 171 "src/lex/c_simplificado.lex"
 { add_token("COLON"); }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 199 "src/lex/c_simplificado.lex"
+#line 172 "src/lex/c_simplificado.lex"
 { add_token("ADDOP"); }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 200 "src/lex/c_simplificado.lex"
+#line 173 "src/lex/c_simplificado.lex"
 { add_token("MULOP"); }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 201 "src/lex/c_simplificado.lex"
+#line 174 "src/lex/c_simplificado.lex"
 { add_token("EQ"); }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 202 "src/lex/c_simplificado.lex"
+#line 175 "src/lex/c_simplificado.lex"
 { add_token("RELOP"); }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 204 "src/lex/c_simplificado.lex"
+#line 177 "src/lex/c_simplificado.lex"
 { add_token("INT"); }
 	YY_BREAK
 case 19:
 /* rule 19 can match eol */
 YY_RULE_SETUP
-#line 205 "src/lex/c_simplificado.lex"
+#line 178 "src/lex/c_simplificado.lex"
 { add_token("STRING"); }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 207 "src/lex/c_simplificado.lex"
+#line 180 "src/lex/c_simplificado.lex"
 { push_symbol_table(yytext); add_token("IDENTIFIER"); }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 209 "src/lex/c_simplificado.lex"
+#line 182 "src/lex/c_simplificado.lex"
 { /* eat up one-line comments */ }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 210 "src/lex/c_simplificado.lex"
+#line 183 "src/lex/c_simplificado.lex"
 { mvcol(yyleng); }
 	YY_BREAK
 case 23:
 /* rule 23 can match eol */
 YY_RULE_SETUP
-#line 211 "src/lex/c_simplificado.lex"
+#line 184 "src/lex/c_simplificado.lex"
 { rscol(yyleng); }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 213 "src/lex/c_simplificado.lex"
+#line 186 "src/lex/c_simplificado.lex"
 {
                                         error_message();
                                         mvcol(yyleng);
@@ -1127,10 +1101,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 217 "src/lex/c_simplificado.lex"
+#line 190 "src/lex/c_simplificado.lex"
 ECHO;
 	YY_BREAK
-#line 1134 "src/lex/lex.yy.c"
+#line 1108 "src/lex/lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(STRING):
 	yyterminate();
@@ -2148,13 +2122,16 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 217 "src/lex/c_simplificado.lex"
-
+#line 190 "src/lex/c_simplificado.lex"
 
 
 void main (int argc, char **argv){
+  int print_table = 0;
   if (argc>0){
     sprintf(input_filename, "%s", argv[1]);
+    if(argc > 2 && !strcmp(argv[2], "-t")){
+      print_table = 1;
+    }
     yyin = fopen(argv[1], "r");
   }
   else {
@@ -2162,10 +2139,5 @@ void main (int argc, char **argv){
   }
 
   yylex();
-  if(list_length(&errors) > 0){
-    print_color_red();
-    print_errors(&errors);
-    print_color_end();
-  }
-  print_symbol_table();   
+  if(print_table) print_symbol_table();
 }
