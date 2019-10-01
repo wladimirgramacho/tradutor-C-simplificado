@@ -575,9 +575,9 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "src/lex/c_simplificado.lex"
+#line 1 "src/lex/c_simplificado.l"
 /* scanner for simplified C language with support to string operations */
-#line 6 "src/lex/c_simplificado.lex"
+#line 6 "src/lex/c_simplificado.l"
 #include <string.h>
 
 #define RESET      "\033[0m"
@@ -591,16 +591,10 @@ typedef struct symbol {
   struct symbol *next;
 } symbol;
 
-typedef struct error {
-  char name[400];
-  struct error* next;
-} error;
-
 int inside_string = 0;
 int column_number = 1;
 char input_filename[0xFFF];
 symbol *symbol_table = (symbol*)0;
-error *errors= (error*)0;
 char* currentType;
 int address = 0;
 
@@ -673,9 +667,9 @@ void print_color_end(){
   printf("%s", RESET);
 };
 
-#line 677 "src/lex/lex.yy.c"
+#line 671 "src/lex/lex.yy.c"
 
-#line 679 "src/lex/lex.yy.c"
+#line 673 "src/lex/lex.yy.c"
 
 #define INITIAL 0
 #define STRING 1
@@ -893,10 +887,10 @@ YY_DECL
 		}
 
 	{
-#line 145 "src/lex/c_simplificado.lex"
+#line 139 "src/lex/c_simplificado.l"
 
 
-#line 900 "src/lex/lex.yy.c"
+#line 894 "src/lex/lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -965,12 +959,12 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 147 "src/lex/c_simplificado.lex"
+#line 141 "src/lex/c_simplificado.l"
 { add_token("COND"); }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 148 "src/lex/c_simplificado.lex"
+#line 142 "src/lex/c_simplificado.l"
 { 
                                         currentType = calloc(1, strlen(yytext)+1);
                                         strcpy(currentType, yytext);
@@ -979,47 +973,47 @@ YY_RULE_SETUP
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 153 "src/lex/c_simplificado.lex"
+#line 147 "src/lex/c_simplificado.l"
 { add_token("LOOP"); }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 154 "src/lex/c_simplificado.lex"
+#line 148 "src/lex/c_simplificado.l"
 { add_token("RETURN"); }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 156 "src/lex/c_simplificado.lex"
+#line 150 "src/lex/c_simplificado.l"
 { add_token("OPENPAR"); }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 157 "src/lex/c_simplificado.lex"
+#line 151 "src/lex/c_simplificado.l"
 { add_token("CLOSEPAR"); }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 158 "src/lex/c_simplificado.lex"
+#line 152 "src/lex/c_simplificado.l"
 { add_token("OPENBRA"); }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 159 "src/lex/c_simplificado.lex"
+#line 153 "src/lex/c_simplificado.l"
 { add_token("CLOSEBRA"); }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 160 "src/lex/c_simplificado.lex"
+#line 154 "src/lex/c_simplificado.l"
 { add_token("OPENCURL"); }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 161 "src/lex/c_simplificado.lex"
+#line 155 "src/lex/c_simplificado.l"
 { add_token("CLOSECURL"); }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 162 "src/lex/c_simplificado.lex"
+#line 156 "src/lex/c_simplificado.l"
 {
                                         add_token("OPENSTRINT");
                                         BEGIN(0);
@@ -1027,7 +1021,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 166 "src/lex/c_simplificado.lex"
+#line 160 "src/lex/c_simplificado.l"
 {
                                         add_token("QUOTES");
                                         if(inside_string) { BEGIN(0);inside_string--; }
@@ -1036,64 +1030,64 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 171 "src/lex/c_simplificado.lex"
+#line 165 "src/lex/c_simplificado.l"
 { add_token("COLON"); }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 172 "src/lex/c_simplificado.lex"
+#line 166 "src/lex/c_simplificado.l"
 { add_token("ADDOP"); }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 173 "src/lex/c_simplificado.lex"
+#line 167 "src/lex/c_simplificado.l"
 { add_token("MULOP"); }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 174 "src/lex/c_simplificado.lex"
+#line 168 "src/lex/c_simplificado.l"
 { add_token("EQ"); }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 175 "src/lex/c_simplificado.lex"
+#line 169 "src/lex/c_simplificado.l"
 { add_token("RELOP"); }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 177 "src/lex/c_simplificado.lex"
+#line 171 "src/lex/c_simplificado.l"
 { add_token("INT"); }
 	YY_BREAK
 case 19:
 /* rule 19 can match eol */
 YY_RULE_SETUP
-#line 178 "src/lex/c_simplificado.lex"
+#line 172 "src/lex/c_simplificado.l"
 { add_token("STRING"); }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 180 "src/lex/c_simplificado.lex"
+#line 174 "src/lex/c_simplificado.l"
 { push_symbol_table(yytext); add_token("IDENTIFIER"); }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 182 "src/lex/c_simplificado.lex"
+#line 176 "src/lex/c_simplificado.l"
 { /* eat up one-line comments */ }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 183 "src/lex/c_simplificado.lex"
+#line 177 "src/lex/c_simplificado.l"
 { mvcol(yyleng); }
 	YY_BREAK
 case 23:
 /* rule 23 can match eol */
 YY_RULE_SETUP
-#line 184 "src/lex/c_simplificado.lex"
+#line 178 "src/lex/c_simplificado.l"
 { rscol(yyleng); }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 186 "src/lex/c_simplificado.lex"
+#line 180 "src/lex/c_simplificado.l"
 {
                                         error_message();
                                         mvcol(yyleng);
@@ -1101,10 +1095,10 @@ YY_RULE_SETUP
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 190 "src/lex/c_simplificado.lex"
+#line 184 "src/lex/c_simplificado.l"
 ECHO;
 	YY_BREAK
-#line 1108 "src/lex/lex.yy.c"
+#line 1102 "src/lex/lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 case YY_STATE_EOF(STRING):
 	yyterminate();
@@ -2122,7 +2116,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 190 "src/lex/c_simplificado.lex"
+#line 184 "src/lex/c_simplificado.l"
 
 
 void main (int argc, char **argv){
