@@ -168,7 +168,11 @@ NEWLINE       "\n"
 {EQ}                                  { add_token("EQ"); }
 {RELOP}                               { add_token("RELOP"); }
 
-{NUM}+                                { add_token("INT"); }
+{NUM}+                                { 
+                                        add_token("INT");
+                                        yylval.num = (char *) atoi(yytext);
+                                        return NUM;
+                                      }
 <STRING>{STR}                         { add_token("STRING"); }
 
 {IDENTIFIER}                          { push_symbol_table(yytext); add_token("IDENTIFIER"); }

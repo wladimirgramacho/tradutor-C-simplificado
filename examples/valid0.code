@@ -1,0 +1,25 @@
+int a(float var){}
+
+// useless comment
+
+int main(string str){
+  int a;
+  int b[10];
+  a = 10;
+  b[1] = a * 3;
+
+  while(a = 1){
+    int c;
+  }
+  if(b[1] == 1){
+    float d;
+  }
+  else {
+    float e;
+  }
+  if(b[0] <= 1){
+    b[3] = a * 4;
+  }
+
+  return 0;
+}
