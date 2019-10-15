@@ -1,11 +1,11 @@
 void func(int value){
-  write(value);
+  // write(value);
   return ;
 }
 
 int main(){
-  string str = "this is a string";
-  int var = 3;
+  // string str = "this is a string";
+  int var;
   int arr[3];
 
   arr[0] = 10;
@@ -15,7 +15,7 @@ int main(){
   }
 
   if(var >= 3){
-    str = "this is another string";
+    // str = "this is another string";
   }
   else{
     var = 1;

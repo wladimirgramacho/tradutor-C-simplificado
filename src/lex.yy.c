@@ -502,9 +502,9 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "novo_c_simplificado.l"
+#line 1 "c_simplificado.l"
 /* scanner for simplified C language with support to string operations */
-#line 6 "novo_c_simplificado.l"
+#line 6 "c_simplificado.l"
 #include <stdio.h>
 #include <string.h>
 #include "c_simplificado.tab.h"
@@ -728,7 +728,7 @@ YY_DECL
 		}
 
 	{
-#line 31 "novo_c_simplificado.l"
+#line 31 "c_simplificado.l"
 
 
 #line 735 "lex.yy.c"
@@ -800,67 +800,67 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 33 "novo_c_simplificado.l"
+#line 33 "c_simplificado.l"
 { yylval.id = (char *) strdup(yytext); return TIPO; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 34 "novo_c_simplificado.l"
+#line 34 "c_simplificado.l"
 { return WHILE; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 35 "novo_c_simplificado.l"
+#line 35 "c_simplificado.l"
 { return IF; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 36 "novo_c_simplificado.l"
+#line 36 "c_simplificado.l"
 { return ELSE; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 37 "novo_c_simplificado.l"
+#line 37 "c_simplificado.l"
 { return RETURN; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 39 "novo_c_simplificado.l"
+#line 39 "c_simplificado.l"
 { return EQ; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 40 "novo_c_simplificado.l"
+#line 40 "c_simplificado.l"
 { return CEQ; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 41 "novo_c_simplificado.l"
+#line 41 "c_simplificado.l"
 { return CNE; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 42 "novo_c_simplificado.l"
+#line 42 "c_simplificado.l"
 { return CLT; }
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 43 "novo_c_simplificado.l"
+#line 43 "c_simplificado.l"
 { return CLE; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 44 "novo_c_simplificado.l"
+#line 44 "c_simplificado.l"
 { return CGT; }
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 45 "novo_c_simplificado.l"
+#line 45 "c_simplificado.l"
 { return CGE; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 48 "novo_c_simplificado.l"
+#line 48 "c_simplificado.l"
 { 
                                         yylval.num = atoi(yytext);
                                         return NUM;
@@ -868,7 +868,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 53 "novo_c_simplificado.l"
+#line 53 "c_simplificado.l"
 {
                                         yylval.id = (char *) strdup(yytext);
                                         return ID;
@@ -876,28 +876,28 @@ YY_RULE_SETUP
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 57 "novo_c_simplificado.l"
+#line 57 "c_simplificado.l"
 { return SEMICOLON; }
 	YY_BREAK
 case 16:
 /* rule 16 can match eol */
 YY_RULE_SETUP
-#line 58 "novo_c_simplificado.l"
+#line 58 "c_simplificado.l"
 {}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 59 "novo_c_simplificado.l"
+#line 59 "c_simplificado.l"
 {}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 61 "novo_c_simplificado.l"
+#line 61 "c_simplificado.l"
 { return yytext[0]; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 63 "novo_c_simplificado.l"
+#line 63 "c_simplificado.l"
 ECHO;
 	YY_BREAK
 #line 904 "lex.yy.c"
@@ -1917,7 +1917,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 63 "novo_c_simplificado.l"
+#line 63 "c_simplificado.l"
 
 
 void error(){

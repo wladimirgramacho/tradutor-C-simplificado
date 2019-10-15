@@ -140,7 +140,21 @@ op:
 term:
   '(' expression ')'
 | var
+| call
 | NUM
+;
+
+call:
+  ID '(' args ')'
+;
+
+args:
+| arg_list
+;
+
+arg_list:
+  arg_list ',' expression
+| expression
 ;
 
 %%
