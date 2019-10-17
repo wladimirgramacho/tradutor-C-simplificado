@@ -55,20 +55,22 @@ extern int yydebug;
     IF = 265,
     ELSE = 266,
     RETURN = 267,
-    EQ = 268,
-    CEQ = 269,
-    CNE = 270,
-    CLT = 271,
-    CLE = 272,
-    CGT = 273,
-    CGE = 274,
-    PLUS = 275,
-    MINUS = 276,
-    MULT = 277,
-    DIV = 278,
-    QUOTES = 279,
-    INTERPOL_START = 280,
-    INTERPOL_END = 281
+    WRITE = 268,
+    READ = 269,
+    EQ = 270,
+    CEQ = 271,
+    CNE = 272,
+    CLT = 273,
+    CLE = 274,
+    CGT = 275,
+    CGE = 276,
+    PLUS = 277,
+    MINUS = 278,
+    MULT = 279,
+    DIV = 280,
+    QUOTES = 281,
+    INTERPOL_START = 282,
+    INTERPOL_END = 283
   };
 #endif
 
@@ -84,7 +86,7 @@ union YYSTYPE
   double dec;
   char *str;
 
-#line 88 "c_simplificado.tab.h" /* yacc.c:1909  */
+#line 90 "c_simplificado.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

@@ -52,6 +52,8 @@ interpol_end        "}"
 "if"                                  { return IF; }
 "else"                                { return ELSE; }
 "return"                              { return RETURN; }
+"write"                               { return WRITE; }
+"read"                                { return READ; }
 
 <INITIAL,STRING>{quotes}              {
                                         if(inside_string) { BEGIN(0); inside_string--; return QUOTES; }
@@ -95,7 +97,7 @@ interpol_end        "}"
                                         return ID;
                                       }
 ";"                                   { return SEMICOLON; }
-<INITIAL,EXP>{whitespace}                          {}
+<INITIAL,EXP>{whitespace}             {}
 {comment}                             {}
 
 .                                     { return yytext[0]; }

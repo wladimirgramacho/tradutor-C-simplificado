@@ -20,7 +20,7 @@ int yyerror(char *s);
 %token <num> NUM
 %token <dec> DEC
 %token <str> STR
-%token WHILE IF ELSE RETURN
+%token WHILE IF ELSE RETURN WRITE READ
 %token EQ CEQ CNE CLT CLE CGT CGE
 %token PLUS MINUS MULT DIV
 %token QUOTES
@@ -154,6 +154,8 @@ term:
 
 call:
   ID '(' args ')'
+| WRITE '(' simple_expression ')'
+| READ '(' var ')'
 ;
 
 args:
@@ -161,8 +163,8 @@ args:
 ;
 
 arg_list:
-  arg_list ',' expression
-| expression
+  arg_list ',' simple_expression
+| simple_expression
 ;
 
 string:
