@@ -9,6 +9,7 @@ int yyerror(char *s);
 %union {
   char *id;
   int num;
+  double dec;
   char *str;
 }
 
@@ -17,6 +18,8 @@ int yyerror(char *s);
 %token <id> ID
 %token <id> TIPO
 %token <num> NUM
+%token <dec> DEC
+%token <str> STR
 %token WHILE IF ELSE RETURN
 %token EQ CEQ CNE CLT CLE CGT CGE 
 %right EQ
@@ -142,6 +145,8 @@ term:
 | var
 | call
 | NUM
+| DEC
+| '"' string '"'
 ;
 
 call:
@@ -157,10 +162,14 @@ arg_list:
 | expression
 ;
 
+string:
+| STR
+;
+
 %%
 
 int yyerror(char *s){
-  printf("Syntax Error on line %s\n", s);
+  printf("%s \n", s);
   return 0;
 }
 

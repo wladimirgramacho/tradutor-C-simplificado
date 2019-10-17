@@ -8,15 +8,23 @@
 #include "c_simplificado.tab.h"
 
 void error();
+extern int yylineno;
+
+int inside_string = 0;
 %}
+
+%s STRING
 
 letter        [a-zA-Z]
 digit         [0-9]
 
 identifier    {letter}({letter}|{digit})*
-number        {digit}+
-whitespace    [ \t\n]+
+integer       {digit}+
+decimal       {digit}+"."{digit}+
+str           (\\.|[^"\\])*
 type          ("int"|"float"|"void"|"string")
+
+whitespace    [ \t]+
 
 comment       "//".*
 
@@ -28,13 +36,22 @@ cle           "<="
 cgt           ">"
 cge           ">="
 
+quotes        \"
+
 %%
 
+[ \n]                                 { yylineno = yylineno + 1; }
 {type}                                { yylval.id = (char *) strdup(yytext); return TIPO; }
 "while"                               { return WHILE; }
 "if"                                  { return IF; }
 "else"                                { return ELSE; }
 "return"                              { return RETURN; }
+
+<INITIAL,STRING>{quotes}              {
+                                        if(inside_string) { BEGIN(0); inside_string--; }
+                                        else              { BEGIN(STRING); inside_string++; }
+                                      }
+<STRING>{str}                         { return STR; }
 
 {eq}                                  { return EQ; }
 {ceq}                                 { return CEQ; }
@@ -45,9 +62,13 @@ cge           ">="
 {cge}                                 { return CGE; }
 
 
-{number}                              { 
+{integer}                             { 
                                         yylval.num = atoi(yytext);
                                         return NUM;
+                                      }
+{decimal}                             {
+                                        yylval.dec = atof(yytext);
+                                        return DEC;
                                       }
 
 {identifier}                          {

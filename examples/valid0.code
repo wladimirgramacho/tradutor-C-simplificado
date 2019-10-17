@@ -5,8 +5,11 @@ int a(float var){}
 int main(string str){
   int a;
   int b[10];
+  float pi;
+
   a = 10;
   b[1] = a * 3;
+  decimal = 12.345;
 
   while(a = 1){
     int c;

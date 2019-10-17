@@ -49,17 +49,19 @@ extern int yydebug;
     ID = 259,
     TIPO = 260,
     NUM = 261,
-    WHILE = 262,
-    IF = 263,
-    ELSE = 264,
-    RETURN = 265,
-    EQ = 266,
-    CEQ = 267,
-    CNE = 268,
-    CLT = 269,
-    CLE = 270,
-    CGT = 271,
-    CGE = 272
+    DEC = 262,
+    STR = 263,
+    WHILE = 264,
+    IF = 265,
+    ELSE = 266,
+    RETURN = 267,
+    EQ = 268,
+    CEQ = 269,
+    CNE = 270,
+    CLT = 271,
+    CLE = 272,
+    CGT = 273,
+    CGE = 274
   };
 #endif
 
@@ -72,9 +74,10 @@ union YYSTYPE
 
   char *id;
   int num;
+  double dec;
   char *str;
 
-#line 78 "c_simplificado.tab.h" /* yacc.c:1909  */
+#line 81 "c_simplificado.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
