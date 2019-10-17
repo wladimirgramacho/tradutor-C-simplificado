@@ -4,9 +4,11 @@ void func(int value){
 }
 
 int main(){
-  // string str = "this is a string";
+  string str;
   int var;
   int arr[3];
+
+  str = "";
 
   arr[0] = 10;
   
@@ -15,7 +17,7 @@ int main(){
   }
 
   if(var >= 3){
-    // str = "this is another string";
+    str = "this is another string";
   }
   else{
     var = 1;

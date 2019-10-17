@@ -21,7 +21,8 @@ int yyerror(char *s);
 %token <dec> DEC
 %token <str> STR
 %token WHILE IF ELSE RETURN
-%token EQ CEQ CNE CLT CLE CGT CGE 
+%token EQ CEQ CNE CLT CLE CGT CGE
+%token QUOTES
 %right EQ
 %left '+' '-'
 %left '*' '/'
@@ -146,7 +147,7 @@ term:
 | call
 | NUM
 | DEC
-| '"' string '"'
+| QUOTES string QUOTES
 ;
 
 call:

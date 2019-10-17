@@ -61,7 +61,8 @@ extern int yydebug;
     CLT = 271,
     CLE = 272,
     CGT = 273,
-    CGE = 274
+    CGE = 274,
+    QUOTES = 275
   };
 #endif
 
@@ -77,7 +78,7 @@ union YYSTYPE
   double dec;
   char *str;
 
-#line 81 "c_simplificado.tab.h" /* yacc.c:1909  */
+#line 82 "c_simplificado.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

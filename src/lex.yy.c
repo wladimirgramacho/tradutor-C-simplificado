@@ -896,8 +896,8 @@ case 7:
 YY_RULE_SETUP
 #line 50 "c_simplificado.l"
 {
-                                        if(inside_string) { BEGIN(0); inside_string--; }
-                                        else              { BEGIN(STRING); inside_string++; }
+                                        if(inside_string) { BEGIN(0); inside_string--; return QUOTES; }
+                                        else              { BEGIN(STRING); inside_string++; return QUOTES; }
                                       }
 	YY_BREAK
 case 8:
@@ -952,7 +952,7 @@ YY_RULE_SETUP
 case 17:
 YY_RULE_SETUP
 #line 69 "c_simplificado.l"
-{ 
+{
                                         yylval.dec = atof(yytext);
                                         return DEC;
                                       }

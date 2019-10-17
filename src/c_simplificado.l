@@ -48,8 +48,8 @@ quotes        \"
 "return"                              { return RETURN; }
 
 <INITIAL,STRING>{quotes}              {
-                                        if(inside_string) { BEGIN(0); inside_string--; }
-                                        else              { BEGIN(STRING); inside_string++; }
+                                        if(inside_string) { BEGIN(0); inside_string--; return QUOTES; }
+                                        else              { BEGIN(STRING); inside_string++; return QUOTES; }
                                       }
 <STRING>{str}                         { return STR; }
 
