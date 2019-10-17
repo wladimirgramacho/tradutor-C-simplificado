@@ -22,7 +22,9 @@ int yyerror(char *s);
 %token <str> STR
 %token WHILE IF ELSE RETURN
 %token EQ CEQ CNE CLT CLE CGT CGE
+%token PLUS MINUS MULT DIV
 %token QUOTES
+%token INTERPOL_START INTERPOL_END
 %right EQ
 %left '+' '-'
 %left '*' '/'
@@ -116,11 +118,11 @@ var:
 ;
 
 simple_expression:
-  op_expression relop op_expression
+  op_expression cond_op op_expression
 | op_expression
 ;
 
-relop:
+cond_op:
   CEQ
 | CNE
 | CLT
@@ -135,14 +137,14 @@ op_expression:
 ;
 
 op:
-  '+'
-| '-'
-|  '*'
-| '/'
+  PLUS
+| MINUS
+| MULT
+| DIV
 ;
 
 term:
-  '(' expression ')'
+  '(' simple_expression ')'
 | var
 | call
 | NUM
@@ -164,7 +166,8 @@ arg_list:
 ;
 
 string:
-| STR
+| string STR
+| string INTERPOL_START simple_expression INTERPOL_END
 ;
 
 %%

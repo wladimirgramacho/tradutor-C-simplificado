@@ -62,7 +62,13 @@ extern int yydebug;
     CLE = 272,
     CGT = 273,
     CGE = 274,
-    QUOTES = 275
+    PLUS = 275,
+    MINUS = 276,
+    MULT = 277,
+    DIV = 278,
+    QUOTES = 279,
+    INTERPOL_START = 280,
+    INTERPOL_END = 281
   };
 #endif
 
@@ -78,7 +84,7 @@ union YYSTYPE
   double dec;
   char *str;
 
-#line 82 "c_simplificado.tab.h" /* yacc.c:1909  */
+#line 88 "c_simplificado.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

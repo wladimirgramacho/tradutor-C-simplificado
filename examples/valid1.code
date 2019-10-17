@@ -17,7 +17,7 @@ int main(){
   }
 
   if(var >= 3){
-    str = "this is another string";
+    str = "this is another string with interpolation #{a + (b * var)}";
   }
   else{
     var = 1;
