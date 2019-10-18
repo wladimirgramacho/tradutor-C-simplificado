@@ -10,7 +10,7 @@
 int yylex();
 int yyerror(const char *s);
 struct node* add_node(int data);
-void add_symbol(char *name, char *type);
+void add_symbol(char *name, char *type, char *object_type);
 
 struct node {
   int data;
@@ -21,6 +21,7 @@ struct node {
 struct symbol {
   char *name;         // key field
   char *type;
+  char *object_type;  // "var" or "func"
   UT_hash_handle hh;  // makes this structure hashable
 };
 
@@ -68,12 +69,12 @@ declaration:
 ;
 
 var_declaration:
-  TIPO ID ';'                                   { add_symbol($2, $1); }
-| TIPO ID '[' NUM ']' ';'                       { add_symbol($2, $1); }
+  TIPO ID ';'                                   { add_symbol($2, $1, "var"); }
+| TIPO ID '[' NUM ']' ';'                       { add_symbol($2, $1, "var"); }
 ;
 
 fun_declaration:
-  TIPO ID '(' params ')' compound_statement     { add_symbol($2, $1); }
+  TIPO ID '(' params ')' compound_statement     { add_symbol($2, $1, "func"); }
 ;
 
 params:
@@ -204,7 +205,7 @@ struct node* add_node(int data){
   return node;
 }
 
-void add_symbol(char *name, char *type){
+void add_symbol(char *name, char *type, char *object_type){
   struct symbol *s;
 
   HASH_FIND_STR(symbol_table, name, s);
@@ -213,6 +214,7 @@ void add_symbol(char *name, char *type){
 
     s->name = (char *) strdup(name);
     s->type = (char *) strdup(type);
+    s->object_type = (char *) strdup(object_type);
 
     HASH_ADD_STR(symbol_table, name, s);
   }
@@ -222,9 +224,9 @@ void print_symbol_table() {
   struct symbol *s;
 
   printf("======  SYMBOL TABLE ======\n");
-  printf("NAME\t\tTYPE\n");
+  printf("NAME\t\tTYPE\t\tOBJECT_TYPE\n");
   for(s=symbol_table; s != NULL; s=s->hh.next) {
-    printf("%s\t\t%s\n", s->name, s->type);
+    printf("%s\t\t%s\t\t%s\n", s->name, s->type, s->object_type);
   }
 }
 
@@ -232,6 +234,9 @@ void free_symbol_table(){
   struct symbol *s;
   for(s=symbol_table; s != NULL; s=s->hh.next) {
     HASH_DEL(symbol_table, s);
+    free(s->name);
+    free(s->type);
+    free(s->object_type);
     free(s);
   }
 }

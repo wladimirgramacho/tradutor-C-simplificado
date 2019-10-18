@@ -71,7 +71,7 @@
 int yylex();
 int yyerror(const char *s);
 struct node* add_node(int data);
-void add_symbol(char *name, char *type);
+void add_symbol(char *name, char *type, char *object_type);
 
 struct node {
   int data;
@@ -82,13 +82,14 @@ struct node {
 struct symbol {
   char *name;         // key field
   char *type;
+  char *object_type;  // "var" or "func"
   UT_hash_handle hh;  // makes this structure hashable
 };
 
 struct symbol *symbol_table = NULL;
 
 
-#line 92 "wladus.tab.c" /* yacc.c:339  */
+#line 93 "wladus.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -156,14 +157,14 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 31 "wladus.y" /* yacc.c:355  */
+#line 32 "wladus.y" /* yacc.c:355  */
 
   char *id;
   int num;
   double dec;
   char *str;
 
-#line 167 "wladus.tab.c" /* yacc.c:355  */
+#line 168 "wladus.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -194,7 +195,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 198 "wladus.tab.c" /* yacc.c:358  */
+#line 199 "wladus.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -496,13 +497,13 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    57,    57,    61,    62,    66,    67,    71,    72,    76,
-      79,    80,    84,    85,    89,    90,    94,    98,    99,   102,
-     103,   107,   108,   109,   110,   114,   118,   119,   123,   127,
-     128,   132,   133,   137,   138,   142,   143,   147,   148,   149,
-     150,   151,   152,   156,   157,   161,   162,   163,   164,   168,
-     169,   170,   171,   172,   173,   177,   178,   179,   182,   183,
-     187,   188,   191,   192,   193
+       0,    58,    58,    62,    63,    67,    68,    72,    73,    77,
+      80,    81,    85,    86,    90,    91,    95,    99,   100,   103,
+     104,   108,   109,   110,   111,   115,   119,   120,   124,   128,
+     129,   133,   134,   138,   139,   143,   144,   148,   149,   150,
+     151,   152,   153,   157,   158,   162,   163,   164,   165,   169,
+     170,   171,   172,   173,   174,   178,   179,   180,   183,   184,
+     188,   189,   192,   193,   194
 };
 #endif
 
@@ -1444,25 +1445,25 @@ yyreduce:
   switch (yyn)
     {
         case 7:
-#line 71 "wladus.y" /* yacc.c:1646  */
-    { add_symbol((yyvsp[-1].id), (yyvsp[-2].id)); }
-#line 1450 "wladus.tab.c" /* yacc.c:1646  */
+#line 72 "wladus.y" /* yacc.c:1646  */
+    { add_symbol((yyvsp[-1].id), (yyvsp[-2].id), "var"); }
+#line 1451 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 72 "wladus.y" /* yacc.c:1646  */
-    { add_symbol((yyvsp[-4].id), (yyvsp[-5].id)); }
-#line 1456 "wladus.tab.c" /* yacc.c:1646  */
+#line 73 "wladus.y" /* yacc.c:1646  */
+    { add_symbol((yyvsp[-4].id), (yyvsp[-5].id), "var"); }
+#line 1457 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 76 "wladus.y" /* yacc.c:1646  */
-    { add_symbol((yyvsp[-4].id), (yyvsp[-5].id)); }
-#line 1462 "wladus.tab.c" /* yacc.c:1646  */
+#line 77 "wladus.y" /* yacc.c:1646  */
+    { add_symbol((yyvsp[-4].id), (yyvsp[-5].id), "func"); }
+#line 1463 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1466 "wladus.tab.c" /* yacc.c:1646  */
+#line 1467 "wladus.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1697,7 +1698,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 196 "wladus.y" /* yacc.c:1906  */
+#line 197 "wladus.y" /* yacc.c:1906  */
 
 
 struct node* add_node(int data){
@@ -1709,7 +1710,7 @@ struct node* add_node(int data){
   return node;
 }
 
-void add_symbol(char *name, char *type){
+void add_symbol(char *name, char *type, char *object_type){
   struct symbol *s;
 
   HASH_FIND_STR(symbol_table, name, s);
@@ -1718,6 +1719,7 @@ void add_symbol(char *name, char *type){
 
     s->name = (char *) strdup(name);
     s->type = (char *) strdup(type);
+    s->object_type = (char *) strdup(object_type);
 
     HASH_ADD_STR(symbol_table, name, s);
   }
@@ -1727,9 +1729,9 @@ void print_symbol_table() {
   struct symbol *s;
 
   printf("======  SYMBOL TABLE ======\n");
-  printf("NAME\t\tTYPE\n");
+  printf("NAME\t\tTYPE\t\tOBJECT_TYPE\n");
   for(s=symbol_table; s != NULL; s=s->hh.next) {
-    printf("%s\t\t%s\n", s->name, s->type);
+    printf("%s\t\t%s\t\t%s\n", s->name, s->type, s->object_type);
   }
 }
 
@@ -1737,6 +1739,9 @@ void free_symbol_table(){
   struct symbol *s;
   for(s=symbol_table; s != NULL; s=s->hh.next) {
     HASH_DEL(symbol_table, s);
+    free(s->name);
+    free(s->type);
+    free(s->object_type);
     free(s);
   }
 }
