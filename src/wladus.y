@@ -242,9 +242,15 @@ void free_symbol_table(){
 }
 
 
-int main(){
+void main (int argc, char **argv){
+  int print_table = 0;
+
+  if(argc > 1 && !strcmp(argv[1], "-t")){
+    print_table = 1;
+  }
+
   yyparse();
-  print_symbol_table();
+
+  if(print_table) print_symbol_table();
   free_symbol_table();
-  return 0;
 }
