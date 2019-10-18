@@ -17,3 +17,4 @@ test:
 	./prog < ../examples/valid2.code
 	./prog < ../examples/invalid1.code
 	./prog < ../examples/invalid2.code
+	./prog < ../examples/invalid3.code

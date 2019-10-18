@@ -207,14 +207,14 @@ struct node* add_node(int data){
 void add_symbol(char *name, char *type){
   struct symbol *s;
 
-  HASH_FIND_INT(symbol_table, &name, s);
-  if(s==NULL){
-    s = malloc(sizeof(struct symbol));
+  HASH_FIND_STR(symbol_table, name, s);
+  if(s == NULL){
+    s = (struct symbol *)malloc(sizeof *s);
 
     s->name = (char *) strdup(name);
     s->type = (char *) strdup(type);
 
-    HASH_ADD_INT(symbol_table, name, s);
+    HASH_ADD_STR(symbol_table, name, s);
   }
 }
 
