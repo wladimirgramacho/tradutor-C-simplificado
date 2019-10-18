@@ -206,12 +206,16 @@ struct node* add_node(int data){
 
 void add_symbol(char *name, char *type){
   struct symbol *s;
-  s = malloc(sizeof(struct symbol));
 
-  s->name = (char *) strdup(name);
-  s->type = (char *) strdup(type);
+  HASH_FIND_INT(symbol_table, &name, s);
+  if(s==NULL){
+    s = malloc(sizeof(struct symbol));
 
-  HASH_ADD_INT(symbol_table, name, s);
+    s->name = (char *) strdup(name);
+    s->type = (char *) strdup(type);
+
+    HASH_ADD_INT(symbol_table, name, s);
+  }
 }
 
 void print_symbol_table() {
@@ -224,9 +228,18 @@ void print_symbol_table() {
   }
 }
 
+void free_symbol_table(){
+  struct symbol *s;
+  for(s=symbol_table; s != NULL; s=s->hh.next) {
+    HASH_DEL(symbol_table, s);
+    free(s);
+  }
+}
+
 
 int main(){
   yyparse();
   print_symbol_table();
+  free_symbol_table();
   return 0;
 }
