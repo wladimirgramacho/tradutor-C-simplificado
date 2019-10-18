@@ -62,7 +62,7 @@
 
 
 /* Copy the first part of user declarations.  */
-#line 5 "c_simplificado.y" /* yacc.c:339  */
+#line 5 "wladus.y" /* yacc.c:339  */
 
 #include <stdio.h>
 #include "uthash.h"
@@ -72,7 +72,7 @@ int yylex();
 int yyerror(const char *s);
 
 
-#line 76 "c_simplificado.tab.c" /* yacc.c:339  */
+#line 76 "wladus.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -91,9 +91,9 @@ int yyerror(const char *s);
 #endif
 
 /* In a future release of Bison, this section will be replaced
-   by #include "c_simplificado.tab.h".  */
-#ifndef YY_YY_C_SIMPLIFICADO_TAB_H_INCLUDED
-# define YY_YY_C_SIMPLIFICADO_TAB_H_INCLUDED
+   by #include "wladus.tab.h".  */
+#ifndef YY_YY_WLADUS_TAB_H_INCLUDED
+# define YY_YY_WLADUS_TAB_H_INCLUDED
 /* Debug traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 1
@@ -141,14 +141,14 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 15 "c_simplificado.y" /* yacc.c:355  */
+#line 15 "wladus.y" /* yacc.c:355  */
 
   char *id;
   int num;
   double dec;
   char *str;
 
-#line 152 "c_simplificado.tab.c" /* yacc.c:355  */
+#line 152 "wladus.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -175,11 +175,11 @@ extern YYSTYPE yylval;
 extern YYLTYPE yylloc;
 int yyparse (void);
 
-#endif /* !YY_YY_C_SIMPLIFICADO_TAB_H_INCLUDED  */
+#endif /* !YY_YY_WLADUS_TAB_H_INCLUDED  */
 
 /* Copy the second part of user declarations.  */
 
-#line 183 "c_simplificado.tab.c" /* yacc.c:358  */
+#line 183 "wladus.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -1429,7 +1429,7 @@ yyreduce:
   switch (yyn)
     {
       
-#line 1433 "c_simplificado.tab.c" /* yacc.c:1646  */
+#line 1433 "wladus.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1664,7 +1664,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 181 "c_simplificado.y" /* yacc.c:1906  */
+#line 181 "wladus.y" /* yacc.c:1906  */
 
 
 int yyerror(const char *s){

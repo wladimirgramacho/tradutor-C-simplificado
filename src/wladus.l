@@ -5,7 +5,7 @@
 %{
 #include <stdio.h>
 #include <string.h>
-#include "c_simplificado.tab.h"
+#include "wladus.tab.h"
 
 void error();
 extern int yylineno;

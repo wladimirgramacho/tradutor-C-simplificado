@@ -565,12 +565,12 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "c_simplificado.l"
+#line 1 "wladus.l"
 /* scanner for simplified C language with support to string operations */
-#line 6 "c_simplificado.l"
+#line 6 "wladus.l"
 #include <stdio.h>
 #include <string.h>
-#include "c_simplificado.tab.h"
+#include "wladus.tab.h"
 
 void error();
 extern int yylineno;
@@ -797,7 +797,7 @@ YY_DECL
 		}
 
 	{
-#line 47 "c_simplificado.l"
+#line 47 "wladus.l"
 
 
 #line 804 "lex.yy.c"
@@ -870,47 +870,47 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 /* rule 1 can match eol */
 YY_RULE_SETUP
-#line 49 "c_simplificado.l"
+#line 49 "wladus.l"
 { yylineno = yylineno + 1; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 50 "c_simplificado.l"
+#line 50 "wladus.l"
 { yylval.id = (char *) strdup(yytext); return TIPO; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 51 "c_simplificado.l"
+#line 51 "wladus.l"
 { return WHILE; }
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 52 "c_simplificado.l"
+#line 52 "wladus.l"
 { return IF; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 53 "c_simplificado.l"
+#line 53 "wladus.l"
 { return ELSE; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
-#line 54 "c_simplificado.l"
+#line 54 "wladus.l"
 { return RETURN; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 55 "c_simplificado.l"
+#line 55 "wladus.l"
 { return WRITE; }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 56 "c_simplificado.l"
+#line 56 "wladus.l"
 { return READ; }
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 58 "c_simplificado.l"
+#line 58 "wladus.l"
 {
                                         if(inside_string) { BEGIN(0); inside_string--; return QUOTES; }
                                         else              { BEGIN(STRING); inside_string++; return QUOTES; }
@@ -919,12 +919,12 @@ YY_RULE_SETUP
 case 10:
 /* rule 10 can match eol */
 YY_RULE_SETUP
-#line 62 "c_simplificado.l"
+#line 62 "wladus.l"
 { return STR; }
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 63 "c_simplificado.l"
+#line 63 "wladus.l"
 {
                                         if(inside_string) { BEGIN(EXP); return INTERPOL_START; }
                                         else              { return yytext[0]; }
@@ -932,7 +932,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 67 "c_simplificado.l"
+#line 67 "wladus.l"
 {
                                         if(inside_string) { BEGIN(0); return INTERPOL_END; }
                                         else              { return yytext[0]; }
@@ -940,62 +940,62 @@ YY_RULE_SETUP
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 72 "c_simplificado.l"
+#line 72 "wladus.l"
 { return EQ; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 73 "c_simplificado.l"
+#line 73 "wladus.l"
 { return CEQ; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 74 "c_simplificado.l"
+#line 74 "wladus.l"
 { return CNE; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 75 "c_simplificado.l"
+#line 75 "wladus.l"
 { return CLT; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 76 "c_simplificado.l"
+#line 76 "wladus.l"
 { return CLE; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
-#line 77 "c_simplificado.l"
+#line 77 "wladus.l"
 { return CGT; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
-#line 78 "c_simplificado.l"
+#line 78 "wladus.l"
 { return CGE; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
-#line 80 "c_simplificado.l"
+#line 80 "wladus.l"
 { return PLUS; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
-#line 81 "c_simplificado.l"
+#line 81 "wladus.l"
 { return MINUS; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
-#line 82 "c_simplificado.l"
+#line 82 "wladus.l"
 { return MULT; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
-#line 83 "c_simplificado.l"
+#line 83 "wladus.l"
 { return DIV; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
-#line 86 "c_simplificado.l"
+#line 86 "wladus.l"
 { 
                                         yylval.num = atoi(yytext);
                                         return NUM;
@@ -1003,7 +1003,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
-#line 90 "c_simplificado.l"
+#line 90 "wladus.l"
 {
                                         yylval.dec = atof(yytext);
                                         return DEC;
@@ -1011,7 +1011,7 @@ YY_RULE_SETUP
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
-#line 95 "c_simplificado.l"
+#line 95 "wladus.l"
 {
                                         yylval.id = (char *) strdup(yytext);
                                         return ID;
@@ -1019,27 +1019,27 @@ YY_RULE_SETUP
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
-#line 99 "c_simplificado.l"
+#line 99 "wladus.l"
 { return SEMICOLON; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
-#line 100 "c_simplificado.l"
+#line 100 "wladus.l"
 {}
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
-#line 101 "c_simplificado.l"
+#line 101 "wladus.l"
 {}
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
-#line 103 "c_simplificado.l"
+#line 103 "wladus.l"
 { return yytext[0]; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
-#line 105 "c_simplificado.l"
+#line 105 "wladus.l"
 ECHO;
 	YY_BREAK
 #line 1046 "lex.yy.c"
@@ -2061,7 +2061,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 105 "c_simplificado.l"
+#line 105 "wladus.l"
 
 
 void error(){

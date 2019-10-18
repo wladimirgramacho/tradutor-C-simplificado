@@ -3,13 +3,13 @@ all: analise
 analise: bison flex comp
 
 bison:
-	bison -d c_simplificado.y
+	bison -d wladus.y
 
 flex:
-	flex -o lex.yy.c c_simplificado.l
+	flex -o lex.yy.c wladus.l
 
 comp:
-	gcc c_simplificado.tab.c lex.yy.c -o prog
+	gcc wladus.tab.c lex.yy.c -o prog
 
 test:
 	./prog < ../examples/valid0.code
