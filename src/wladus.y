@@ -10,6 +10,7 @@
 int yylex();
 int yyerror(const char *s);
 struct node* add_node(int data);
+void add_symbol(char *name, char *type);
 
 struct node {
   int data;
@@ -18,10 +19,12 @@ struct node {
 };
 
 struct symbol {
-  int id;
-  char name[10];
-  UT_hash_handle hh; /* makes this structure hashable */
+  char *name;         // key field
+  char *type;
+  UT_hash_handle hh;  // makes this structure hashable
 };
+
+struct symbol *symbol_table = NULL;
 
 %}
 
@@ -65,8 +68,8 @@ declaration:
 ;
 
 var_declaration:
-  TIPO ID ';'
-| TIPO ID '[' NUM ']' ';'
+  TIPO ID ';'                                   { add_symbol($2, $1); }
+| TIPO ID '[' NUM ']' ';'                       { add_symbol($2, $1); }
 ;
 
 fun_declaration:
@@ -201,12 +204,29 @@ struct node* add_node(int data){
   return node;
 }
 
-void add_symbol(struct symbol *s){
-  // HASH_ADD_INT(users, id, s);
+void add_symbol(char *name, char *type){
+  struct symbol *s;
+  s = malloc(sizeof(struct symbol));
+
+  s->name = (char *) strdup(name);
+  s->type = (char *) strdup(type);
+
+  HASH_ADD_INT(symbol_table, name, s);
+}
+
+void print_symbol_table() {
+  struct symbol *s;
+
+  printf("======  SYMBOL TABLE ======\n");
+  printf("NAME\t\tTYPE\n");
+  for(s=symbol_table; s != NULL; s=s->hh.next) {
+    printf("%s\t\t%s\n", s->name, s->type);
+  }
 }
 
 
 int main(){
   yyparse();
+  print_symbol_table();
   return 0;
 }
