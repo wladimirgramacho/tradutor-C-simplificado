@@ -1,5 +1,7 @@
 %{
 #include <stdio.h>
+#include "uthash.h"
+
 
 int yylex();
 int yyerror(char *s);

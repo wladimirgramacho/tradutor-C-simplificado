@@ -65,12 +65,14 @@
 #line 1 "c_simplificado.y" /* yacc.c:339  */
 
 #include <stdio.h>
+#include "uthash.h"
+
 
 int yylex();
 int yyerror(char *s);
 
 
-#line 74 "c_simplificado.tab.c" /* yacc.c:339  */
+#line 76 "c_simplificado.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -139,14 +141,14 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 9 "c_simplificado.y" /* yacc.c:355  */
+#line 11 "c_simplificado.y" /* yacc.c:355  */
 
   char *id;
   int num;
   double dec;
   char *str;
 
-#line 150 "c_simplificado.tab.c" /* yacc.c:355  */
+#line 152 "c_simplificado.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -163,7 +165,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 167 "c_simplificado.tab.c" /* yacc.c:358  */
+#line 169 "c_simplificado.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -463,13 +465,13 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    36,    36,    40,    41,    45,    46,    50,    51,    55,
-      58,    59,    63,    64,    68,    69,    73,    77,    78,    81,
-      82,    86,    87,    88,    89,    93,    97,    98,   102,   106,
-     107,   111,   112,   116,   117,   121,   122,   126,   127,   128,
-     129,   130,   131,   135,   136,   140,   141,   142,   143,   147,
-     148,   149,   150,   151,   152,   156,   157,   158,   161,   162,
-     166,   167,   170,   171,   172
+       0,    38,    38,    42,    43,    47,    48,    52,    53,    57,
+      60,    61,    65,    66,    70,    71,    75,    79,    80,    83,
+      84,    88,    89,    90,    91,    95,    99,   100,   104,   108,
+     109,   113,   114,   118,   119,   123,   124,   128,   129,   130,
+     131,   132,   133,   137,   138,   142,   143,   144,   145,   149,
+     150,   151,   152,   153,   154,   158,   159,   160,   163,   164,
+     168,   169,   172,   173,   174
 };
 #endif
 
@@ -1318,7 +1320,7 @@ yyreduce:
   switch (yyn)
     {
       
-#line 1322 "c_simplificado.tab.c" /* yacc.c:1646  */
+#line 1324 "c_simplificado.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1546,7 +1548,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 175 "c_simplificado.y" /* yacc.c:1906  */
+#line 177 "c_simplificado.y" /* yacc.c:1906  */
 
 
 int yyerror(char *s){
