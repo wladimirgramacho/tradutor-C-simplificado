@@ -180,11 +180,6 @@ string:
 
 %%
 
-int yyerror(const char *s){
-  printf("%s \n", s);
-  return 0;
-}
-
 int main(){
   yyparse();
   return 0;

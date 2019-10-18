@@ -7,7 +7,7 @@
 #include <string.h>
 #include "wladus.tab.h"
 
-void error();
+void yyerror(const char *s);
 extern int yylineno;
 
 int inside_string = 0;
@@ -23,7 +23,7 @@ decimal             {digit}+"."{digit}+
 str                 (\\.|[^"#{}\\])*
 type                int|float|void|string
 
-whitespace          [ \t]+
+whitespace          [ \t\n]+
 comment             "//".*
 
 eq                  "="
@@ -46,7 +46,6 @@ interpol_end        "}"
 
 %%
 
-[ \n]                                 { yylineno = yylineno + 1; }
 {type}                                { yylval.id = (char *) strdup(yytext); return TIPO; }
 "while"                               { return WHILE; }
 "if"                                  { return IF; }
@@ -104,6 +103,6 @@ interpol_end        "}"
 
 %%
 
-void error(){
-  printf("Other input");
+void yyerror(const char *s){
+  printf("%d: %s \n", yylineno, s);
 }
