@@ -70,9 +70,22 @@
 
 int yylex();
 int yyerror(const char *s);
+struct node* add_node(int data);
+
+struct node { 
+  int data;
+  struct node *left;
+  struct node *right;
+};
+
+struct symbol {
+  int id;
+  char name[10];
+  UT_hash_handle hh; /* makes this structure hashable */
+};
 
 
-#line 76 "wladus.tab.c" /* yacc.c:339  */
+#line 89 "wladus.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -140,14 +153,14 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 15 "wladus.y" /* yacc.c:355  */
+#line 28 "wladus.y" /* yacc.c:355  */
 
   char *id;
   int num;
   double dec;
   char *str;
 
-#line 151 "wladus.tab.c" /* yacc.c:355  */
+#line 164 "wladus.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -178,7 +191,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 182 "wladus.tab.c" /* yacc.c:358  */
+#line 195 "wladus.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -480,13 +493,13 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    41,    41,    45,    46,    50,    51,    55,    56,    60,
-      63,    64,    68,    69,    73,    74,    78,    82,    83,    86,
-      87,    91,    92,    93,    94,    98,   102,   103,   107,   111,
-     112,   116,   117,   121,   122,   126,   127,   131,   132,   133,
-     134,   135,   136,   140,   141,   145,   146,   147,   148,   152,
-     153,   154,   155,   156,   157,   161,   162,   163,   166,   167,
-     171,   172,   175,   176,   177
+       0,    54,    54,    58,    59,    63,    64,    68,    69,    73,
+      76,    77,    81,    82,    86,    87,    91,    95,    96,    99,
+     100,   104,   105,   106,   107,   111,   115,   116,   120,   124,
+     125,   129,   130,   134,   135,   139,   140,   144,   145,   146,
+     147,   148,   149,   153,   154,   158,   159,   160,   161,   165,
+     166,   167,   168,   169,   170,   174,   175,   176,   179,   180,
+     184,   185,   188,   189,   190
 };
 #endif
 
@@ -1428,7 +1441,7 @@ yyreduce:
   switch (yyn)
     {
       
-#line 1432 "wladus.tab.c" /* yacc.c:1646  */
+#line 1445 "wladus.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1663,7 +1676,21 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 180 "wladus.y" /* yacc.c:1906  */
+#line 193 "wladus.y" /* yacc.c:1906  */
+
+
+struct node* add_node(int data){
+  struct node* node = (struct node*)malloc(sizeof(struct node));
+  node->data = data;
+  node->left = NULL;
+  node->right = NULL;
+
+  return node;
+}
+
+void add_symbol(struct symbol *s){
+  // HASH_ADD_INT( users, id, s );
+}
 
 
 int main(){

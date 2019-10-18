@@ -9,6 +9,19 @@
 
 int yylex();
 int yyerror(const char *s);
+struct node* add_node(int data);
+
+struct node {
+  int data;
+  struct node *left;
+  struct node *right;
+};
+
+struct symbol {
+  int id;
+  char name[10];
+  UT_hash_handle hh; /* makes this structure hashable */
+};
 
 %}
 
@@ -178,6 +191,20 @@ string:
 ;
 
 %%
+
+struct node* add_node(int data){
+  struct node* node = (struct node*)malloc(sizeof(struct node));
+  node->data = data;
+  node->left = NULL;
+  node->right = NULL;
+
+  return node;
+}
+
+void add_symbol(struct symbol *s){
+  // HASH_ADD_INT(users, id, s);
+}
+
 
 int main(){
   yyparse();
