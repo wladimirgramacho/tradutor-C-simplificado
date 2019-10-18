@@ -1455,8 +1455,14 @@ yyreduce:
 #line 1456 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
+  case 9:
+#line 76 "wladus.y" /* yacc.c:1646  */
+    { add_symbol((yyvsp[-4].id), (yyvsp[-5].id)); }
+#line 1462 "wladus.tab.c" /* yacc.c:1646  */
+    break;
 
-#line 1460 "wladus.tab.c" /* yacc.c:1646  */
+
+#line 1466 "wladus.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires

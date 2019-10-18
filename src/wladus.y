@@ -73,7 +73,7 @@ var_declaration:
 ;
 
 fun_declaration:
-  TIPO ID '(' params ')' compound_statement
+  TIPO ID '(' params ')' compound_statement     { add_symbol($2, $1); }
 ;
 
 params:
