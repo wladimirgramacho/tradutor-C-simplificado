@@ -1,10 +1,14 @@
+%error-verbose
+%debug
+%locations
+
 %{
 #include <stdio.h>
 #include "uthash.h"
 
 
 int yylex();
-int yyerror(char *s);
+int yyerror(const char *s);
 
 %}
 
@@ -176,7 +180,7 @@ string:
 
 %%
 
-int yyerror(char *s){
+int yyerror(const char *s){
   printf("%s \n", s);
   return 0;
 }
