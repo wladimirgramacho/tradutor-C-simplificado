@@ -90,12 +90,11 @@ interpol_end        "}"
                                         yylval.dec = atof(yytext);
                                         return DEC;
                                       }
-
 <INITIAL,EXP>{identifier}             {
                                         yylval.id = (char *) strdup(yytext);
                                         return ID;
                                       }
-";"                                   { return SEMICOLON; }
+
 <INITIAL,EXP>{whitespace}             {}
 {comment}                             {}
 
@@ -104,5 +103,5 @@ interpol_end        "}"
 %%
 
 void yyerror(const char *s){
-  printf("%d: %s \n", yylineno, s);
+  fprintf(stderr, "%d: %s \n", yylineno, s);
 }

@@ -19,7 +19,6 @@ int yyerror(const char *s);
   char *str;
 }
 
-%token SEMICOLON
  
 %token <id> ID
 %token <id> TIPO
@@ -53,8 +52,8 @@ declaration:
 ;
 
 var_declaration:
-  TIPO ID SEMICOLON
-| TIPO ID '[' NUM ']' SEMICOLON
+  TIPO ID ';'
+| TIPO ID '[' NUM ']' ';'
 ;
 
 fun_declaration:
@@ -96,7 +95,7 @@ statement:
 ;
 
 expression_statement:
-  expression SEMICOLON
+  expression ';'
 ;
 
 conditional_statement:
@@ -109,8 +108,8 @@ iteration_statement:
 ;
 
 return_statement:
-  expression SEMICOLON
-| SEMICOLON
+  expression ';'
+| ';'
 ;
 
 expression:

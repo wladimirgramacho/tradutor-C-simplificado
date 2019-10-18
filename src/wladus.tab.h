@@ -45,32 +45,31 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    SEMICOLON = 258,
-    ID = 259,
-    TIPO = 260,
-    NUM = 261,
-    DEC = 262,
-    STR = 263,
-    WHILE = 264,
-    IF = 265,
-    ELSE = 266,
-    RETURN = 267,
-    WRITE = 268,
-    READ = 269,
-    EQ = 270,
-    CEQ = 271,
-    CNE = 272,
-    CLT = 273,
-    CLE = 274,
-    CGT = 275,
-    CGE = 276,
-    PLUS = 277,
-    MINUS = 278,
-    MULT = 279,
-    DIV = 280,
-    QUOTES = 281,
-    INTERPOL_START = 282,
-    INTERPOL_END = 283
+    ID = 258,
+    TIPO = 259,
+    NUM = 260,
+    DEC = 261,
+    STR = 262,
+    WHILE = 263,
+    IF = 264,
+    ELSE = 265,
+    RETURN = 266,
+    WRITE = 267,
+    READ = 268,
+    EQ = 269,
+    CEQ = 270,
+    CNE = 271,
+    CLT = 272,
+    CLE = 273,
+    CGT = 274,
+    CGE = 275,
+    PLUS = 276,
+    MINUS = 277,
+    MULT = 278,
+    DIV = 279,
+    QUOTES = 280,
+    INTERPOL_START = 281,
+    INTERPOL_END = 282
   };
 #endif
 
@@ -86,7 +85,7 @@ union YYSTYPE
   double dec;
   char *str;
 
-#line 90 "wladus.tab.h" /* yacc.c:1909  */
+#line 89 "wladus.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
