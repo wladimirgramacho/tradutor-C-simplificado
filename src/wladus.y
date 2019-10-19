@@ -9,11 +9,11 @@
 
 int yylex();
 int yyerror(const char *s);
-struct node* add_node(int data);
+struct node* add_node(char *data);
 void add_symbol(char *name, char *type, char *object_type);
 
 struct node {
-  int data;
+  char *data;
   struct node *left;
   struct node *right;
 };
@@ -26,7 +26,7 @@ struct symbol {
 };
 
 struct symbol *symbol_table = NULL;
-
+struct node* syntax_tree;
 %}
 
 %union {
@@ -196,9 +196,9 @@ string:
 
 %%
 
-struct node* add_node(int data){
+struct node* add_node(char *data){
   struct node* node = (struct node*)malloc(sizeof(struct node));
-  node->data = data;
+  node->data = (char *) strdup(data);
   node->left = NULL;
   node->right = NULL;
 
@@ -244,6 +244,7 @@ void free_symbol_table(){
 
 void main (int argc, char **argv){
   int print_table = 0;
+  syntax_tree = add_node("program");
 
   if(argc > 1 && !strcmp(argv[1], "-t")){
     print_table = 1;
