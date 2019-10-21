@@ -376,10 +376,11 @@ void print_ast_node(struct ast_node *s, int depth) {
         printf("-- if body --\n");
         print_ast_node(node->if_branch, depth + 1);
 
-
-        printf("%*s", depth, "");
-        printf("-- else body --\n");
-        print_ast_node(node->else_branch, depth + 1);
+        if(node->else_branch) {
+          printf("%*s", depth, "");
+          printf("-- else body --\n");
+          print_ast_node(node->else_branch, depth + 1);
+        }
       }
       break;
     case 'I':
@@ -436,9 +437,17 @@ void free_syntax_tree(struct ast_node *s){
       {
         struct ast_op_node *node = (struct ast_op_node *) s;
         free(node->operator);
-        if(s->left) free_syntax_tree(s->left);
-        if(s->right) free_syntax_tree(s->right);
+        if(node->left) free_syntax_tree(node->left);
+        if(node->right) free_syntax_tree(node->right);
         free(node);
+      }
+      break;
+    case 'C':
+      {
+        struct ast_cond_node *node = (struct ast_cond_node *) s;
+        free_syntax_tree(node->condition);
+        free_syntax_tree(node->if_branch);
+        if(node->else_branch) free_syntax_tree(node->else_branch);
       }
       break;
     case 'I':
