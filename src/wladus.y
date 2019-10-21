@@ -75,7 +75,7 @@ struct ast_node* syntax_tree;
 %left '*' '/'
 
 %type <ast> prog declarations declaration var_declaration func_declaration param_list param
-%type <ast> compound_statement statement params
+%type <ast> local_declarations statement_list compound_statement statement params
 %type <ast> expression_statement conditional_statement iteration_statement return_statement
 %type <ast> expression var simple_expression op_expression term call args arg_list
 
@@ -97,8 +97,8 @@ declaration:
 ;
 
 var_declaration:
-  TYPE ID ';'                                   { $$ = add_ast_node("var_declaration", 'D', $1, $2); add_symbol($2, $1, "var", NULL); }
-| TYPE ID '[' NUM ']' ';'                       { $$ = add_ast_node("var_declaration", 'D', $1, $2); add_symbol($2, $1, "var", NULL); }
+  TYPE ID ';'                                   { $$ = add_ast_var_node("var_declaration", $1, $2); add_symbol($2, $1, "var", NULL); }
+| TYPE ID '[' NUM ']' ';'                       { $$ = add_ast_var_node("var_declaration", $1, $2); add_symbol($2, $1, "var", NULL); }
 ;
 
 func_declaration:
@@ -116,31 +116,33 @@ param_list:
 ;
 
 param:
-  TYPE ID                                       { $$ = add_ast_var_node("param_list", $1, $2); }
-| TYPE ID '[' ']'                               { $$ = add_ast_var_node("param_list", $1, $2); }
+  TYPE ID                                       { $$ = add_ast_var_node("param", $1, $2); }
+| TYPE ID '[' ']'                               { $$ = add_ast_var_node("param", $1, $2); }
 ;
 
 compound_statement:
-  '{' local_declarations statement_list '}'     { $$ = add_ast_node("compound_list", 'D', NULL, NULL); }
+  '{' local_declarations statement_list '}'     { $$ = add_ast_node("compound_statement", 'D', $2, $3); }
 ;
 
 local_declarations:
-|  local_declarations var_declaration
+  local_declarations var_declaration            { $$ = add_ast_node("local_declarations", 'D', $1, $2); }
+|                                               { $$ = NULL; }
 ;
 
 statement_list:
-| statement_list statement
+  statement_list statement                      { $$ = add_ast_node("statement_list", 'D', $1, $2); }
+|                                               { $$ = NULL; }
 ;
 
 statement:
-  expression_statement
-| conditional_statement
-| iteration_statement
-| RETURN return_statement
+  expression_statement                          { $$ = add_ast_node("statement", 'D', NULL, $1); }
+| conditional_statement                         { $$ = add_ast_node("statement", 'D', NULL, $1); }
+| iteration_statement                           { $$ = add_ast_node("statement", 'D', NULL, $1); }
+| RETURN return_statement                       { $$ = add_ast_node("statement", 'D', NULL, $2); }
 ;
 
 expression_statement:
-  expression ';'
+  expression ';'                                { $$ = add_ast_node("expression_statement", 'D', NULL, $1); }
 ;
 
 conditional_statement:
@@ -240,7 +242,7 @@ struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node 
 
   ast_node->node_type = 'F';
   ast_node->data = (char *) strdup(data);
-  ast_node->func_name = func_name;
+  ast_node->func_name = (char *) strdup(func_name);
   ast_node->params = params;
   ast_node->func_body = func_body;
 
@@ -262,22 +264,29 @@ void print_ast_node(struct ast_node *s, int depth) {
   if(s == NULL) return;
 
   printf("%*s", depth, "");
-  printf("%s\n", s->data);
+  printf("%s", s->data);
 
   switch (s->node_type){
     case 'D':
+      printf("\n");
       print_ast_node(s->left, depth + 1);
       print_ast_node(s->right, depth + 1);
       break;
-    case 'F': 
+    case 'F':
       {
         struct ast_func_node *node = (struct ast_func_node *) s;
+        printf(" (%s)\n", node->func_name);
         if(node->params) print_ast_node(node->params, depth+1);
         print_ast_node(node->func_body, depth+1);
       }
       break;
-  }
-  
+    case 'V':
+      {
+        struct ast_var_node *node = (struct ast_var_node *) s;
+        printf(" (%s %s)\n", node->type, node->name);
+      }
+      break;
+  }  
 }
 
 void print_syntax_tree() {
@@ -306,7 +315,16 @@ void free_syntax_tree(struct ast_node *s){
       {
         struct ast_func_node *node = (struct ast_func_node *) s;
         if(node->params) free_syntax_tree(node->params);
+        free(node->func_name);
         free_syntax_tree(node->func_body);
+        free(node);
+      }
+      break;
+    case 'V':
+      {
+        struct ast_var_node *node = (struct ast_var_node *) s;
+        free(node->type);
+        free(node->name);
         free(node);
       }
       break;
