@@ -201,7 +201,7 @@ statement:
   expression_statement                          { $$ = add_ast_node("statement", 'A', NULL, $1); }
 | conditional_statement                         { $$ = add_ast_node("statement", 'A', NULL, $1); }
 | iteration_statement                           { $$ = add_ast_node("statement", 'A', NULL, $1); }
-| RETURN return_statement                       { $$ = add_ast_node("statement", 'A', NULL, $2); }
+| return_statement                              { $$ = add_ast_node("statement", 'A', NULL, $1); }
 ;
 
 expression_statement:
@@ -218,8 +218,8 @@ iteration_statement:
 ;
 
 return_statement:
-  expression ';'                                { $$ = add_ast_node("return_statement", 'A', NULL, $1); }
-| ';'                                           { $$ = add_ast_node("return_statement", 'A', NULL, NULL); }
+  RETURN expression ';'                         { $$ = add_ast_node("return_statement", 'A', NULL, $2); }
+| RETURN ';'                                    { $$ = add_ast_node("return_statement", 'A', NULL, NULL); }
 ;
 
 expression:

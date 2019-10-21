@@ -12,9 +12,9 @@ comp:
 	gcc wladus.tab.c lex.yy.c -o prog
 
 test:
-	./prog -tt < ../examples/valid0.code
-	./prog -tt < ../examples/valid1.code
-	./prog -tt < ../examples/valid2.code
-# 	./prog -tt < ../examples/invalid1.code
-# 	./prog -tt < ../examples/invalid2.code
-# 	./prog -tt < ../examples/invalid3.code
+	./prog -tt < ../examples/valid0.w
+	./prog -tt < ../examples/valid1.w
+	./prog -tt < ../examples/valid2.w
+# 	./prog -tt < ../examples/invalid1.w
+# 	./prog -tt < ../examples/invalid2.w
+# 	./prog -tt < ../examples/invalid3.w
