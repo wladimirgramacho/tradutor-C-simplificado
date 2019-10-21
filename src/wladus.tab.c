@@ -70,7 +70,7 @@
 
 int yylex();
 int yyerror(const char *s);
-struct ast_node* add_ast_node(char *data);
+struct ast_node* add_ast_node(char *data, struct ast_node *left, struct ast_node *right);
 void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_node);
 
 struct ast_node {
@@ -1451,7 +1451,7 @@ yyreduce:
     {
         case 2:
 #line 68 "wladus.y" /* yacc.c:1646  */
-    { syntax_tree = add_ast_node("program"); }
+    { syntax_tree = add_ast_node("program", NULL, NULL); }
 #line 1456 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
@@ -1712,12 +1712,12 @@ yyreturn:
 #line 206 "wladus.y" /* yacc.c:1906  */
 
 
-struct ast_node* add_ast_node(char *data){
+struct ast_node* add_ast_node(char *data, struct ast_node *left, struct ast_node *right){
   struct ast_node* ast_node = (struct ast_node*)malloc(sizeof(struct ast_node));
 
   ast_node->data = (char *) strdup(data);
-  ast_node->left = NULL;
-  ast_node->right = NULL;
+  ast_node->left = left;
+  ast_node->right = right;
 
   return ast_node;
 }
