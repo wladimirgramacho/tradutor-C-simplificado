@@ -70,8 +70,8 @@
 
 int yylex();
 int yyerror(const char *s);
-struct ast_node* add_syntax_node(char *data);
-void add_symbol(char *name, char *type, char *object_type);
+struct ast_node* add_ast_node(char *data);
+void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_node);
 
 struct ast_node {
   char *data;
@@ -83,7 +83,7 @@ struct symbol_node {
   char *name;                 // key field
   char *type;
   char *object_type;          // "var" or "func"
-  struct ast_node *function;
+  struct ast_node *function;  // function body
   UT_hash_handle hh;          // makes this structure hashable
 };
 
@@ -502,13 +502,13 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    65,    65,    69,    70,    74,    75,    79,    80,    84,
-      87,    88,    92,    93,    97,    98,   102,   106,   107,   110,
-     111,   115,   116,   117,   118,   122,   126,   127,   131,   135,
-     136,   140,   141,   145,   146,   150,   151,   155,   156,   157,
-     158,   159,   160,   164,   165,   169,   170,   171,   172,   176,
-     177,   178,   179,   180,   181,   185,   186,   187,   190,   191,
-     195,   196,   199,   200,   201
+       0,    68,    68,    72,    73,    77,    78,    82,    83,    87,
+      90,    91,    95,    96,   100,   101,   105,   108,   109,   112,
+     113,   117,   118,   119,   120,   124,   128,   129,   133,   137,
+     138,   142,   143,   147,   148,   152,   153,   157,   158,   159,
+     160,   161,   162,   166,   167,   171,   172,   173,   174,   178,
+     179,   180,   181,   182,   183,   187,   188,   189,   192,   193,
+     197,   198,   201,   202,   203
 };
 #endif
 
@@ -578,8 +578,8 @@ static const yytype_uint8 yydefact[] =
 {
        0,     0,     0,     2,     4,     5,     6,     0,     1,     3,
        7,     0,    10,     0,     0,     0,    11,     0,    14,    13,
-       0,     0,     8,     0,    18,     9,     0,    15,    19,    12,
-       0,    17,     0,     0,    33,    52,    53,     0,     0,     0,
+       0,     0,     8,     0,    17,     9,     0,    15,    19,    12,
+       0,    18,     0,     0,    33,    52,    53,     0,     0,     0,
        0,     0,    62,     0,    16,    20,    21,    22,    23,     0,
       50,    32,    36,    44,    51,     0,    58,     0,     0,    30,
       24,     0,     0,     0,     0,    50,     0,    25,     0,    37,
@@ -675,7 +675,7 @@ static const yytype_uint8 yyr1[] =
 static const yytype_uint8 yyr2[] =
 {
        0,     2,     1,     2,     1,     1,     1,     3,     6,     6,
-       0,     1,     4,     2,     1,     3,     4,     2,     0,     0,
+       0,     1,     4,     2,     1,     3,     4,     0,     2,     0,
        2,     1,     1,     1,     2,     2,     5,     7,     5,     2,
        1,     3,     1,     1,     4,     3,     1,     1,     1,     1,
        1,     1,     1,     3,     1,     1,     1,     1,     1,     3,
@@ -1450,26 +1450,26 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 65 "wladus.y" /* yacc.c:1646  */
-    { syntax_tree = add_syntax_node("program"); }
+#line 68 "wladus.y" /* yacc.c:1646  */
+    { syntax_tree = add_ast_node("program"); }
 #line 1456 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 79 "wladus.y" /* yacc.c:1646  */
-    { add_symbol((yyvsp[-1].id), (yyvsp[-2].type), "var"); }
+#line 82 "wladus.y" /* yacc.c:1646  */
+    { add_symbol((yyvsp[-1].id), (yyvsp[-2].type), "var", NULL); }
 #line 1462 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 80 "wladus.y" /* yacc.c:1646  */
-    { add_symbol((yyvsp[-4].id), (yyvsp[-5].type), "var"); }
+#line 83 "wladus.y" /* yacc.c:1646  */
+    { add_symbol((yyvsp[-4].id), (yyvsp[-5].type), "var", NULL); }
 #line 1468 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 84 "wladus.y" /* yacc.c:1646  */
-    { add_symbol((yyvsp[-4].id), (yyvsp[-5].type), "func"); }
+#line 87 "wladus.y" /* yacc.c:1646  */
+    { add_symbol((yyvsp[-4].id), (yyvsp[-5].type), "func", (yyvsp[0].ast)); }
 #line 1474 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
@@ -1709,10 +1709,10 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 204 "wladus.y" /* yacc.c:1906  */
+#line 206 "wladus.y" /* yacc.c:1906  */
 
 
-struct ast_node* add_syntax_node(char *data){
+struct ast_node* add_ast_node(char *data){
   struct ast_node* ast_node = (struct ast_node*)malloc(sizeof(struct ast_node));
 
   ast_node->data = (char *) strdup(data);
@@ -1722,7 +1722,7 @@ struct ast_node* add_syntax_node(char *data){
   return ast_node;
 }
 
-void add_symbol(char *name, char *type, char *object_type){
+void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_node){
   struct symbol_node *s;
 
   HASH_FIND_STR(symbol_table, name, s);
@@ -1732,6 +1732,7 @@ void add_symbol(char *name, char *type, char *object_type){
     s->name = (char *) strdup(name);
     s->type = (char *) strdup(type);
     s->object_type = (char *) strdup(object_type);
+    s->function = ast_node;
 
     HASH_ADD_STR(symbol_table, name, s);
   }

@@ -9,8 +9,8 @@
 
 int yylex();
 int yyerror(const char *s);
-struct ast_node* add_syntax_node(char *data);
-void add_symbol(char *name, char *type, char *object_type);
+struct ast_node* add_ast_node(char *data);
+void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_node);
 
 struct ast_node {
   char *data;
@@ -56,13 +56,16 @@ struct ast_node* syntax_tree;
 %left '+' '-'
 %left '*' '/'
 
-%type <ast> prog declarations declaration var_declaration fun_declaration
+%type <ast> prog declarations declaration var_declaration fun_declaration param_list param
+%type <ast> compound_statement statement
+%type <ast> expression_statement conditional_statement iteration_statement return_statement
+%type <ast> expression var simple_expression op_expression term call args arg_list
 
 %start prog
 %%
 
 prog:
-  declarations                                  { syntax_tree = add_syntax_node("program"); }
+  declarations                                  { syntax_tree = add_ast_node("program"); }
 ;
 
 declarations:
@@ -76,12 +79,12 @@ declaration:
 ;
 
 var_declaration:
-  TYPE ID ';'                                   { add_symbol($2, $1, "var"); }
-| TYPE ID '[' NUM ']' ';'                       { add_symbol($2, $1, "var"); }
+  TYPE ID ';'                                   { add_symbol($2, $1, "var", NULL); }
+| TYPE ID '[' NUM ']' ';'                       { add_symbol($2, $1, "var", NULL); }
 ;
 
 fun_declaration:
-  TYPE ID '(' params ')' compound_statement     { add_symbol($2, $1, "func"); }
+  TYPE ID '(' params ')' compound_statement     { add_symbol($2, $1, "func", $6); }
 ;
 
 params:
@@ -103,8 +106,7 @@ compound_statement:
 ;
 
 local_declarations:
-  local_declarations var_declaration
-|
+|  local_declarations var_declaration
 ;
 
 statement_list:
@@ -203,7 +205,7 @@ string:
 
 %%
 
-struct ast_node* add_syntax_node(char *data){
+struct ast_node* add_ast_node(char *data){
   struct ast_node* ast_node = (struct ast_node*)malloc(sizeof(struct ast_node));
 
   ast_node->data = (char *) strdup(data);
@@ -213,7 +215,7 @@ struct ast_node* add_syntax_node(char *data){
   return ast_node;
 }
 
-void add_symbol(char *name, char *type, char *object_type){
+void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_node){
   struct symbol_node *s;
 
   HASH_FIND_STR(symbol_table, name, s);
@@ -223,6 +225,7 @@ void add_symbol(char *name, char *type, char *object_type){
     s->name = (char *) strdup(name);
     s->type = (char *) strdup(type);
     s->object_type = (char *) strdup(object_type);
+    s->function = ast_node;
 
     HASH_ADD_STR(symbol_table, name, s);
   }
