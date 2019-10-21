@@ -12,6 +12,7 @@ int yyerror(const char *s);
 struct ast_node* add_ast_node(char *data, int node_type, struct ast_node *left, struct ast_node *right);
 struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node *params, struct ast_node *func_body);
 struct ast_node* add_ast_cond_node(char *data, struct ast_node *condition, struct ast_node *if_branch, struct ast_node *else_branch);
+struct ast_node* add_ast_iter_node(char *data, struct ast_node *condition, struct ast_node *while_branch);
 struct ast_node* add_ast_op_node(char *data, char *operator, struct ast_node *left, struct ast_node *right);
 struct ast_node* add_ast_int_node(char *data, int value);
 struct ast_node* add_ast_float_node(char *data, float value);
@@ -46,6 +47,13 @@ struct ast_cond_node { // conditional statements
   struct ast_node *condition;
   struct ast_node *if_branch;
   struct ast_node *else_branch;
+};
+
+struct ast_iter_node { // for "while" statements
+  int node_type;
+  char *data;
+  struct ast_node *condition;
+  struct ast_node *while_branch;
 };
 
 struct ast_op_node { // operation statements
@@ -184,7 +192,7 @@ conditional_statement:
 ;
 
 iteration_statement:
-  WHILE '(' expression ')' compound_statement
+  WHILE '(' expression ')' compound_statement   { $$ = add_ast_iter_node("iteration_statement", $3, $5); }
 ;
 
 return_statement:
@@ -286,6 +294,17 @@ struct ast_node* add_ast_cond_node(char *data, struct ast_node *condition, struc
   return (struct ast_node *) ast_node;
 }
 
+struct ast_node* add_ast_iter_node(char *data, struct ast_node *condition, struct ast_node *while_branch){
+  struct ast_iter_node* ast_node = (struct ast_iter_node*)malloc(sizeof(struct ast_iter_node));
+
+  ast_node->node_type = 'W';
+  ast_node->data = (char *) strdup(data);
+  ast_node->condition = condition;
+  ast_node->while_branch = while_branch;
+
+  return (struct ast_node *) ast_node;
+}
+
 struct ast_node* add_ast_var_node(char *data, char *type, char *name){
   struct ast_var_node* ast_node = (struct ast_var_node*)malloc(sizeof(struct ast_var_node));
 
@@ -383,6 +402,19 @@ void print_ast_node(struct ast_node *s, int depth) {
         }
       }
       break;
+    case 'W':
+      {
+        struct ast_iter_node *node = (struct ast_iter_node *) s;
+        printf("\n");
+        printf("%*s", depth, "");
+        printf("-- condition --\n");
+        print_ast_node(node->condition, depth + 1);
+
+        printf("%*s", depth, "");
+        printf("-- while body --\n");
+        print_ast_node(node->while_branch, depth + 1);
+      }
+      break;
     case 'I':
       {
         struct ast_int_node *node = (struct ast_int_node *) s;
@@ -448,6 +480,13 @@ void free_syntax_tree(struct ast_node *s){
         free_syntax_tree(node->condition);
         free_syntax_tree(node->if_branch);
         if(node->else_branch) free_syntax_tree(node->else_branch);
+      }
+      break;
+    case 'W':
+      {
+        struct ast_iter_node *node = (struct ast_iter_node *) s;
+        free_syntax_tree(node->condition);
+        free_syntax_tree(node->while_branch);
       }
       break;
     case 'I':

@@ -9,6 +9,9 @@ int main(string str){
   b = a * 3;
   decimal = 12.345;
 
+  while(a <=  20){
+    a = a + 1;
+  }
   if(b == 1){
     float d;
   }

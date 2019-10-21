@@ -73,6 +73,7 @@ int yyerror(const char *s);
 struct ast_node* add_ast_node(char *data, int node_type, struct ast_node *left, struct ast_node *right);
 struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node *params, struct ast_node *func_body);
 struct ast_node* add_ast_cond_node(char *data, struct ast_node *condition, struct ast_node *if_branch, struct ast_node *else_branch);
+struct ast_node* add_ast_iter_node(char *data, struct ast_node *condition, struct ast_node *while_branch);
 struct ast_node* add_ast_op_node(char *data, char *operator, struct ast_node *left, struct ast_node *right);
 struct ast_node* add_ast_int_node(char *data, int value);
 struct ast_node* add_ast_float_node(char *data, float value);
@@ -109,6 +110,13 @@ struct ast_cond_node { // conditional statements
   struct ast_node *else_branch;
 };
 
+struct ast_iter_node { // for "while" statements
+  int node_type;
+  char *data;
+  struct ast_node *condition;
+  struct ast_node *while_branch;
+};
+
 struct ast_op_node { // operation statements
   int node_type;
   char *data;
@@ -140,7 +148,7 @@ struct symbol_node {
 struct symbol_node *symbol_table = NULL;
 struct ast_node* syntax_tree;
 
-#line 144 "wladus.tab.c" /* yacc.c:339  */
+#line 152 "wladus.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -208,7 +216,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 83 "wladus.y" /* yacc.c:355  */
+#line 91 "wladus.y" /* yacc.c:355  */
 
   char *id;
   char *type;
@@ -220,7 +228,7 @@ union YYSTYPE
 
   struct ast_node *ast;
 
-#line 224 "wladus.tab.c" /* yacc.c:355  */
+#line 232 "wladus.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -251,7 +259,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 255 "wladus.tab.c" /* yacc.c:358  */
+#line 263 "wladus.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -551,15 +559,15 @@ static const yytype_uint8 yytranslate[] =
 
 #if YYDEBUG
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
-static const yytype_uint8 yyrline[] =
+static const yytype_uint16 yyrline[] =
 {
-       0,   119,   119,   123,   124,   128,   129,   133,   134,   138,
-     142,   143,   147,   148,   152,   153,   157,   161,   162,   166,
-     167,   171,   172,   173,   174,   178,   182,   183,   187,   191,
-     192,   196,   197,   201,   202,   206,   207,   208,   209,   210,
-     211,   212,   216,   217,   218,   219,   220,   224,   225,   226,
-     227,   228,   229,   233,   234,   235,   238,   239,   243,   244,
-     247,   248,   249
+       0,   127,   127,   131,   132,   136,   137,   141,   142,   146,
+     150,   151,   155,   156,   160,   161,   165,   169,   170,   174,
+     175,   179,   180,   181,   182,   186,   190,   191,   195,   199,
+     200,   204,   205,   209,   210,   214,   215,   216,   217,   218,
+     219,   220,   224,   225,   226,   227,   228,   232,   233,   234,
+     235,   236,   237,   241,   242,   243,   246,   247,   251,   252,
+     255,   256,   257
 };
 #endif
 
@@ -1501,301 +1509,307 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 119 "wladus.y" /* yacc.c:1646  */
+#line 127 "wladus.y" /* yacc.c:1646  */
     { syntax_tree = add_ast_node("program", 'A', NULL, (yyvsp[0].ast)); }
-#line 1507 "wladus.tab.c" /* yacc.c:1646  */
+#line 1515 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 123 "wladus.y" /* yacc.c:1646  */
+#line 131 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("declarations", 'A', (yyvsp[-1].ast), (yyvsp[0].ast)); }
-#line 1513 "wladus.tab.c" /* yacc.c:1646  */
+#line 1521 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 124 "wladus.y" /* yacc.c:1646  */
+#line 132 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("declarations", 'A', NULL, (yyvsp[0].ast)); }
-#line 1519 "wladus.tab.c" /* yacc.c:1646  */
+#line 1527 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 128 "wladus.y" /* yacc.c:1646  */
+#line 136 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("declaration", 'A', NULL, (yyvsp[0].ast)); }
-#line 1525 "wladus.tab.c" /* yacc.c:1646  */
+#line 1533 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 129 "wladus.y" /* yacc.c:1646  */
+#line 137 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("declaration", 'A', NULL, (yyvsp[0].ast)); }
-#line 1531 "wladus.tab.c" /* yacc.c:1646  */
+#line 1539 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 133 "wladus.y" /* yacc.c:1646  */
+#line 141 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_var_node("var_declaration", (yyvsp[-2].type), (yyvsp[-1].id)); add_symbol((yyvsp[-1].id), (yyvsp[-2].type), "var", NULL); }
-#line 1537 "wladus.tab.c" /* yacc.c:1646  */
+#line 1545 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 134 "wladus.y" /* yacc.c:1646  */
+#line 142 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_var_node("var_declaration", (yyvsp[-5].type), (yyvsp[-4].id)); add_symbol((yyvsp[-4].id), (yyvsp[-5].type), "var", NULL); }
-#line 1543 "wladus.tab.c" /* yacc.c:1646  */
+#line 1551 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 138 "wladus.y" /* yacc.c:1646  */
+#line 146 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_func_node("func_declaration", (yyvsp[-4].id), (yyvsp[-2].ast), (yyvsp[0].ast)); add_symbol((yyvsp[-4].id), (yyvsp[-5].type), "func", (yyvsp[0].ast)); }
-#line 1549 "wladus.tab.c" /* yacc.c:1646  */
+#line 1557 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 142 "wladus.y" /* yacc.c:1646  */
+#line 150 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("params", 'A', NULL, (yyvsp[0].ast)); }
-#line 1555 "wladus.tab.c" /* yacc.c:1646  */
+#line 1563 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 143 "wladus.y" /* yacc.c:1646  */
+#line 151 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = NULL; }
-#line 1561 "wladus.tab.c" /* yacc.c:1646  */
+#line 1569 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 147 "wladus.y" /* yacc.c:1646  */
+#line 155 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("param_list", 'A', (yyvsp[-2].ast), (yyvsp[0].ast)); }
-#line 1567 "wladus.tab.c" /* yacc.c:1646  */
+#line 1575 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 148 "wladus.y" /* yacc.c:1646  */
+#line 156 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("param_list", 'A', NULL, (yyvsp[0].ast)); }
-#line 1573 "wladus.tab.c" /* yacc.c:1646  */
+#line 1581 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 152 "wladus.y" /* yacc.c:1646  */
+#line 160 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_var_node("param", (yyvsp[-1].type), (yyvsp[0].id)); }
-#line 1579 "wladus.tab.c" /* yacc.c:1646  */
+#line 1587 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 153 "wladus.y" /* yacc.c:1646  */
+#line 161 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_var_node("param", (yyvsp[-3].type), (yyvsp[-2].id)); }
-#line 1585 "wladus.tab.c" /* yacc.c:1646  */
+#line 1593 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 157 "wladus.y" /* yacc.c:1646  */
+#line 165 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("compound_statement", 'A', (yyvsp[-2].ast), (yyvsp[-1].ast)); }
-#line 1591 "wladus.tab.c" /* yacc.c:1646  */
+#line 1599 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 161 "wladus.y" /* yacc.c:1646  */
+#line 169 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("local_declarations", 'A', (yyvsp[-1].ast), (yyvsp[0].ast)); }
-#line 1597 "wladus.tab.c" /* yacc.c:1646  */
+#line 1605 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 162 "wladus.y" /* yacc.c:1646  */
+#line 170 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = NULL; }
-#line 1603 "wladus.tab.c" /* yacc.c:1646  */
+#line 1611 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 166 "wladus.y" /* yacc.c:1646  */
+#line 174 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("statement_list", 'A', (yyvsp[-1].ast), (yyvsp[0].ast)); }
-#line 1609 "wladus.tab.c" /* yacc.c:1646  */
+#line 1617 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 167 "wladus.y" /* yacc.c:1646  */
+#line 175 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = NULL; }
-#line 1615 "wladus.tab.c" /* yacc.c:1646  */
+#line 1623 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 171 "wladus.y" /* yacc.c:1646  */
+#line 179 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("statement", 'A', NULL, (yyvsp[0].ast)); }
-#line 1621 "wladus.tab.c" /* yacc.c:1646  */
+#line 1629 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 172 "wladus.y" /* yacc.c:1646  */
+#line 180 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("statement", 'A', NULL, (yyvsp[0].ast)); }
-#line 1627 "wladus.tab.c" /* yacc.c:1646  */
+#line 1635 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 173 "wladus.y" /* yacc.c:1646  */
+#line 181 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("statement", 'A', NULL, (yyvsp[0].ast)); }
-#line 1633 "wladus.tab.c" /* yacc.c:1646  */
+#line 1641 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 174 "wladus.y" /* yacc.c:1646  */
+#line 182 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("statement", 'A', NULL, (yyvsp[0].ast)); }
-#line 1639 "wladus.tab.c" /* yacc.c:1646  */
+#line 1647 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 178 "wladus.y" /* yacc.c:1646  */
+#line 186 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("expression_statement", 'A', NULL, (yyvsp[-1].ast)); }
-#line 1645 "wladus.tab.c" /* yacc.c:1646  */
+#line 1653 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 182 "wladus.y" /* yacc.c:1646  */
+#line 190 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_cond_node("conditional_statement", (yyvsp[-2].ast), (yyvsp[0].ast), NULL); }
-#line 1651 "wladus.tab.c" /* yacc.c:1646  */
+#line 1659 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 183 "wladus.y" /* yacc.c:1646  */
+#line 191 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_cond_node("conditional_statement", (yyvsp[-4].ast), (yyvsp[-2].ast), (yyvsp[0].ast)); }
-#line 1657 "wladus.tab.c" /* yacc.c:1646  */
+#line 1665 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 28:
+#line 195 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_iter_node("iteration_statement", (yyvsp[-2].ast), (yyvsp[0].ast)); }
+#line 1671 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 191 "wladus.y" /* yacc.c:1646  */
+#line 199 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("return_statement", 'A', NULL, (yyvsp[-1].ast)); }
-#line 1663 "wladus.tab.c" /* yacc.c:1646  */
+#line 1677 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 192 "wladus.y" /* yacc.c:1646  */
+#line 200 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("return_statement", 'A', NULL, NULL); }
-#line 1669 "wladus.tab.c" /* yacc.c:1646  */
+#line 1683 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 196 "wladus.y" /* yacc.c:1646  */
+#line 204 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_op_node("expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
-#line 1675 "wladus.tab.c" /* yacc.c:1646  */
+#line 1689 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 197 "wladus.y" /* yacc.c:1646  */
+#line 205 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("expression", 'A', NULL, (yyvsp[0].ast)); }
-#line 1681 "wladus.tab.c" /* yacc.c:1646  */
+#line 1695 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 201 "wladus.y" /* yacc.c:1646  */
+#line 209 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_var_node("var", "", (yyvsp[0].id)); }
-#line 1687 "wladus.tab.c" /* yacc.c:1646  */
+#line 1701 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 202 "wladus.y" /* yacc.c:1646  */
+#line 210 "wladus.y" /* yacc.c:1646  */
     {  }
-#line 1693 "wladus.tab.c" /* yacc.c:1646  */
+#line 1707 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 206 "wladus.y" /* yacc.c:1646  */
+#line 214 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_op_node("simple_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
-#line 1699 "wladus.tab.c" /* yacc.c:1646  */
+#line 1713 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 207 "wladus.y" /* yacc.c:1646  */
+#line 215 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_op_node("simple_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
-#line 1705 "wladus.tab.c" /* yacc.c:1646  */
+#line 1719 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 208 "wladus.y" /* yacc.c:1646  */
+#line 216 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_op_node("simple_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
-#line 1711 "wladus.tab.c" /* yacc.c:1646  */
+#line 1725 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 209 "wladus.y" /* yacc.c:1646  */
+#line 217 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_op_node("simple_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
-#line 1717 "wladus.tab.c" /* yacc.c:1646  */
+#line 1731 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 210 "wladus.y" /* yacc.c:1646  */
+#line 218 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_op_node("simple_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
-#line 1723 "wladus.tab.c" /* yacc.c:1646  */
+#line 1737 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 211 "wladus.y" /* yacc.c:1646  */
+#line 219 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_op_node("simple_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
-#line 1729 "wladus.tab.c" /* yacc.c:1646  */
+#line 1743 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 212 "wladus.y" /* yacc.c:1646  */
+#line 220 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("simple_expression", 'A', NULL, (yyvsp[0].ast)); }
-#line 1735 "wladus.tab.c" /* yacc.c:1646  */
+#line 1749 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 42:
-#line 216 "wladus.y" /* yacc.c:1646  */
+#line 224 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_op_node("op_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
-#line 1741 "wladus.tab.c" /* yacc.c:1646  */
+#line 1755 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 217 "wladus.y" /* yacc.c:1646  */
+#line 225 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_op_node("op_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
-#line 1747 "wladus.tab.c" /* yacc.c:1646  */
+#line 1761 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 218 "wladus.y" /* yacc.c:1646  */
+#line 226 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_op_node("op_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
-#line 1753 "wladus.tab.c" /* yacc.c:1646  */
+#line 1767 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 219 "wladus.y" /* yacc.c:1646  */
+#line 227 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_op_node("op_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
-#line 1759 "wladus.tab.c" /* yacc.c:1646  */
+#line 1773 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 220 "wladus.y" /* yacc.c:1646  */
+#line 228 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("op_expression", 'A', NULL, (yyvsp[0].ast)); }
-#line 1765 "wladus.tab.c" /* yacc.c:1646  */
+#line 1779 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 224 "wladus.y" /* yacc.c:1646  */
+#line 232 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = (yyvsp[-1].ast); }
-#line 1771 "wladus.tab.c" /* yacc.c:1646  */
+#line 1785 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 225 "wladus.y" /* yacc.c:1646  */
+#line 233 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = (yyvsp[0].ast); }
-#line 1777 "wladus.tab.c" /* yacc.c:1646  */
+#line 1791 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 226 "wladus.y" /* yacc.c:1646  */
+#line 234 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = (yyvsp[0].ast); }
-#line 1783 "wladus.tab.c" /* yacc.c:1646  */
+#line 1797 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 227 "wladus.y" /* yacc.c:1646  */
+#line 235 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_int_node("NUM", (yyvsp[0].num)); }
-#line 1789 "wladus.tab.c" /* yacc.c:1646  */
+#line 1803 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 228 "wladus.y" /* yacc.c:1646  */
+#line 236 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_float_node("NUM", (yyvsp[0].dec)); }
-#line 1795 "wladus.tab.c" /* yacc.c:1646  */
+#line 1809 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1799 "wladus.tab.c" /* yacc.c:1646  */
+#line 1813 "wladus.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2030,7 +2044,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 252 "wladus.y" /* yacc.c:1906  */
+#line 260 "wladus.y" /* yacc.c:1906  */
 
 
 struct ast_node* add_ast_node(char *data, int node_type, struct ast_node *left, struct ast_node *right){
@@ -2064,6 +2078,17 @@ struct ast_node* add_ast_cond_node(char *data, struct ast_node *condition, struc
   ast_node->condition = condition;
   ast_node->if_branch = if_branch;
   ast_node->else_branch = else_branch;
+
+  return (struct ast_node *) ast_node;
+}
+
+struct ast_node* add_ast_iter_node(char *data, struct ast_node *condition, struct ast_node *while_branch){
+  struct ast_iter_node* ast_node = (struct ast_iter_node*)malloc(sizeof(struct ast_iter_node));
+
+  ast_node->node_type = 'W';
+  ast_node->data = (char *) strdup(data);
+  ast_node->condition = condition;
+  ast_node->while_branch = while_branch;
 
   return (struct ast_node *) ast_node;
 }
@@ -2165,6 +2190,19 @@ void print_ast_node(struct ast_node *s, int depth) {
         }
       }
       break;
+    case 'W':
+      {
+        struct ast_iter_node *node = (struct ast_iter_node *) s;
+        printf("\n");
+        printf("%*s", depth, "");
+        printf("-- condition --\n");
+        print_ast_node(node->condition, depth + 1);
+
+        printf("%*s", depth, "");
+        printf("-- while body --\n");
+        print_ast_node(node->while_branch, depth + 1);
+      }
+      break;
     case 'I':
       {
         struct ast_int_node *node = (struct ast_int_node *) s;
@@ -2230,6 +2268,13 @@ void free_syntax_tree(struct ast_node *s){
         free_syntax_tree(node->condition);
         free_syntax_tree(node->if_branch);
         if(node->else_branch) free_syntax_tree(node->else_branch);
+      }
+      break;
+    case 'W':
+      {
+        struct ast_iter_node *node = (struct ast_iter_node *) s;
+        free_syntax_tree(node->condition);
+        free_syntax_tree(node->while_branch);
       }
       break;
     case 'I':
