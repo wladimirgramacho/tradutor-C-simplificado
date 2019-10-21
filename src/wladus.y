@@ -9,32 +9,36 @@
 
 int yylex();
 int yyerror(const char *s);
-struct syntax_node* add_syntax_node(char *data);
+struct ast_node* add_syntax_node(char *data);
 void add_symbol(char *name, char *type, char *object_type);
 
-struct syntax_node {
+struct ast_node {
   char *data;
-  struct syntax_node *left;
-  struct syntax_node *right;
+  struct ast_node *left;
+  struct ast_node *right;
 };
 
-struct symbol {
-  char *name;         // key field
+struct symbol_node {
+  char *name;                 // key field
   char *type;
-  char *object_type;  // "var" or "func"
-  UT_hash_handle hh;  // makes this structure hashable
+  char *object_type;          // "var" or "func"
+  struct ast_node *function;  // function body
+  UT_hash_handle hh;          // makes this structure hashable
 };
 
-struct symbol *symbol_table = NULL;
-struct syntax_node* syntax_tree;
+struct symbol_node *symbol_table = NULL;
+struct ast_node* syntax_tree;
 %}
 
 %union {
   char *id;
   char *type;
+
   int num;
   double dec;
   char *str;
+
+  struct ast_node *ast;
 }
 
  
@@ -51,6 +55,8 @@ struct syntax_node* syntax_tree;
 %right EQ
 %left '+' '-'
 %left '*' '/'
+
+%type <ast> prog declarations declaration var_declaration fun_declaration
 
 %start prog
 %%
@@ -197,22 +203,22 @@ string:
 
 %%
 
-struct syntax_node* add_syntax_node(char *data){
-  struct syntax_node* syntax_node = (struct syntax_node*)malloc(sizeof(struct syntax_node));
+struct ast_node* add_syntax_node(char *data){
+  struct ast_node* ast_node = (struct ast_node*)malloc(sizeof(struct ast_node));
 
-  syntax_node->data = (char *) strdup(data);
-  syntax_node->left = NULL;
-  syntax_node->right = NULL;
+  ast_node->data = (char *) strdup(data);
+  ast_node->left = NULL;
+  ast_node->right = NULL;
 
-  return syntax_node;
+  return ast_node;
 }
 
 void add_symbol(char *name, char *type, char *object_type){
-  struct symbol *s;
+  struct symbol_node *s;
 
   HASH_FIND_STR(symbol_table, name, s);
   if(s == NULL){
-    s = (struct symbol *)malloc(sizeof *s);
+    s = (struct symbol_node *)malloc(sizeof *s);
 
     s->name = (char *) strdup(name);
     s->type = (char *) strdup(type);
@@ -223,7 +229,7 @@ void add_symbol(char *name, char *type, char *object_type){
 }
 
 void print_symbol_table() {
-  struct symbol *s;
+  struct symbol_node *s;
 
   printf("===============  SYMBOL TABLE ===============\n");
   printf("NAME\t\tTYPE\t\tOBJECT_TYPE\n");
@@ -232,7 +238,7 @@ void print_symbol_table() {
   }
 }
 
-void print_syntax_node(struct syntax_node *s) {
+void print_syntax_node(struct ast_node *s) {
   if(s == NULL) return;
   printf("%s\n\t", s->data);
   print_syntax_node(s->left);
@@ -240,7 +246,7 @@ void print_syntax_node(struct syntax_node *s) {
 }
 
 void print_syntax_tree() {
-  struct syntax_node *s = syntax_tree;
+  struct ast_node *s = syntax_tree;
 
   printf("======  SYNTAX TREE ======\n");
   print_syntax_node(s);
@@ -248,7 +254,7 @@ void print_syntax_tree() {
 }
 
 void free_symbol_table(){
-  struct symbol *s;
+  struct symbol_node *s;
   for(s=symbol_table; s != NULL; s=s->hh.next) {
     HASH_DEL(symbol_table, s);
     free(s->name);

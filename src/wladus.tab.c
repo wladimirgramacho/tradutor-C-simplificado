@@ -70,26 +70,27 @@
 
 int yylex();
 int yyerror(const char *s);
-struct syntax_node* add_syntax_node(char *data);
+struct ast_node* add_syntax_node(char *data);
 void add_symbol(char *name, char *type, char *object_type);
 
-struct syntax_node {
+struct ast_node {
   char *data;
-  struct syntax_node *left;
-  struct syntax_node *right;
+  struct ast_node *left;
+  struct ast_node *right;
 };
 
-struct symbol {
-  char *name;         // key field
+struct symbol_node {
+  char *name;                 // key field
   char *type;
-  char *object_type;  // "var" or "func"
-  UT_hash_handle hh;  // makes this structure hashable
+  char *object_type;          // "var" or "func"
+  struct ast_node *function;
+  UT_hash_handle hh;          // makes this structure hashable
 };
 
-struct symbol *symbol_table = NULL;
-struct syntax_node* syntax_tree;
+struct symbol_node *symbol_table = NULL;
+struct ast_node* syntax_tree;
 
-#line 93 "wladus.tab.c" /* yacc.c:339  */
+#line 94 "wladus.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -157,15 +158,18 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 32 "wladus.y" /* yacc.c:355  */
+#line 33 "wladus.y" /* yacc.c:355  */
 
   char *id;
   char *type;
+
   int num;
   double dec;
   char *str;
 
-#line 169 "wladus.tab.c" /* yacc.c:355  */
+  struct ast_node *ast;
+
+#line 173 "wladus.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -196,7 +200,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 200 "wladus.tab.c" /* yacc.c:358  */
+#line 204 "wladus.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -498,13 +502,13 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    59,    59,    63,    64,    68,    69,    73,    74,    78,
-      81,    82,    86,    87,    91,    92,    96,   100,   101,   104,
-     105,   109,   110,   111,   112,   116,   120,   121,   125,   129,
-     130,   134,   135,   139,   140,   144,   145,   149,   150,   151,
-     152,   153,   154,   158,   159,   163,   164,   165,   166,   170,
-     171,   172,   173,   174,   175,   179,   180,   181,   184,   185,
-     189,   190,   193,   194,   195
+       0,    65,    65,    69,    70,    74,    75,    79,    80,    84,
+      87,    88,    92,    93,    97,    98,   102,   106,   107,   110,
+     111,   115,   116,   117,   118,   122,   126,   127,   131,   135,
+     136,   140,   141,   145,   146,   150,   151,   155,   156,   157,
+     158,   159,   160,   164,   165,   169,   170,   171,   172,   176,
+     177,   178,   179,   180,   181,   185,   186,   187,   190,   191,
+     195,   196,   199,   200,   201
 };
 #endif
 
@@ -1446,31 +1450,31 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 59 "wladus.y" /* yacc.c:1646  */
+#line 65 "wladus.y" /* yacc.c:1646  */
     { syntax_tree = add_syntax_node("program"); }
-#line 1452 "wladus.tab.c" /* yacc.c:1646  */
+#line 1456 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 73 "wladus.y" /* yacc.c:1646  */
+#line 79 "wladus.y" /* yacc.c:1646  */
     { add_symbol((yyvsp[-1].id), (yyvsp[-2].type), "var"); }
-#line 1458 "wladus.tab.c" /* yacc.c:1646  */
+#line 1462 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 74 "wladus.y" /* yacc.c:1646  */
+#line 80 "wladus.y" /* yacc.c:1646  */
     { add_symbol((yyvsp[-4].id), (yyvsp[-5].type), "var"); }
-#line 1464 "wladus.tab.c" /* yacc.c:1646  */
+#line 1468 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 78 "wladus.y" /* yacc.c:1646  */
+#line 84 "wladus.y" /* yacc.c:1646  */
     { add_symbol((yyvsp[-4].id), (yyvsp[-5].type), "func"); }
-#line 1470 "wladus.tab.c" /* yacc.c:1646  */
+#line 1474 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1474 "wladus.tab.c" /* yacc.c:1646  */
+#line 1478 "wladus.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1705,25 +1709,25 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 198 "wladus.y" /* yacc.c:1906  */
+#line 204 "wladus.y" /* yacc.c:1906  */
 
 
-struct syntax_node* add_syntax_node(char *data){
-  struct syntax_node* syntax_node = (struct syntax_node*)malloc(sizeof(struct syntax_node));
+struct ast_node* add_syntax_node(char *data){
+  struct ast_node* ast_node = (struct ast_node*)malloc(sizeof(struct ast_node));
 
-  syntax_node->data = (char *) strdup(data);
-  syntax_node->left = NULL;
-  syntax_node->right = NULL;
+  ast_node->data = (char *) strdup(data);
+  ast_node->left = NULL;
+  ast_node->right = NULL;
 
-  return syntax_node;
+  return ast_node;
 }
 
 void add_symbol(char *name, char *type, char *object_type){
-  struct symbol *s;
+  struct symbol_node *s;
 
   HASH_FIND_STR(symbol_table, name, s);
   if(s == NULL){
-    s = (struct symbol *)malloc(sizeof *s);
+    s = (struct symbol_node *)malloc(sizeof *s);
 
     s->name = (char *) strdup(name);
     s->type = (char *) strdup(type);
@@ -1734,7 +1738,7 @@ void add_symbol(char *name, char *type, char *object_type){
 }
 
 void print_symbol_table() {
-  struct symbol *s;
+  struct symbol_node *s;
 
   printf("===============  SYMBOL TABLE ===============\n");
   printf("NAME\t\tTYPE\t\tOBJECT_TYPE\n");
@@ -1743,7 +1747,7 @@ void print_symbol_table() {
   }
 }
 
-void print_syntax_node(struct syntax_node *s) {
+void print_syntax_node(struct ast_node *s) {
   if(s == NULL) return;
   printf("%s\n\t", s->data);
   print_syntax_node(s->left);
@@ -1751,7 +1755,7 @@ void print_syntax_node(struct syntax_node *s) {
 }
 
 void print_syntax_tree() {
-  struct syntax_node *s = syntax_tree;
+  struct ast_node *s = syntax_tree;
 
   printf("======  SYNTAX TREE ======\n");
   print_syntax_node(s);
@@ -1759,7 +1763,7 @@ void print_syntax_tree() {
 }
 
 void free_symbol_table(){
-  struct symbol *s;
+  struct symbol_node *s;
   for(s=symbol_table; s != NULL; s=s->hh.next) {
     HASH_DEL(symbol_table, s);
     free(s->name);
