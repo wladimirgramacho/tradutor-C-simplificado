@@ -932,57 +932,57 @@ YY_RULE_SETUP
 case 12:
 YY_RULE_SETUP
 #line 71 "wladus.l"
-{ return EQ; }
+{ yylval.op = (char *) strdup(yytext); return EQ; }
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
 #line 72 "wladus.l"
-{ return CEQ; }
+{ yylval.op = (char *) strdup(yytext); return CEQ; }
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
 #line 73 "wladus.l"
-{ return CNE; }
+{ yylval.op = (char *) strdup(yytext); return CNE; }
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
 #line 74 "wladus.l"
-{ return CLT; }
+{ yylval.op = (char *) strdup(yytext); return CLT; }
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
 #line 75 "wladus.l"
-{ return CLE; }
+{ yylval.op = (char *) strdup(yytext); return CLE; }
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
 #line 76 "wladus.l"
-{ return CGT; }
+{ yylval.op = (char *) strdup(yytext); return CGT; }
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
 #line 77 "wladus.l"
-{ return CGE; }
+{ yylval.op = (char *) strdup(yytext); return CGE; }
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
 #line 79 "wladus.l"
-{ return PLUS; }
+{ yylval.op = (char *) strdup(yytext); return PLUS; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
 #line 80 "wladus.l"
-{ return MINUS; }
+{ yylval.op = (char *) strdup(yytext); return MINUS; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
 #line 81 "wladus.l"
-{ return MULT; }
+{ yylval.op = (char *) strdup(yytext); return MULT; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
 #line 82 "wladus.l"
-{ return DIV; }
+{ yylval.op = (char *) strdup(yytext); return DIV; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP

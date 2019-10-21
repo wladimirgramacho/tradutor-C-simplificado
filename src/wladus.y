@@ -9,8 +9,12 @@
 
 int yylex();
 int yyerror(const char *s);
-struct ast_node* add_ast_node(char *data, char *node_type, struct ast_node *left, struct ast_node *right);
+struct ast_node* add_ast_node(char *data, int node_type, struct ast_node *left, struct ast_node *right);
 struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node *params, struct ast_node *func_body);
+struct ast_node* add_ast_cond_node(char *data, struct ast_node *condition, struct ast_node *if_branch, struct ast_node *else_branch);
+struct ast_node* add_ast_op_node(char *data, char *operator, struct ast_node *left, struct ast_node *right);
+struct ast_node* add_ast_int_node(char *data, int value);
+struct ast_node* add_ast_float_node(char *data, float value);
 void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_node);
 struct ast_node* add_ast_var_node(char *data, char *type, char *name);
 
@@ -36,6 +40,34 @@ struct ast_var_node { // variables
   char *name;
 };
 
+struct ast_cond_node { // conditional statements
+  int node_type;
+  char *data;
+  struct ast_node *condition;
+  struct ast_node *if_branch;
+  struct ast_node *else_branch;
+};
+
+struct ast_op_node { // operation statements
+  int node_type;
+  char *data;
+  struct ast_node *left;
+  struct ast_node *right;
+  char *operator;
+};
+
+struct ast_int_node { // for constant integers
+  int node_type;
+  char *data;
+  int value;
+};
+
+struct ast_float_node { // for constant floats
+  int node_type;
+  char *data;
+  float value;
+};
+
 struct symbol_node {
   char *name;                 // key field
   char *type;
@@ -51,6 +83,7 @@ struct ast_node* syntax_tree;
 %union {
   char *id;
   char *type;
+  char *op;
 
   int num;
   double dec;
@@ -66,8 +99,8 @@ struct ast_node* syntax_tree;
 %token <dec> DEC
 %token <str> STR
 %token WHILE IF ELSE RETURN WRITE READ
-%token EQ CEQ CNE CLT CLE CGT CGE
-%token PLUS MINUS MULT DIV
+%token <op> EQ CEQ CNE CLT CLE CGT CGE
+%token <op> PLUS MINUS MULT DIV
 %token QUOTES
 %token INTERPOL_START INTERPOL_END
 %right EQ
@@ -83,17 +116,17 @@ struct ast_node* syntax_tree;
 %%
 
 prog:
-  declarations                                  { syntax_tree = add_ast_node("program", 'D', NULL, $1); }
+  declarations                                  { syntax_tree = add_ast_node("program", 'A', NULL, $1); }
 ;
 
 declarations:
-  declarations declaration                      { $$ = add_ast_node("declarations", 'D', $1, $2); }
-| declaration                                   { $$ = add_ast_node("declarations", 'D', NULL, $1); }
+  declarations declaration                      { $$ = add_ast_node("declarations", 'A', $1, $2); }
+| declaration                                   { $$ = add_ast_node("declarations", 'A', NULL, $1); }
 ;
 
 declaration:
-  var_declaration                               { $$ = add_ast_node("declaration", 'D', NULL, $1); }
-| func_declaration                              { $$ = add_ast_node("declaration", 'D', NULL, $1); }
+  var_declaration                               { $$ = add_ast_node("declaration", 'A', NULL, $1); }
+| func_declaration                              { $$ = add_ast_node("declaration", 'A', NULL, $1); }
 ;
 
 var_declaration:
@@ -106,13 +139,13 @@ func_declaration:
 ;
 
 params:
-  param_list                                    { $$ = add_ast_node("params", 'D', NULL, $1); }
+  param_list                                    { $$ = add_ast_node("params", 'A', NULL, $1); }
 |                                               { $$ = NULL; }
 ;
 
 param_list:
-  param_list ',' param                          { $$ = add_ast_node("param_list", 'D', $1, $3); }
-| param                                         { $$ = add_ast_node("param_list", 'D', NULL, $1); }
+  param_list ',' param                          { $$ = add_ast_node("param_list", 'A', $1, $3); }
+| param                                         { $$ = add_ast_node("param_list", 'A', NULL, $1); }
 ;
 
 param:
@@ -121,33 +154,33 @@ param:
 ;
 
 compound_statement:
-  '{' local_declarations statement_list '}'     { $$ = add_ast_node("compound_statement", 'D', $2, $3); }
+  '{' local_declarations statement_list '}'     { $$ = add_ast_node("compound_statement", 'A', $2, $3); }
 ;
 
 local_declarations:
-  local_declarations var_declaration            { $$ = add_ast_node("local_declarations", 'D', $1, $2); }
+  local_declarations var_declaration            { $$ = add_ast_node("local_declarations", 'A', $1, $2); }
 |                                               { $$ = NULL; }
 ;
 
 statement_list:
-  statement_list statement                      { $$ = add_ast_node("statement_list", 'D', $1, $2); }
+  statement_list statement                      { $$ = add_ast_node("statement_list", 'A', $1, $2); }
 |                                               { $$ = NULL; }
 ;
 
 statement:
-  expression_statement                          { $$ = add_ast_node("statement", 'D', NULL, $1); }
-| conditional_statement                         { $$ = add_ast_node("statement", 'D', NULL, $1); }
-| iteration_statement                           { $$ = add_ast_node("statement", 'D', NULL, $1); }
-| RETURN return_statement                       { $$ = add_ast_node("statement", 'D', NULL, $2); }
+  expression_statement                          { $$ = add_ast_node("statement", 'A', NULL, $1); }
+| conditional_statement                         { $$ = add_ast_node("statement", 'A', NULL, $1); }
+| iteration_statement                           { $$ = add_ast_node("statement", 'A', NULL, $1); }
+| RETURN return_statement                       { $$ = add_ast_node("statement", 'A', NULL, $2); }
 ;
 
 expression_statement:
-  expression ';'                                { $$ = add_ast_node("expression_statement", 'D', NULL, $1); }
+  expression ';'                                { $$ = add_ast_node("expression_statement", 'A', NULL, $1); }
 ;
 
 conditional_statement:
-  IF '(' expression ')' compound_statement
-| IF '(' expression ')' compound_statement ELSE  compound_statement
+  IF '(' expression ')' compound_statement      { $$ = add_ast_cond_node("conditional_statement", $3, $5, NULL); }
+| IF '(' expression ')' compound_statement ELSE  compound_statement { $$ = add_ast_cond_node("conditional_statement", $3, $5, $7); }
 ;
 
 iteration_statement:
@@ -155,52 +188,44 @@ iteration_statement:
 ;
 
 return_statement:
-  expression ';'
-| ';'
+  expression ';'                                { $$ = add_ast_node("return_statement", 'A', NULL, $1); }
+| ';'                                           { $$ = add_ast_node("return_statement", 'A', NULL, NULL); }
 ;
 
 expression:
-  var EQ expression
-| simple_expression
+  var EQ expression                             { $$ = add_ast_op_node("expression", $2, $1, $3); }
+| simple_expression                             { $$ = add_ast_node("expression", 'A', NULL, $1); }
 ;
 
 var:
-  ID
-| ID '[' expression ']'
+  ID                                            { $$ = add_ast_var_node("var", "", $1); }
+| ID '[' expression ']'                         {  }
 ;
 
 simple_expression:
-  op_expression cond_op op_expression
-| op_expression
-;
-
-cond_op:
-  CEQ
-| CNE
-| CLT
-| CLE
-| CGT
-| CGE
+  op_expression CEQ op_expression               { $$ = add_ast_op_node("simple_expression", $2, $1, $3); }
+| op_expression CNE op_expression               { $$ = add_ast_op_node("simple_expression", $2, $1, $3); }
+| op_expression CLT op_expression               { $$ = add_ast_op_node("simple_expression", $2, $1, $3); }
+| op_expression CLE op_expression               { $$ = add_ast_op_node("simple_expression", $2, $1, $3); }
+| op_expression CGT op_expression               { $$ = add_ast_op_node("simple_expression", $2, $1, $3); }
+| op_expression CGE op_expression               { $$ = add_ast_op_node("simple_expression", $2, $1, $3); }
+| op_expression                                 { $$ = add_ast_node("simple_expression", 'A', NULL, $1); }
 ;
 
 op_expression:
-  op_expression op term
-| term
-;
-
-op:
-  PLUS
-| MINUS
-| MULT
-| DIV
+  op_expression PLUS term                       { $$ = add_ast_op_node("op_expression", $2, $1, $3); }
+| op_expression MINUS term                      { $$ = add_ast_op_node("op_expression", $2, $1, $3); }
+| op_expression MULT term                       { $$ = add_ast_op_node("op_expression", $2, $1, $3); }
+| op_expression DIV term                        { $$ = add_ast_op_node("op_expression", $2, $1, $3); }
+| term                                          { $$ = add_ast_node("op_expression", 'A', NULL, $1); }
 ;
 
 term:
-  '(' simple_expression ')'
-| var
-| call
-| NUM
-| DEC
+  '(' simple_expression ')'                     { $$ = $2; }
+| var                                           { $$ = $1; }
+| call                                          { $$ = $1; }
+| NUM                                           { $$ = add_ast_int_node("NUM", $1); }
+| DEC                                           { $$ = add_ast_float_node("NUM", $1); }
 | QUOTES string QUOTES
 ;
 
@@ -226,7 +251,7 @@ string:
 
 %%
 
-struct ast_node* add_ast_node(char *data, char *node_type, struct ast_node *left, struct ast_node *right){
+struct ast_node* add_ast_node(char *data, int node_type, struct ast_node *left, struct ast_node *right){
   struct ast_node* ast_node = (struct ast_node*)malloc(sizeof(struct ast_node));
 
   ast_node->node_type = node_type;
@@ -246,7 +271,19 @@ struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node 
   ast_node->params = params;
   ast_node->func_body = func_body;
 
-  return ast_node;
+  return (struct ast_node *) ast_node;
+}
+
+struct ast_node* add_ast_cond_node(char *data, struct ast_node *condition, struct ast_node *if_branch, struct ast_node *else_branch){
+  struct ast_cond_node* ast_node = (struct ast_cond_node*)malloc(sizeof(struct ast_cond_node));
+
+  ast_node->node_type = 'C';
+  ast_node->data = (char *) strdup(data);
+  ast_node->condition = condition;
+  ast_node->if_branch = if_branch;
+  ast_node->else_branch = else_branch;
+
+  return (struct ast_node *) ast_node;
 }
 
 struct ast_node* add_ast_var_node(char *data, char *type, char *name){
@@ -257,7 +294,40 @@ struct ast_node* add_ast_var_node(char *data, char *type, char *name){
   ast_node->type = (char *) strdup(type);
   ast_node->name = (char *) strdup(name);
 
-  return ast_node;
+  return (struct ast_node *) ast_node;
+}
+
+struct ast_node* add_ast_op_node(char *data, char *operator, struct ast_node *left, struct ast_node *right){
+  struct ast_op_node* ast_node = (struct ast_op_node*)malloc(sizeof(struct ast_op_node));
+
+  ast_node->node_type = 'O';
+  ast_node->data = (char *) strdup(data);
+  printf("op = %s\n", operator);
+  ast_node->operator = (char *) strdup(operator);
+  ast_node->left = left;
+  ast_node->right = right;
+
+  return (struct ast_node *) ast_node;
+}
+
+struct ast_node* add_ast_int_node(char *data, int value){
+  struct ast_int_node* ast_node = (struct ast_int_node*)malloc(sizeof(struct ast_int_node));
+
+  ast_node->node_type = 'I';
+  ast_node->data = (char *) strdup(data);
+  ast_node->value = value;
+
+  return (struct ast_node *) ast_node;
+}
+
+struct ast_node* add_ast_float_node(char *data, float value){
+  struct ast_float_node* ast_node = (struct ast_float_node*)malloc(sizeof(struct ast_float_node));
+
+  ast_node->node_type = 'D';
+  ast_node->data = (char *) strdup(data);
+  ast_node->value = value;
+
+  return (struct ast_node *) ast_node;
 }
 
 void print_ast_node(struct ast_node *s, int depth) {
@@ -267,7 +337,7 @@ void print_ast_node(struct ast_node *s, int depth) {
   printf("%s", s->data);
 
   switch (s->node_type){
-    case 'D':
+    case 'A':
       printf("\n");
       print_ast_node(s->left, depth + 1);
       print_ast_node(s->right, depth + 1);
@@ -286,6 +356,44 @@ void print_ast_node(struct ast_node *s, int depth) {
         printf(" (%s %s)\n", node->type, node->name);
       }
       break;
+    case 'O':
+      {
+        struct ast_op_node *node = (struct ast_op_node *) s;
+        printf(" (%s)\n", node->operator);
+        print_ast_node(s->left, depth + 1);
+        print_ast_node(s->right, depth + 1);
+      }
+      break;
+    case 'C':
+      {
+        struct ast_cond_node *node = (struct ast_cond_node *) s;
+        printf("\n");
+        printf("%*s", depth, "");
+        printf("-- condition --\n");
+        print_ast_node(node->condition, depth + 1);
+
+        printf("%*s", depth, "");
+        printf("-- if body --\n");
+        print_ast_node(node->if_branch, depth + 1);
+
+
+        printf("%*s", depth, "");
+        printf("-- else body --\n");
+        print_ast_node(node->else_branch, depth + 1);
+      }
+      break;
+    case 'I':
+      {
+        struct ast_int_node *node = (struct ast_int_node *) s;
+        printf(" (%d)\n", node->value);
+      }
+      break;
+    case 'D':
+      {
+        struct ast_float_node *node = (struct ast_float_node *) s;
+        printf(" (%lf)\n", node->value);
+      }
+      break;
   }  
 }
 
@@ -302,16 +410,12 @@ void free_syntax_tree(struct ast_node *s){
 
   free(s->data);
   switch (s->node_type){
-    case 'D':
-      if(s->left) {
-        free_syntax_tree(s->left);
-      }
-      if(s->right) {
-        free_syntax_tree(s->right);
-      }
+    case 'A':
+      if(s->left) free_syntax_tree(s->left);
+      if(s->right) free_syntax_tree(s->right);
       free(s);
       break;
-    case 'F': 
+    case 'F':
       {
         struct ast_func_node *node = (struct ast_func_node *) s;
         if(node->params) free_syntax_tree(node->params);
@@ -325,6 +429,27 @@ void free_syntax_tree(struct ast_node *s){
         struct ast_var_node *node = (struct ast_var_node *) s;
         free(node->type);
         free(node->name);
+        free(node);
+      }
+      break;
+    case 'O':
+      {
+        struct ast_op_node *node = (struct ast_op_node *) s;
+        free(node->operator);
+        if(s->left) free_syntax_tree(s->left);
+        if(s->right) free_syntax_tree(s->right);
+        free(node);
+      }
+      break;
+    case 'I':
+      {
+        struct ast_int_node *node = (struct ast_int_node *) s;
+        free(node);
+      }
+      break;
+    case 'D':
+      {
+        struct ast_float_node *node = (struct ast_float_node *) s;
         free(node);
       }
       break;

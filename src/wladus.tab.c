@@ -70,8 +70,12 @@
 
 int yylex();
 int yyerror(const char *s);
-struct ast_node* add_ast_node(char *data, char *node_type, struct ast_node *left, struct ast_node *right);
+struct ast_node* add_ast_node(char *data, int node_type, struct ast_node *left, struct ast_node *right);
 struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node *params, struct ast_node *func_body);
+struct ast_node* add_ast_cond_node(char *data, struct ast_node *condition, struct ast_node *if_branch, struct ast_node *else_branch);
+struct ast_node* add_ast_op_node(char *data, char *operator, struct ast_node *left, struct ast_node *right);
+struct ast_node* add_ast_int_node(char *data, int value);
+struct ast_node* add_ast_float_node(char *data, float value);
 void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_node);
 struct ast_node* add_ast_var_node(char *data, char *type, char *name);
 
@@ -97,6 +101,34 @@ struct ast_var_node { // variables
   char *name;
 };
 
+struct ast_cond_node { // conditional statements
+  int node_type;
+  char *data;
+  struct ast_node *condition;
+  struct ast_node *if_branch;
+  struct ast_node *else_branch;
+};
+
+struct ast_op_node { // operation statements
+  int node_type;
+  char *data;
+  struct ast_node *left;
+  struct ast_node *right;
+  char *operator;
+};
+
+struct ast_int_node { // for constant integers
+  int node_type;
+  char *data;
+  int value;
+};
+
+struct ast_float_node { // for constant floats
+  int node_type;
+  char *data;
+  float value;
+};
+
 struct symbol_node {
   char *name;                 // key field
   char *type;
@@ -108,7 +140,7 @@ struct symbol_node {
 struct symbol_node *symbol_table = NULL;
 struct ast_node* syntax_tree;
 
-#line 112 "wladus.tab.c" /* yacc.c:339  */
+#line 144 "wladus.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -176,10 +208,11 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 51 "wladus.y" /* yacc.c:355  */
+#line 83 "wladus.y" /* yacc.c:355  */
 
   char *id;
   char *type;
+  char *op;
 
   int num;
   double dec;
@@ -187,7 +220,7 @@ union YYSTYPE
 
   struct ast_node *ast;
 
-#line 191 "wladus.tab.c" /* yacc.c:355  */
+#line 224 "wladus.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -218,7 +251,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 222 "wladus.tab.c" /* yacc.c:358  */
+#line 255 "wladus.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -462,16 +495,16 @@ union yyalloc
 /* YYFINAL -- State number of the termination state.  */
 #define YYFINAL  8
 /* YYLAST -- Last index in YYTABLE.  */
-#define YYLAST   109
+#define YYLAST   116
 
 /* YYNTOKENS -- Number of terminals.  */
 #define YYNTOKENS  40
 /* YYNNTS -- Number of nonterminals.  */
-#define YYNNTS  28
+#define YYNNTS  26
 /* YYNRULES -- Number of rules.  */
-#define YYNRULES  64
+#define YYNRULES  62
 /* YYNSTATES -- Number of states.  */
-#define YYNSTATES  111
+#define YYNSTATES  117
 
 /* YYTRANSLATE[YYX] -- Symbol number corresponding to YYX as returned
    by yylex, with out-of-bounds checking.  */
@@ -520,13 +553,13 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    86,    86,    90,    91,    95,    96,   100,   101,   105,
-     109,   110,   114,   115,   119,   120,   124,   128,   129,   133,
-     134,   138,   139,   140,   141,   145,   149,   150,   154,   158,
-     159,   163,   164,   168,   169,   173,   174,   178,   179,   180,
-     181,   182,   183,   187,   188,   192,   193,   194,   195,   199,
-     200,   201,   202,   203,   204,   208,   209,   210,   213,   214,
-     218,   219,   222,   223,   224
+       0,   119,   119,   123,   124,   128,   129,   133,   134,   138,
+     142,   143,   147,   148,   152,   153,   157,   161,   162,   166,
+     167,   171,   172,   173,   174,   178,   182,   183,   187,   191,
+     192,   196,   197,   201,   202,   206,   207,   208,   209,   210,
+     211,   212,   216,   217,   218,   219,   220,   224,   225,   226,
+     227,   228,   229,   233,   234,   235,   238,   239,   243,   244,
+     247,   248,   249
 };
 #endif
 
@@ -544,8 +577,8 @@ static const char *const yytname[] =
   "params", "param_list", "param", "compound_statement",
   "local_declarations", "statement_list", "statement",
   "expression_statement", "conditional_statement", "iteration_statement",
-  "return_statement", "expression", "var", "simple_expression", "cond_op",
-  "op_expression", "op", "term", "call", "args", "arg_list", "string", YY_NULLPTR
+  "return_statement", "expression", "var", "simple_expression",
+  "op_expression", "term", "call", "args", "arg_list", "string", YY_NULLPTR
 };
 #endif
 
@@ -561,10 +594,10 @@ static const yytype_uint16 yytoknum[] =
 };
 # endif
 
-#define YYPACT_NINF -86
+#define YYPACT_NINF -90
 
 #define yypact_value_is_default(Yystate) \
-  (!!((Yystate) == (-86)))
+  (!!((Yystate) == (-90)))
 
 #define YYTABLE_NINF -1
 
@@ -575,18 +608,18 @@ static const yytype_uint16 yytoknum[] =
      STATE-NUM.  */
 static const yytype_int8 yypact[] =
 {
-       4,    11,    22,     4,   -86,   -86,   -86,    -6,   -86,   -86,
-     -86,    20,    31,     6,    35,     3,    10,   -86,    21,    25,
-      16,    31,   -86,    26,   -86,   -86,   -86,   -86,    59,    62,
-     -86,    -2,   -15,    -1,   -86,   -86,    32,    34,    39,    38,
-      40,   -86,    43,   -86,   -86,   -86,   -86,   -86,    44,    52,
-     -86,    64,   -86,   -86,    43,    43,    43,    43,   -86,   -86,
-      45,    43,    67,    -5,   -86,    57,   -86,    43,   -86,   -86,
-     -86,   -86,   -86,   -86,   -86,   -86,   -86,   -86,    43,    43,
-      60,   -86,    61,    58,    63,    65,   -86,    66,    70,    69,
-     -86,   -86,    43,   -86,   -86,    68,   -86,   -86,   -86,    43,
-      16,    16,   -86,   -86,    71,   -86,   -86,    86,   -86,    16,
-     -86
+       4,    19,    29,     4,   -90,   -90,   -90,    -8,   -90,   -90,
+     -90,    33,    35,    18,    48,    25,    27,   -90,    36,    38,
+      57,    35,   -90,    39,   -90,   -90,   -90,   -90,    70,    67,
+     -90,    -2,   -18,    32,   -90,   -90,    40,    61,    37,    63,
+      64,   -90,    41,   -90,   -90,   -90,   -90,   -90,    65,    86,
+     -90,    62,   -90,   -90,    41,    41,    41,    41,   -90,   -90,
+      69,    41,    99,    -5,   -90,    68,   -90,    41,    41,    41,
+      41,    41,    41,    41,    41,    41,    41,    41,    71,   -90,
+      72,    73,    75,    76,   -90,    77,    74,    78,   -90,   -90,
+      41,   -90,   -90,    66,    66,    66,    66,    66,    66,   -90,
+     -90,   -90,   -90,   -90,   -90,    41,    57,    57,   -90,   -90,
+      79,   -90,   -90,    93,   -90,    57,   -90
 };
 
   /* YYDEFACT[STATE-NUM] -- Default reduction number in state STATE-NUM.
@@ -597,23 +630,23 @@ static const yytype_uint8 yydefact[] =
        0,     0,     0,     2,     4,     5,     6,     0,     1,     3,
        7,     0,    11,     0,     0,     0,    10,    13,     0,    14,
        0,     0,     8,     0,    18,     9,    12,    15,    20,     0,
-      17,     0,     0,    33,    52,    53,     0,     0,     0,     0,
-       0,    62,     0,    16,    19,    21,    22,    23,     0,    50,
-      32,    36,    44,    51,     0,    58,     0,     0,    30,    24,
-       0,     0,     0,     0,    50,     0,    25,     0,    37,    38,
-      39,    40,    41,    42,    45,    46,    47,    48,     0,     0,
-       0,    61,     0,    59,     0,     0,    29,     0,    33,     0,
-      63,    54,     0,    49,    31,    35,    43,    34,    55,     0,
-       0,     0,    56,    57,     0,    60,    28,    26,    64,     0,
-      27
+      17,     0,     0,    33,    50,    51,     0,     0,     0,     0,
+       0,    60,     0,    16,    19,    21,    22,    23,     0,    48,
+      32,    41,    46,    49,     0,    56,     0,     0,    30,    24,
+       0,     0,     0,     0,    48,     0,    25,     0,     0,     0,
+       0,     0,     0,     0,     0,     0,     0,     0,     0,    59,
+       0,    57,     0,     0,    29,     0,    33,     0,    61,    52,
+       0,    47,    31,    35,    36,    37,    38,    39,    40,    42,
+      43,    44,    45,    34,    53,     0,     0,     0,    54,    55,
+       0,    58,    28,    26,    62,     0,    27
 };
 
   /* YYPGOTO[NTERM-NUM].  */
 static const yytype_int8 yypgoto[] =
 {
-     -86,   -86,   -86,    97,    76,   -86,   -86,   -86,    85,   -85,
-     -86,   -86,   -86,   -86,   -86,   -86,   -86,     5,   -26,   -42,
-     -86,    29,   -86,    30,   -86,   -86,   -86,   -86
+     -90,   -90,   -90,   106,    87,   -90,   -90,   -90,    95,   -89,
+     -90,   -90,   -90,   -90,   -90,   -90,   -90,   -22,   -26,   -42,
+     -13,    17,   -90,   -90,   -90,   -90
 };
 
   /* YYDEFGOTO[NTERM-NUM].  */
@@ -621,7 +654,7 @@ static const yytype_int8 yydefgoto[] =
 {
       -1,     2,     3,     4,     5,     6,    15,    16,    17,    25,
       28,    31,    44,    45,    46,    47,    59,    48,    64,    50,
-      78,    51,    79,    52,    53,    82,    83,    63
+      51,    52,    53,    80,    81,    63
 };
 
   /* YYTABLE[YYPACT[STATE-NUM]] -- What to do in state STATE-NUM.  If
@@ -629,32 +662,34 @@ static const yytype_int8 yydefgoto[] =
      number is the opposite.  If YYTABLE_NINF, syntax error.  */
 static const yytype_uint8 yytable[] =
 {
-      65,    33,    90,    34,    35,    49,    36,    37,     1,    38,
-      39,    40,    49,    81,     7,   106,   107,    10,    11,    87,
-      91,    92,     8,    41,   110,    13,    10,    11,    49,    12,
-      49,    49,    54,    42,    55,    14,    89,    43,    19,    20,
-      18,    49,    33,    60,    34,    35,    33,    21,    34,    35,
-     104,    39,    40,    22,    24,    39,    40,   105,    23,    80,
-      27,    84,    85,    29,    41,    32,    67,    56,    41,    57,
-      88,    58,    94,    61,    42,    62,    66,    86,    42,    68,
-      69,    70,    71,    72,    73,    74,    75,    76,    77,    74,
-      75,    76,    77,    93,    97,    99,   109,    98,   108,   100,
-       9,   101,   102,    54,    30,   103,    26,    95,     0,    96
+      65,    33,    88,    34,    35,    49,    36,    37,     1,    38,
+      39,    40,    49,    79,    10,    11,    60,   112,   113,    85,
+      89,    90,     7,    41,    10,    11,   116,    12,    49,     8,
+      49,    49,    78,    42,    82,    83,    87,    43,    13,    14,
+      33,    49,    34,    35,    33,    92,    34,    35,   110,    39,
+      40,    19,    18,    39,    40,    93,    94,    95,    96,    97,
+      98,    20,    41,   111,    21,    54,    41,    55,    22,    58,
+      32,    23,    42,    27,    29,    56,    42,    68,    69,    70,
+      71,    72,    73,    74,    75,    76,    77,    74,    75,    76,
+      77,    99,   100,   101,   102,    24,    57,    66,    61,    62,
+      67,    84,    86,   115,    91,   103,   114,    54,   104,     9,
+     105,   106,   107,   108,   109,    30,    26
 };
 
-static const yytype_int8 yycheck[] =
+static const yytype_uint8 yycheck[] =
 {
       42,     3,     7,     5,     6,    31,     8,     9,     4,    11,
-      12,    13,    38,    55,     3,   100,   101,    32,    33,    61,
-      25,    26,     0,    25,   109,     5,    32,    33,    54,    35,
-      56,    57,    33,    35,    35,     4,    62,    39,     3,    36,
-      34,    67,     3,    38,     5,     6,     3,    37,     5,     6,
-      92,    12,    13,    32,    38,    12,    13,    99,    33,    54,
-      34,    56,    57,     4,    25,     3,    14,    35,    25,    35,
-       3,    32,    67,    35,    35,    35,    32,    32,    35,    15,
-      16,    17,    18,    19,    20,    21,    22,    23,    24,    21,
-      22,    23,    24,    36,    34,    37,    10,    36,    27,    36,
-       3,    36,    36,    33,    28,    36,    21,    78,    -1,    79
+      12,    13,    38,    55,    32,    33,    38,   106,   107,    61,
+      25,    26,     3,    25,    32,    33,   115,    35,    54,     0,
+      56,    57,    54,    35,    56,    57,    62,    39,     5,     4,
+       3,    67,     5,     6,     3,    67,     5,     6,    90,    12,
+      13,     3,    34,    12,    13,    68,    69,    70,    71,    72,
+      73,    36,    25,   105,    37,    33,    25,    35,    32,    32,
+       3,    33,    35,    34,     4,    35,    35,    15,    16,    17,
+      18,    19,    20,    21,    22,    23,    24,    21,    22,    23,
+      24,    74,    75,    76,    77,    38,    35,    32,    35,    35,
+      14,    32,     3,    10,    36,    34,    27,    33,    36,     3,
+      37,    36,    36,    36,    36,    28,    21
 };
 
   /* YYSTOS[STATE-NUM] -- The (internal number of the) accessing
@@ -666,13 +701,13 @@ static const yytype_uint8 yystos[] =
       36,    37,    32,    33,    38,    49,    48,    34,    50,     4,
       44,    51,     3,     3,     5,     6,     8,     9,    11,    12,
       13,    25,    35,    39,    52,    53,    54,    55,    57,    58,
-      59,    61,    63,    64,    33,    35,    35,    35,    32,    56,
-      57,    35,    35,    67,    58,    59,    32,    14,    15,    16,
-      17,    18,    19,    20,    21,    22,    23,    24,    60,    62,
-      57,    59,    65,    66,    57,    57,    32,    59,     3,    58,
-       7,    25,    26,    36,    57,    61,    63,    34,    36,    37,
-      36,    36,    36,    36,    59,    59,    49,    49,    27,    10,
-      49
+      59,    60,    61,    62,    33,    35,    35,    35,    32,    56,
+      57,    35,    35,    65,    58,    59,    32,    14,    15,    16,
+      17,    18,    19,    20,    21,    22,    23,    24,    57,    59,
+      63,    64,    57,    57,    32,    59,     3,    58,     7,    25,
+      26,    36,    57,    60,    60,    60,    60,    60,    60,    61,
+      61,    61,    61,    34,    36,    37,    36,    36,    36,    36,
+      59,    59,    49,    49,    27,    10,    49
 };
 
   /* YYR1[YYN] -- Symbol number of symbol that rule YYN derives.  */
@@ -681,10 +716,10 @@ static const yytype_uint8 yyr1[] =
        0,    40,    41,    42,    42,    43,    43,    44,    44,    45,
       46,    46,    47,    47,    48,    48,    49,    50,    50,    51,
       51,    52,    52,    52,    52,    53,    54,    54,    55,    56,
-      56,    57,    57,    58,    58,    59,    59,    60,    60,    60,
-      60,    60,    60,    61,    61,    62,    62,    62,    62,    63,
-      63,    63,    63,    63,    63,    64,    64,    64,    65,    65,
-      66,    66,    67,    67,    67
+      56,    57,    57,    58,    58,    59,    59,    59,    59,    59,
+      59,    59,    60,    60,    60,    60,    60,    61,    61,    61,
+      61,    61,    61,    62,    62,    62,    63,    63,    64,    64,
+      65,    65,    65
 };
 
   /* YYR2[YYN] -- Number of symbols on the right hand side of rule YYN.  */
@@ -693,10 +728,10 @@ static const yytype_uint8 yyr2[] =
        0,     2,     1,     2,     1,     1,     1,     3,     6,     6,
        1,     0,     3,     1,     2,     4,     4,     2,     0,     2,
        0,     1,     1,     1,     2,     2,     5,     7,     5,     2,
-       1,     3,     1,     1,     4,     3,     1,     1,     1,     1,
-       1,     1,     1,     3,     1,     1,     1,     1,     1,     3,
-       1,     1,     1,     1,     3,     4,     4,     4,     0,     1,
-       3,     1,     0,     2,     4
+       1,     3,     1,     1,     4,     3,     3,     3,     3,     3,
+       3,     1,     3,     3,     3,     3,     1,     3,     1,     1,
+       1,     1,     3,     4,     4,     4,     0,     1,     3,     1,
+       0,     2,     4
 };
 
 
@@ -1466,151 +1501,301 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 86 "wladus.y" /* yacc.c:1646  */
-    { syntax_tree = add_ast_node("program", 'D', NULL, (yyvsp[0].ast)); }
-#line 1472 "wladus.tab.c" /* yacc.c:1646  */
+#line 119 "wladus.y" /* yacc.c:1646  */
+    { syntax_tree = add_ast_node("program", 'A', NULL, (yyvsp[0].ast)); }
+#line 1507 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 90 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node("declarations", 'D', (yyvsp[-1].ast), (yyvsp[0].ast)); }
-#line 1478 "wladus.tab.c" /* yacc.c:1646  */
+#line 123 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("declarations", 'A', (yyvsp[-1].ast), (yyvsp[0].ast)); }
+#line 1513 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 91 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node("declarations", 'D', NULL, (yyvsp[0].ast)); }
-#line 1484 "wladus.tab.c" /* yacc.c:1646  */
+#line 124 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("declarations", 'A', NULL, (yyvsp[0].ast)); }
+#line 1519 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 95 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node("declaration", 'D', NULL, (yyvsp[0].ast)); }
-#line 1490 "wladus.tab.c" /* yacc.c:1646  */
+#line 128 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("declaration", 'A', NULL, (yyvsp[0].ast)); }
+#line 1525 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 96 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node("declaration", 'D', NULL, (yyvsp[0].ast)); }
-#line 1496 "wladus.tab.c" /* yacc.c:1646  */
+#line 129 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("declaration", 'A', NULL, (yyvsp[0].ast)); }
+#line 1531 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 100 "wladus.y" /* yacc.c:1646  */
+#line 133 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_var_node("var_declaration", (yyvsp[-2].type), (yyvsp[-1].id)); add_symbol((yyvsp[-1].id), (yyvsp[-2].type), "var", NULL); }
-#line 1502 "wladus.tab.c" /* yacc.c:1646  */
+#line 1537 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 101 "wladus.y" /* yacc.c:1646  */
+#line 134 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_var_node("var_declaration", (yyvsp[-5].type), (yyvsp[-4].id)); add_symbol((yyvsp[-4].id), (yyvsp[-5].type), "var", NULL); }
-#line 1508 "wladus.tab.c" /* yacc.c:1646  */
+#line 1543 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 105 "wladus.y" /* yacc.c:1646  */
+#line 138 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_func_node("func_declaration", (yyvsp[-4].id), (yyvsp[-2].ast), (yyvsp[0].ast)); add_symbol((yyvsp[-4].id), (yyvsp[-5].type), "func", (yyvsp[0].ast)); }
-#line 1514 "wladus.tab.c" /* yacc.c:1646  */
+#line 1549 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 109 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node("params", 'D', NULL, (yyvsp[0].ast)); }
-#line 1520 "wladus.tab.c" /* yacc.c:1646  */
+#line 142 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("params", 'A', NULL, (yyvsp[0].ast)); }
+#line 1555 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 110 "wladus.y" /* yacc.c:1646  */
+#line 143 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = NULL; }
-#line 1526 "wladus.tab.c" /* yacc.c:1646  */
+#line 1561 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 114 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node("param_list", 'D', (yyvsp[-2].ast), (yyvsp[0].ast)); }
-#line 1532 "wladus.tab.c" /* yacc.c:1646  */
+#line 147 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("param_list", 'A', (yyvsp[-2].ast), (yyvsp[0].ast)); }
+#line 1567 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 115 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node("param_list", 'D', NULL, (yyvsp[0].ast)); }
-#line 1538 "wladus.tab.c" /* yacc.c:1646  */
+#line 148 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("param_list", 'A', NULL, (yyvsp[0].ast)); }
+#line 1573 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 119 "wladus.y" /* yacc.c:1646  */
+#line 152 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_var_node("param", (yyvsp[-1].type), (yyvsp[0].id)); }
-#line 1544 "wladus.tab.c" /* yacc.c:1646  */
+#line 1579 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 120 "wladus.y" /* yacc.c:1646  */
+#line 153 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_var_node("param", (yyvsp[-3].type), (yyvsp[-2].id)); }
-#line 1550 "wladus.tab.c" /* yacc.c:1646  */
+#line 1585 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 124 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node("compound_statement", 'D', (yyvsp[-2].ast), (yyvsp[-1].ast)); }
-#line 1556 "wladus.tab.c" /* yacc.c:1646  */
+#line 157 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("compound_statement", 'A', (yyvsp[-2].ast), (yyvsp[-1].ast)); }
+#line 1591 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 128 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node("local_declarations", 'D', (yyvsp[-1].ast), (yyvsp[0].ast)); }
-#line 1562 "wladus.tab.c" /* yacc.c:1646  */
+#line 161 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("local_declarations", 'A', (yyvsp[-1].ast), (yyvsp[0].ast)); }
+#line 1597 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 129 "wladus.y" /* yacc.c:1646  */
+#line 162 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = NULL; }
-#line 1568 "wladus.tab.c" /* yacc.c:1646  */
+#line 1603 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 133 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node("statement_list", 'D', (yyvsp[-1].ast), (yyvsp[0].ast)); }
-#line 1574 "wladus.tab.c" /* yacc.c:1646  */
+#line 166 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("statement_list", 'A', (yyvsp[-1].ast), (yyvsp[0].ast)); }
+#line 1609 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 134 "wladus.y" /* yacc.c:1646  */
+#line 167 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = NULL; }
-#line 1580 "wladus.tab.c" /* yacc.c:1646  */
+#line 1615 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 138 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node("statement", 'D', NULL, (yyvsp[0].ast)); }
-#line 1586 "wladus.tab.c" /* yacc.c:1646  */
+#line 171 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("statement", 'A', NULL, (yyvsp[0].ast)); }
+#line 1621 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 139 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node("statement", 'D', NULL, (yyvsp[0].ast)); }
-#line 1592 "wladus.tab.c" /* yacc.c:1646  */
+#line 172 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("statement", 'A', NULL, (yyvsp[0].ast)); }
+#line 1627 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 140 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node("statement", 'D', NULL, (yyvsp[0].ast)); }
-#line 1598 "wladus.tab.c" /* yacc.c:1646  */
+#line 173 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("statement", 'A', NULL, (yyvsp[0].ast)); }
+#line 1633 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 141 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node("statement", 'D', NULL, (yyvsp[0].ast)); }
-#line 1604 "wladus.tab.c" /* yacc.c:1646  */
+#line 174 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("statement", 'A', NULL, (yyvsp[0].ast)); }
+#line 1639 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 145 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node("expression_statement", 'D', NULL, (yyvsp[-1].ast)); }
-#line 1610 "wladus.tab.c" /* yacc.c:1646  */
+#line 178 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("expression_statement", 'A', NULL, (yyvsp[-1].ast)); }
+#line 1645 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 26:
+#line 182 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_cond_node("conditional_statement", (yyvsp[-2].ast), (yyvsp[0].ast), NULL); }
+#line 1651 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 27:
+#line 183 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_cond_node("conditional_statement", (yyvsp[-4].ast), (yyvsp[-2].ast), (yyvsp[0].ast)); }
+#line 1657 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 29:
+#line 191 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("return_statement", 'A', NULL, (yyvsp[-1].ast)); }
+#line 1663 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 30:
+#line 192 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("return_statement", 'A', NULL, NULL); }
+#line 1669 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 31:
+#line 196 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_op_node("expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
+#line 1675 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 32:
+#line 197 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("expression", 'A', NULL, (yyvsp[0].ast)); }
+#line 1681 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 33:
+#line 201 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_var_node("var", "", (yyvsp[0].id)); }
+#line 1687 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 34:
+#line 202 "wladus.y" /* yacc.c:1646  */
+    {  }
+#line 1693 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 35:
+#line 206 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_op_node("simple_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
+#line 1699 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 36:
+#line 207 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_op_node("simple_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
+#line 1705 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 37:
+#line 208 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_op_node("simple_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
+#line 1711 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 38:
+#line 209 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_op_node("simple_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
+#line 1717 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 39:
+#line 210 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_op_node("simple_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
+#line 1723 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 40:
+#line 211 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_op_node("simple_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
+#line 1729 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 41:
+#line 212 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("simple_expression", 'A', NULL, (yyvsp[0].ast)); }
+#line 1735 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 42:
+#line 216 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_op_node("op_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
+#line 1741 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 43:
+#line 217 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_op_node("op_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
+#line 1747 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 44:
+#line 218 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_op_node("op_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
+#line 1753 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 45:
+#line 219 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_op_node("op_expression", (yyvsp[-1].op), (yyvsp[-2].ast), (yyvsp[0].ast)); }
+#line 1759 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 46:
+#line 220 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("op_expression", 'A', NULL, (yyvsp[0].ast)); }
+#line 1765 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 47:
+#line 224 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = (yyvsp[-1].ast); }
+#line 1771 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 48:
+#line 225 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = (yyvsp[0].ast); }
+#line 1777 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 49:
+#line 226 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = (yyvsp[0].ast); }
+#line 1783 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 50:
+#line 227 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_int_node("NUM", (yyvsp[0].num)); }
+#line 1789 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 51:
+#line 228 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_float_node("NUM", (yyvsp[0].dec)); }
+#line 1795 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1614 "wladus.tab.c" /* yacc.c:1646  */
+#line 1799 "wladus.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1845,10 +2030,10 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 227 "wladus.y" /* yacc.c:1906  */
+#line 252 "wladus.y" /* yacc.c:1906  */
 
 
-struct ast_node* add_ast_node(char *data, char *node_type, struct ast_node *left, struct ast_node *right){
+struct ast_node* add_ast_node(char *data, int node_type, struct ast_node *left, struct ast_node *right){
   struct ast_node* ast_node = (struct ast_node*)malloc(sizeof(struct ast_node));
 
   ast_node->node_type = node_type;
@@ -1868,7 +2053,19 @@ struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node 
   ast_node->params = params;
   ast_node->func_body = func_body;
 
-  return ast_node;
+  return (struct ast_node *) ast_node;
+}
+
+struct ast_node* add_ast_cond_node(char *data, struct ast_node *condition, struct ast_node *if_branch, struct ast_node *else_branch){
+  struct ast_cond_node* ast_node = (struct ast_cond_node*)malloc(sizeof(struct ast_cond_node));
+
+  ast_node->node_type = 'C';
+  ast_node->data = (char *) strdup(data);
+  ast_node->condition = condition;
+  ast_node->if_branch = if_branch;
+  ast_node->else_branch = else_branch;
+
+  return (struct ast_node *) ast_node;
 }
 
 struct ast_node* add_ast_var_node(char *data, char *type, char *name){
@@ -1879,7 +2076,40 @@ struct ast_node* add_ast_var_node(char *data, char *type, char *name){
   ast_node->type = (char *) strdup(type);
   ast_node->name = (char *) strdup(name);
 
-  return ast_node;
+  return (struct ast_node *) ast_node;
+}
+
+struct ast_node* add_ast_op_node(char *data, char *operator, struct ast_node *left, struct ast_node *right){
+  struct ast_op_node* ast_node = (struct ast_op_node*)malloc(sizeof(struct ast_op_node));
+
+  ast_node->node_type = 'O';
+  ast_node->data = (char *) strdup(data);
+  printf("op = %s\n", operator);
+  ast_node->operator = (char *) strdup(operator);
+  ast_node->left = left;
+  ast_node->right = right;
+
+  return (struct ast_node *) ast_node;
+}
+
+struct ast_node* add_ast_int_node(char *data, int value){
+  struct ast_int_node* ast_node = (struct ast_int_node*)malloc(sizeof(struct ast_int_node));
+
+  ast_node->node_type = 'I';
+  ast_node->data = (char *) strdup(data);
+  ast_node->value = value;
+
+  return (struct ast_node *) ast_node;
+}
+
+struct ast_node* add_ast_float_node(char *data, float value){
+  struct ast_float_node* ast_node = (struct ast_float_node*)malloc(sizeof(struct ast_float_node));
+
+  ast_node->node_type = 'D';
+  ast_node->data = (char *) strdup(data);
+  ast_node->value = value;
+
+  return (struct ast_node *) ast_node;
 }
 
 void print_ast_node(struct ast_node *s, int depth) {
@@ -1889,7 +2119,7 @@ void print_ast_node(struct ast_node *s, int depth) {
   printf("%s", s->data);
 
   switch (s->node_type){
-    case 'D':
+    case 'A':
       printf("\n");
       print_ast_node(s->left, depth + 1);
       print_ast_node(s->right, depth + 1);
@@ -1908,6 +2138,44 @@ void print_ast_node(struct ast_node *s, int depth) {
         printf(" (%s %s)\n", node->type, node->name);
       }
       break;
+    case 'O':
+      {
+        struct ast_op_node *node = (struct ast_op_node *) s;
+        printf(" (%s)\n", node->operator);
+        print_ast_node(s->left, depth + 1);
+        print_ast_node(s->right, depth + 1);
+      }
+      break;
+    case 'C':
+      {
+        struct ast_cond_node *node = (struct ast_cond_node *) s;
+        printf("\n");
+        printf("%*s", depth, "");
+        printf("-- condition --\n");
+        print_ast_node(node->condition, depth + 1);
+
+        printf("%*s", depth, "");
+        printf("-- if body --\n");
+        print_ast_node(node->if_branch, depth + 1);
+
+
+        printf("%*s", depth, "");
+        printf("-- else body --\n");
+        print_ast_node(node->else_branch, depth + 1);
+      }
+      break;
+    case 'I':
+      {
+        struct ast_int_node *node = (struct ast_int_node *) s;
+        printf(" (%d)\n", node->value);
+      }
+      break;
+    case 'D':
+      {
+        struct ast_float_node *node = (struct ast_float_node *) s;
+        printf(" (%lf)\n", node->value);
+      }
+      break;
   }  
 }
 
@@ -1924,16 +2192,12 @@ void free_syntax_tree(struct ast_node *s){
 
   free(s->data);
   switch (s->node_type){
-    case 'D':
-      if(s->left) {
-        free_syntax_tree(s->left);
-      }
-      if(s->right) {
-        free_syntax_tree(s->right);
-      }
+    case 'A':
+      if(s->left) free_syntax_tree(s->left);
+      if(s->right) free_syntax_tree(s->right);
       free(s);
       break;
-    case 'F': 
+    case 'F':
       {
         struct ast_func_node *node = (struct ast_func_node *) s;
         if(node->params) free_syntax_tree(node->params);
@@ -1947,6 +2211,27 @@ void free_syntax_tree(struct ast_node *s){
         struct ast_var_node *node = (struct ast_var_node *) s;
         free(node->type);
         free(node->name);
+        free(node);
+      }
+      break;
+    case 'O':
+      {
+        struct ast_op_node *node = (struct ast_op_node *) s;
+        free(node->operator);
+        if(s->left) free_syntax_tree(s->left);
+        if(s->right) free_syntax_tree(s->right);
+        free(node);
+      }
+      break;
+    case 'I':
+      {
+        struct ast_int_node *node = (struct ast_int_node *) s;
+        free(node);
+      }
+      break;
+    case 'D':
+      {
+        struct ast_float_node *node = (struct ast_float_node *) s;
         free(node);
       }
       break;

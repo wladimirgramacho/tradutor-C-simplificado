@@ -68,18 +68,18 @@ interpol_end        "}"
                                         else              { return yytext[0]; }
                                       }
 
-<INITIAL,EXP>{eq}                     { return EQ; }
-<INITIAL,EXP>{ceq}                    { return CEQ; }
-<INITIAL,EXP>{cne}                    { return CNE; }
-<INITIAL,EXP>{clt}                    { return CLT; }
-<INITIAL,EXP>{cle}                    { return CLE; }
-<INITIAL,EXP>{cgt}                    { return CGT; }
-<INITIAL,EXP>{cge}                    { return CGE; }
+<INITIAL,EXP>{eq}                     { yylval.op = (char *) strdup(yytext); return EQ; }
+<INITIAL,EXP>{ceq}                    { yylval.op = (char *) strdup(yytext); return CEQ; }
+<INITIAL,EXP>{cne}                    { yylval.op = (char *) strdup(yytext); return CNE; }
+<INITIAL,EXP>{clt}                    { yylval.op = (char *) strdup(yytext); return CLT; }
+<INITIAL,EXP>{cle}                    { yylval.op = (char *) strdup(yytext); return CLE; }
+<INITIAL,EXP>{cgt}                    { yylval.op = (char *) strdup(yytext); return CGT; }
+<INITIAL,EXP>{cge}                    { yylval.op = (char *) strdup(yytext); return CGE; }
 
-<INITIAL,EXP>{plus}                   { return PLUS; }
-<INITIAL,EXP>{minus}                  { return MINUS; }
-<INITIAL,EXP>{mult}                   { return MULT; }
-<INITIAL,EXP>{div}                    { return DIV; }
+<INITIAL,EXP>{plus}                   { yylval.op = (char *) strdup(yytext); return PLUS; }
+<INITIAL,EXP>{minus}                  { yylval.op = (char *) strdup(yytext); return MINUS; }
+<INITIAL,EXP>{mult}                   { yylval.op = (char *) strdup(yytext); return MULT; }
+<INITIAL,EXP>{div}                    { yylval.op = (char *) strdup(yytext); return DIV; }
 
 
 <INITIAL,EXP>{integer}                { 
