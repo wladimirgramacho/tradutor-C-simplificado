@@ -15,6 +15,6 @@ test:
 	./prog -t < ../examples/valid0.code
 	./prog -t < ../examples/valid1.code
 	./prog -t < ../examples/valid2.code
-	./prog -t < ../examples/invalid1.code
-	./prog -t < ../examples/invalid2.code
-	./prog -t < ../examples/invalid3.code
+# 	./prog -t < ../examples/invalid1.code
+# 	./prog -t < ../examples/invalid2.code
+# 	./prog -t < ../examples/invalid3.code

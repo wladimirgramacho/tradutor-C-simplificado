@@ -241,18 +241,18 @@ void print_symbol_table() {
   }
 }
 
-void print_syntax_node(struct ast_node *s) {
+void print_ast_node(struct ast_node *s) {
   if(s == NULL) return;
   printf("%s\n\t", s->data);
-  print_syntax_node(s->left);
-  print_syntax_node(s->right);
+  print_ast_node(s->left);
+  print_ast_node(s->right);
 }
 
 void print_syntax_tree() {
   struct ast_node *s = syntax_tree;
 
   printf("======  SYNTAX TREE ======\n");
-  print_syntax_node(s);
+  print_ast_node(s);
   printf("\n");
 }
 
@@ -263,8 +263,20 @@ void free_symbol_table(){
     free(s->name);
     free(s->type);
     free(s->object_type);
+    s->function = NULL;
     free(s);
   }
+}
+
+void free_syntax_tree(struct ast_node *s){
+  free(s->data);
+  if(s->left != NULL) {
+    free_syntax_tree(s->left);
+  }
+  if(s->right != NULL) {
+    free_syntax_tree(s->right);
+  }
+  free(s);
 }
 
 void main (int argc, char **argv){
@@ -279,4 +291,5 @@ void main (int argc, char **argv){
   if(print_table) print_symbol_table();
   print_syntax_tree();
   free_symbol_table();
+  free_syntax_tree(syntax_tree);
 }
