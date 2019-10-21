@@ -9,13 +9,13 @@
 
 int yylex();
 int yyerror(const char *s);
-struct node* add_node(char *data);
+struct syntax_node* add_syntax_node(char *data);
 void add_symbol(char *name, char *type, char *object_type);
 
-struct node {
+struct syntax_node {
   char *data;
-  struct node *left;
-  struct node *right;
+  struct syntax_node *left;
+  struct syntax_node *right;
 };
 
 struct symbol {
@@ -26,7 +26,7 @@ struct symbol {
 };
 
 struct symbol *symbol_table = NULL;
-struct node* syntax_tree;
+struct syntax_node* syntax_tree;
 %}
 
 %union {
@@ -55,7 +55,7 @@ struct node* syntax_tree;
 %%
 
 prog:
-  declarations
+  declarations                                  { syntax_tree = add_syntax_node("program"); }
 ;
 
 declarations:
@@ -196,13 +196,14 @@ string:
 
 %%
 
-struct node* add_node(char *data){
-  struct node* node = (struct node*)malloc(sizeof(struct node));
-  node->data = (char *) strdup(data);
-  node->left = NULL;
-  node->right = NULL;
+struct syntax_node* add_syntax_node(char *data){
+  struct syntax_node* syntax_node = (struct syntax_node*)malloc(sizeof(struct syntax_node));
 
-  return node;
+  syntax_node->data = (char *) strdup(data);
+  syntax_node->left = NULL;
+  syntax_node->right = NULL;
+
+  return syntax_node;
 }
 
 void add_symbol(char *name, char *type, char *object_type){
@@ -223,11 +224,26 @@ void add_symbol(char *name, char *type, char *object_type){
 void print_symbol_table() {
   struct symbol *s;
 
-  printf("======  SYMBOL TABLE ======\n");
+  printf("===============  SYMBOL TABLE ===============\n");
   printf("NAME\t\tTYPE\t\tOBJECT_TYPE\n");
   for(s=symbol_table; s != NULL; s=s->hh.next) {
     printf("%s\t\t%s\t\t%s\n", s->name, s->type, s->object_type);
   }
+}
+
+void print_syntax_node(struct syntax_node *s) {
+  if(s == NULL) return;
+  printf("%s\n\t", s->data);
+  print_syntax_node(s->left);
+  print_syntax_node(s->right);
+}
+
+void print_syntax_tree() {
+  struct syntax_node *s = syntax_tree;
+
+  printf("======  SYNTAX TREE ======\n");
+  print_syntax_node(s);
+  printf("\n");
 }
 
 void free_symbol_table(){
@@ -241,10 +257,8 @@ void free_symbol_table(){
   }
 }
 
-
 void main (int argc, char **argv){
   int print_table = 0;
-  syntax_tree = add_node("program");
 
   if(argc > 1 && !strcmp(argv[1], "-t")){
     print_table = 1;
@@ -253,5 +267,6 @@ void main (int argc, char **argv){
   yyparse();
 
   if(print_table) print_symbol_table();
+  print_syntax_tree();
   free_symbol_table();
 }
