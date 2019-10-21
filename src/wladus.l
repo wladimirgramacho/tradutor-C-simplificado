@@ -58,7 +58,7 @@ interpol_end        "}"
                                         if(inside_string) { BEGIN(0); inside_string--; return QUOTES; }
                                         else              { BEGIN(STRING); inside_string++; return QUOTES; }
                                       }
-<STRING>{str}                         { return STR; }
+<STRING>{str}                         { yylval.str = (char *) strdup(yytext); return STR; }
 <STRING>{interpol_start}              {
                                         if(inside_string) { BEGIN(EXP); return INTERPOL_START; }
                                         else              { return yytext[0]; }

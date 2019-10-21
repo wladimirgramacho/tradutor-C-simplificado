@@ -17,6 +17,8 @@ struct ast_node* add_ast_op_node(char *data, char *operator, struct ast_node *le
 struct ast_node* add_ast_call_node(char *data, char *func_name, struct ast_node *args);
 struct ast_node* add_ast_int_node(char *data, int value);
 struct ast_node* add_ast_float_node(char *data, float value);
+struct ast_node* add_ast_str_node(char *data, struct ast_node *append, char *value);
+struct ast_node* add_ast_interpol_str_node(char *data, struct ast_node *append, struct ast_node *expression);
 void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_node);
 struct ast_node* add_ast_var_node(char *data, char *type, char *name);
 
@@ -84,6 +86,20 @@ struct ast_float_node { // for constant floats
   float value;
 };
 
+struct ast_str_node { // for constant strings
+  int node_type;
+  char *data;
+  struct ast_node *append;
+  char *value;
+};
+
+struct ast_interpol_str_node { // for string interpolation
+  int node_type;
+  char *data;
+  struct ast_node *append;
+  struct ast_node *expression;
+};
+
 struct symbol_node {
   char *name;                 // key field
   char *type;
@@ -126,7 +142,7 @@ struct ast_node* syntax_tree;
 %type <ast> prog declarations declaration var_declaration func_declaration param_list param
 %type <ast> local_declarations statement_list compound_statement statement params
 %type <ast> expression_statement conditional_statement iteration_statement return_statement
-%type <ast> expression var simple_expression op_expression term call args arg_list
+%type <ast> expression var simple_expression op_expression term call args arg_list string
 
 %start prog
 %%
@@ -239,7 +255,7 @@ term:
 | call                                          { $$ = $1; }
 | NUM                                           { $$ = add_ast_int_node("NUM", $1); }
 | DEC                                           { $$ = add_ast_float_node("NUM", $1); }
-| QUOTES string QUOTES
+| QUOTES string QUOTES                          { $$ = add_ast_node("term", 'A', NULL, $2); }
 ;
 
 call:
@@ -259,8 +275,9 @@ arg_list:
 ;
 
 string:
-| string STR
-| string INTERPOL_START simple_expression INTERPOL_END
+  string STR                                    { $$ = add_ast_str_node("string", $1, $2); }
+| string INTERPOL_START simple_expression INTERPOL_END { $$ = add_ast_interpol_str_node("string", $1, $3); }
+|                                               { $$ = NULL; }
 ;
 
 %%
@@ -363,6 +380,28 @@ struct ast_node* add_ast_float_node(char *data, float value){
   return (struct ast_node *) ast_node;
 }
 
+struct ast_node* add_ast_str_node(char *data, struct ast_node *append, char *value){
+  struct ast_str_node* ast_node = (struct ast_str_node*)malloc(sizeof(struct ast_str_node));
+
+  ast_node->node_type = 'S';
+  ast_node->data = (char *) strdup(data);
+  ast_node->append = append;
+  ast_node->value = (char *) strdup(value);
+
+  return (struct ast_node *) ast_node;
+}
+
+struct ast_node* add_ast_interpol_str_node(char *data, struct ast_node *append, struct ast_node *expression){
+  struct ast_interpol_str_node* ast_node = (struct ast_interpol_str_node*)malloc(sizeof(struct ast_interpol_str_node));
+
+  ast_node->node_type = 'T';
+  ast_node->data = (char *) strdup(data);
+  ast_node->append = append;
+  ast_node->expression = expression;
+
+  return (struct ast_node *) ast_node;
+}
+
 void print_ast_node(struct ast_node *s, int depth) {
   if(s == NULL) return;
 
@@ -446,6 +485,21 @@ void print_ast_node(struct ast_node *s, int depth) {
       {
         struct ast_float_node *node = (struct ast_float_node *) s;
         printf(" (%lf)\n", node->value);
+      }
+      break;
+    case 'S':
+      {
+        struct ast_str_node *node = (struct ast_str_node *) s;
+        printf(" (%s)\n", node->value);
+        print_ast_node(node->append, depth + 1);
+      }
+      break;
+    case 'T':
+      {
+        struct ast_interpol_str_node *node = (struct ast_interpol_str_node *) s;
+        printf("\n");
+        print_ast_node(node->append, depth + 1);
+        print_ast_node(node->expression, depth + 1);
       }
       break;
   }  
@@ -532,6 +586,22 @@ void free_syntax_tree(struct ast_node *s){
         free(node);
       }
       break;
+    case 'S':
+      {
+        struct ast_str_node *node = (struct ast_str_node *) s;
+        free(node->value);
+        if(node->append) free(node->append);
+        free(node);
+      }
+      break;
+    case 'T':
+      {
+        struct ast_interpol_str_node *node = (struct ast_interpol_str_node *) s;
+        if(node->append) free(node->append);
+        if(node->expression) free(node->expression);
+        free(node);
+      }
+      break;
   }
 }
 
@@ -575,15 +645,21 @@ void free_symbol_table(){
 
 void main (int argc, char **argv){
   int print_table = 0;
+  int print_tree = 0;
 
   if(argc > 1 && !strcmp(argv[1], "-t")){
     print_table = 1;
   }
 
+  if(argc > 1 && !strcmp(argv[1], "-tt")){
+    print_table = 1;
+    print_tree = 1;
+  }
+
   yyparse();
 
   if(print_table) print_symbol_table();
-  print_syntax_tree();
+  if(print_tree) print_syntax_tree();
   free_symbol_table();
   free_syntax_tree(syntax_tree);
 }
