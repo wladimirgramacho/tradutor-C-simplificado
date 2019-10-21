@@ -14,6 +14,7 @@ struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node 
 struct ast_node* add_ast_cond_node(char *data, struct ast_node *condition, struct ast_node *if_branch, struct ast_node *else_branch);
 struct ast_node* add_ast_iter_node(char *data, struct ast_node *condition, struct ast_node *while_branch);
 struct ast_node* add_ast_op_node(char *data, char *operator, struct ast_node *left, struct ast_node *right);
+struct ast_node* add_ast_call_node(char *data, char *func_name, struct ast_node *args);
 struct ast_node* add_ast_int_node(char *data, int value);
 struct ast_node* add_ast_float_node(char *data, float value);
 void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_node);
@@ -26,7 +27,7 @@ struct ast_node {
   struct ast_node *right;
 };
 
-struct ast_func_node { // function calls
+struct ast_func_node { // function declarations
   int node_type;
   char *data;
   char *func_name;
@@ -62,6 +63,13 @@ struct ast_op_node { // operation statements
   struct ast_node *left;
   struct ast_node *right;
   char *operator;
+};
+
+struct ast_call_node { // function calls
+  int node_type;
+  char *data;
+  char *func_name;
+  struct ast_node *args;
 };
 
 struct ast_int_node { // for constant integers
@@ -139,7 +147,6 @@ declaration:
 
 var_declaration:
   TYPE ID ';'                                   { $$ = add_ast_var_node("var_declaration", $1, $2); add_symbol($2, $1, "var", NULL); }
-| TYPE ID '[' NUM ']' ';'                       { $$ = add_ast_var_node("var_declaration", $1, $2); add_symbol($2, $1, "var", NULL); }
 ;
 
 func_declaration:
@@ -158,7 +165,6 @@ param_list:
 
 param:
   TYPE ID                                       { $$ = add_ast_var_node("param", $1, $2); }
-| TYPE ID '[' ']'                               { $$ = add_ast_var_node("param", $1, $2); }
 ;
 
 compound_statement:
@@ -207,7 +213,6 @@ expression:
 
 var:
   ID                                            { $$ = add_ast_var_node("var", "", $1); }
-| ID '[' expression ']'                         {  }
 ;
 
 simple_expression:
@@ -238,9 +243,9 @@ term:
 ;
 
 call:
-  ID '(' args ')'
-| WRITE '(' simple_expression ')'
-| READ '(' var ')'
+  ID '(' args ')'                               { $$ = add_ast_call_node("call", $1, $3); }
+| WRITE '(' simple_expression ')'               { $$ = add_ast_call_node("call", "write", $3); }
+| READ '(' var ')'                              { $$ = add_ast_call_node("call", "read", $3); }
 ;
 
 args:
@@ -321,12 +326,20 @@ struct ast_node* add_ast_op_node(char *data, char *operator, struct ast_node *le
 
   ast_node->node_type = 'O';
   ast_node->data = (char *) strdup(data);
-  printf("op = %s\n", operator);
   ast_node->operator = (char *) strdup(operator);
   ast_node->left = left;
   ast_node->right = right;
 
   return (struct ast_node *) ast_node;
+}
+
+struct ast_node* add_ast_call_node(char *data, char *func_name, struct ast_node *args){
+  struct ast_call_node* ast_node = (struct ast_call_node*)malloc(sizeof(struct ast_call_node));
+
+  ast_node->node_type = 'L';
+  ast_node->data = (char *) strdup(data);
+  ast_node->func_name = (char *) strdup(func_name);
+  ast_node->args = args;
 }
 
 struct ast_node* add_ast_int_node(char *data, int value){
@@ -415,6 +428,13 @@ void print_ast_node(struct ast_node *s, int depth) {
         print_ast_node(node->while_branch, depth + 1);
       }
       break;
+    case 'L':
+      {
+        struct ast_call_node *node = (struct ast_call_node *) s;
+        printf(" (%s)\n", node->func_name);
+        print_ast_node(node->args, depth + 1);
+      }
+      break;
     case 'I':
       {
         struct ast_int_node *node = (struct ast_int_node *) s;
@@ -480,6 +500,7 @@ void free_syntax_tree(struct ast_node *s){
         free_syntax_tree(node->condition);
         free_syntax_tree(node->if_branch);
         if(node->else_branch) free_syntax_tree(node->else_branch);
+        free(node);
       }
       break;
     case 'W':
@@ -487,6 +508,15 @@ void free_syntax_tree(struct ast_node *s){
         struct ast_iter_node *node = (struct ast_iter_node *) s;
         free_syntax_tree(node->condition);
         free_syntax_tree(node->while_branch);
+        free(node);
+      }
+      break;
+    case 'L':
+      {
+        struct ast_call_node *node = (struct ast_call_node *) s;
+        free(node->func_name);
+        free_syntax_tree(node->args);
+        free(node);
       }
       break;
     case 'I':

@@ -7,15 +7,8 @@ void func(int value){
 int main(){
   string str;
   int var;
-  int arr[3];
 
   str = "";
-
-  arr[0] = 10;
-  
-  if(arr[0] < 1000){
-    var = 5;
-  }
 
   if(var >= 3){
     str = "this is another string with interpolation #{a + (b * var)}";
