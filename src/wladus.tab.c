@@ -574,7 +574,7 @@ static const yytype_uint16 yyrline[] =
      186,   187,   188,   192,   196,   197,   201,   205,   206,   210,
      211,   215,   219,   220,   221,   222,   223,   224,   225,   229,
      230,   231,   232,   233,   237,   238,   239,   240,   241,   242,
-     246,   247,   248,   251,   252,   256,   257,   260,   261,   262
+     246,   247,   248,   252,   253,   257,   258,   261,   262,   263
 };
 #endif
 
@@ -645,10 +645,10 @@ static const yytype_uint8 yydefact[] =
        7,    10,     0,     0,     9,    12,    13,     0,     0,    16,
        8,    11,    18,     0,    15,     0,     0,    31,    47,    48,
        0,     0,     0,     0,     0,    57,     0,    14,    17,    19,
-      20,    21,     0,    45,    30,    38,    43,    46,    53,     0,
+      20,    21,     0,    45,    30,    38,    43,    46,    54,     0,
        0,    28,    22,     0,     0,     0,     0,    45,     0,    23,
        0,     0,     0,     0,     0,     0,     0,     0,     0,     0,
-       0,    56,     0,    54,     0,     0,    27,     0,    31,     0,
+       0,    56,     0,    53,     0,     0,    27,     0,    31,     0,
       58,    49,     0,    44,    29,    32,    33,    34,    35,    36,
       37,    39,    40,    41,    42,    50,     0,     0,     0,    51,
       52,     0,    55,    26,    24,    59,     0,    25
@@ -739,7 +739,7 @@ static const yytype_uint8 yyr2[] =
        1,     1,     2,     2,     5,     7,     5,     2,     1,     3,
        1,     1,     3,     3,     3,     3,     3,     3,     1,     3,
        3,     3,     3,     1,     3,     1,     1,     1,     1,     3,
-       4,     4,     4,     0,     1,     3,     1,     0,     2,     4
+       4,     4,     4,     1,     0,     3,     1,     0,     2,     4
 };
 
 
@@ -1808,8 +1808,32 @@ yyreduce:
 #line 1809 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
+  case 53:
+#line 252 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("args", 'A', NULL, (yyvsp[0].ast)); }
+#line 1815 "wladus.tab.c" /* yacc.c:1646  */
+    break;
 
-#line 1813 "wladus.tab.c" /* yacc.c:1646  */
+  case 54:
+#line 253 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = NULL; }
+#line 1821 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 55:
+#line 257 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("arg_list", 'A', (yyvsp[-2].ast), (yyvsp[0].ast)); }
+#line 1827 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 56:
+#line 258 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("arg_list", 'A', NULL, (yyvsp[0].ast)); }
+#line 1833 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+
+#line 1837 "wladus.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2044,7 +2068,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 265 "wladus.y" /* yacc.c:1906  */
+#line 266 "wladus.y" /* yacc.c:1906  */
 
 
 struct ast_node* add_ast_node(char *data, int node_type, struct ast_node *left, struct ast_node *right){

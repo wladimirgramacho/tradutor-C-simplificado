@@ -249,12 +249,13 @@ call:
 ;
 
 args:
-| arg_list
+  arg_list                                      { $$ = add_ast_node("args", 'A', NULL, $1); }
+|                                               { $$ = NULL; }
 ;
 
 arg_list:
-  arg_list ',' simple_expression
-| simple_expression
+  arg_list ',' simple_expression                { $$ = add_ast_node("arg_list", 'A', $1, $3); }
+| simple_expression                             { $$ = add_ast_node("arg_list", 'A', NULL, $1); }
 ;
 
 string:
