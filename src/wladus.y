@@ -31,6 +31,7 @@ struct syntax_node* syntax_tree;
 
 %union {
   char *id;
+  char *type;
   int num;
   double dec;
   char *str;
@@ -38,7 +39,7 @@ struct syntax_node* syntax_tree;
 
  
 %token <id> ID
-%token <id> TIPO
+%token <type> TYPE
 %token <num> NUM
 %token <dec> DEC
 %token <str> STR
@@ -69,12 +70,12 @@ declaration:
 ;
 
 var_declaration:
-  TIPO ID ';'                                   { add_symbol($2, $1, "var"); }
-| TIPO ID '[' NUM ']' ';'                       { add_symbol($2, $1, "var"); }
+  TYPE ID ';'                                   { add_symbol($2, $1, "var"); }
+| TYPE ID '[' NUM ']' ';'                       { add_symbol($2, $1, "var"); }
 ;
 
 fun_declaration:
-  TIPO ID '(' params ')' compound_statement     { add_symbol($2, $1, "func"); }
+  TYPE ID '(' params ')' compound_statement     { add_symbol($2, $1, "func"); }
 ;
 
 params:
@@ -82,8 +83,8 @@ params:
 ;
 
 param_list:
-  param_list ',' TIPO param
-| TIPO param
+  param_list ',' TYPE param
+| TYPE param
 ;
 
 param:

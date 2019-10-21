@@ -125,7 +125,7 @@ extern int yydebug;
   enum yytokentype
   {
     ID = 258,
-    TIPO = 259,
+    TYPE = 259,
     NUM = 260,
     DEC = 261,
     STR = 262,
@@ -160,11 +160,12 @@ union YYSTYPE
 #line 32 "wladus.y" /* yacc.c:355  */
 
   char *id;
+  char *type;
   int num;
   double dec;
   char *str;
 
-#line 168 "wladus.tab.c" /* yacc.c:355  */
+#line 169 "wladus.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -195,7 +196,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 199 "wladus.tab.c" /* yacc.c:358  */
+#line 200 "wladus.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -497,13 +498,13 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    58,    58,    62,    63,    67,    68,    72,    73,    77,
-      80,    81,    85,    86,    90,    91,    95,    99,   100,   103,
-     104,   108,   109,   110,   111,   115,   119,   120,   124,   128,
-     129,   133,   134,   138,   139,   143,   144,   148,   149,   150,
-     151,   152,   153,   157,   158,   162,   163,   164,   165,   169,
-     170,   171,   172,   173,   174,   178,   179,   180,   183,   184,
-     188,   189,   192,   193,   194
+       0,    59,    59,    63,    64,    68,    69,    73,    74,    78,
+      81,    82,    86,    87,    91,    92,    96,   100,   101,   104,
+     105,   109,   110,   111,   112,   116,   120,   121,   125,   129,
+     130,   134,   135,   139,   140,   144,   145,   149,   150,   151,
+     152,   153,   154,   158,   159,   163,   164,   165,   166,   170,
+     171,   172,   173,   174,   175,   179,   180,   181,   184,   185,
+     189,   190,   193,   194,   195
 };
 #endif
 
@@ -512,7 +513,7 @@ static const yytype_uint8 yyrline[] =
    First, the terminals, then, starting at YYNTOKENS, nonterminals.  */
 static const char *const yytname[] =
 {
-  "$end", "error", "$undefined", "ID", "TIPO", "NUM", "DEC", "STR",
+  "$end", "error", "$undefined", "ID", "TYPE", "NUM", "DEC", "STR",
   "WHILE", "IF", "ELSE", "RETURN", "WRITE", "READ", "EQ", "CEQ", "CNE",
   "CLT", "CLE", "CGT", "CGE", "PLUS", "MINUS", "MULT", "DIV", "QUOTES",
   "INTERPOL_START", "INTERPOL_END", "'+'", "'-'", "'*'", "'/'", "';'",
@@ -1445,31 +1446,31 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 58 "wladus.y" /* yacc.c:1646  */
+#line 59 "wladus.y" /* yacc.c:1646  */
     { syntax_tree = add_syntax_node("program"); }
-#line 1451 "wladus.tab.c" /* yacc.c:1646  */
+#line 1452 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 72 "wladus.y" /* yacc.c:1646  */
-    { add_symbol((yyvsp[-1].id), (yyvsp[-2].id), "var"); }
-#line 1457 "wladus.tab.c" /* yacc.c:1646  */
+#line 73 "wladus.y" /* yacc.c:1646  */
+    { add_symbol((yyvsp[-1].id), (yyvsp[-2].type), "var"); }
+#line 1458 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 73 "wladus.y" /* yacc.c:1646  */
-    { add_symbol((yyvsp[-4].id), (yyvsp[-5].id), "var"); }
-#line 1463 "wladus.tab.c" /* yacc.c:1646  */
+#line 74 "wladus.y" /* yacc.c:1646  */
+    { add_symbol((yyvsp[-4].id), (yyvsp[-5].type), "var"); }
+#line 1464 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 77 "wladus.y" /* yacc.c:1646  */
-    { add_symbol((yyvsp[-4].id), (yyvsp[-5].id), "func"); }
-#line 1469 "wladus.tab.c" /* yacc.c:1646  */
+#line 78 "wladus.y" /* yacc.c:1646  */
+    { add_symbol((yyvsp[-4].id), (yyvsp[-5].type), "func"); }
+#line 1470 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1473 "wladus.tab.c" /* yacc.c:1646  */
+#line 1474 "wladus.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1704,7 +1705,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 197 "wladus.y" /* yacc.c:1906  */
+#line 198 "wladus.y" /* yacc.c:1906  */
 
 
 struct syntax_node* add_syntax_node(char *data){

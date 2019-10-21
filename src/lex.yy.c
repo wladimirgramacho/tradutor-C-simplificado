@@ -867,7 +867,7 @@ do_action:	/* This label is used only to access EOF actions. */
 case 1:
 YY_RULE_SETUP
 #line 49 "wladus.l"
-{ yylval.id = (char *) strdup(yytext); return TIPO; }
+{ yylval.id = (char *) strdup(yytext); return TYPE; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP

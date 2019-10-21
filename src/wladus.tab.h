@@ -46,7 +46,7 @@ extern int yydebug;
   enum yytokentype
   {
     ID = 258,
-    TIPO = 259,
+    TYPE = 259,
     NUM = 260,
     DEC = 261,
     STR = 262,
@@ -81,11 +81,12 @@ union YYSTYPE
 #line 32 "wladus.y" /* yacc.c:1909  */
 
   char *id;
+  char *type;
   int num;
   double dec;
   char *str;
 
-#line 89 "wladus.tab.h" /* yacc.c:1909  */
+#line 90 "wladus.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

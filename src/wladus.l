@@ -46,7 +46,7 @@ interpol_end        "}"
 
 %%
 
-{type}                                { yylval.id = (char *) strdup(yytext); return TIPO; }
+{type}                                { yylval.id = (char *) strdup(yytext); return TYPE; }
 "while"                               { return WHILE; }
 "if"                                  { return IF; }
 "else"                                { return ELSE; }
