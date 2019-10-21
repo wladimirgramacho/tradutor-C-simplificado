@@ -71,7 +71,7 @@
 int yylex();
 int yyerror(const char *s);
 struct ast_node* add_ast_node(char *data, char *node_type, struct ast_node *left, struct ast_node *right);
-struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node *params);
+struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node *params, struct ast_node *func_body);
 void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_node);
 struct ast_node* add_ast_var_node(char *data, char *type, char *name);
 
@@ -87,6 +87,7 @@ struct ast_func_node { // function calls
   char *data;
   char *func_name;
   struct ast_node *params;
+  struct ast_node *func_body;
 };
 
 struct ast_var_node { // variables
@@ -107,7 +108,7 @@ struct symbol_node {
 struct symbol_node *symbol_table = NULL;
 struct ast_node* syntax_tree;
 
-#line 111 "wladus.tab.c" /* yacc.c:339  */
+#line 112 "wladus.tab.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -175,7 +176,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 50 "wladus.y" /* yacc.c:355  */
+#line 51 "wladus.y" /* yacc.c:355  */
 
   char *id;
   char *type;
@@ -186,7 +187,7 @@ union YYSTYPE
 
   struct ast_node *ast;
 
-#line 190 "wladus.tab.c" /* yacc.c:355  */
+#line 191 "wladus.tab.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -217,7 +218,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 221 "wladus.tab.c" /* yacc.c:358  */
+#line 222 "wladus.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -519,13 +520,13 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    85,    85,    89,    90,    94,    95,    99,   100,   104,
-     108,   109,   113,   114,   118,   119,   123,   126,   127,   130,
-     131,   135,   136,   137,   138,   142,   146,   147,   151,   155,
-     156,   160,   161,   165,   166,   170,   171,   175,   176,   177,
-     178,   179,   180,   184,   185,   189,   190,   191,   192,   196,
-     197,   198,   199,   200,   201,   205,   206,   207,   210,   211,
-     215,   216,   219,   220,   221
+       0,    86,    86,    90,    91,    95,    96,   100,   101,   105,
+     109,   110,   114,   115,   119,   120,   124,   127,   128,   131,
+     132,   136,   137,   138,   139,   143,   147,   148,   152,   156,
+     157,   161,   162,   166,   167,   171,   172,   176,   177,   178,
+     179,   180,   181,   185,   186,   190,   191,   192,   193,   197,
+     198,   199,   200,   201,   202,   206,   207,   208,   211,   212,
+     216,   217,   220,   221,   222
 };
 #endif
 
@@ -1465,91 +1466,97 @@ yyreduce:
   switch (yyn)
     {
         case 2:
-#line 85 "wladus.y" /* yacc.c:1646  */
+#line 86 "wladus.y" /* yacc.c:1646  */
     { syntax_tree = add_ast_node("program", 'D', NULL, (yyvsp[0].ast)); }
-#line 1471 "wladus.tab.c" /* yacc.c:1646  */
+#line 1472 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 3:
-#line 89 "wladus.y" /* yacc.c:1646  */
+#line 90 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("declarations", 'D', (yyvsp[-1].ast), (yyvsp[0].ast)); }
-#line 1477 "wladus.tab.c" /* yacc.c:1646  */
+#line 1478 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 90 "wladus.y" /* yacc.c:1646  */
+#line 91 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("declarations", 'D', NULL, (yyvsp[0].ast)); }
-#line 1483 "wladus.tab.c" /* yacc.c:1646  */
+#line 1484 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 94 "wladus.y" /* yacc.c:1646  */
+#line 95 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("declaration", 'D', NULL, (yyvsp[0].ast)); }
-#line 1489 "wladus.tab.c" /* yacc.c:1646  */
+#line 1490 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 95 "wladus.y" /* yacc.c:1646  */
+#line 96 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("declaration", 'D', NULL, (yyvsp[0].ast)); }
-#line 1495 "wladus.tab.c" /* yacc.c:1646  */
+#line 1496 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 99 "wladus.y" /* yacc.c:1646  */
+#line 100 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("var_declaration", 'D', (yyvsp[-2].type), (yyvsp[-1].id)); add_symbol((yyvsp[-1].id), (yyvsp[-2].type), "var", NULL); }
-#line 1501 "wladus.tab.c" /* yacc.c:1646  */
+#line 1502 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 100 "wladus.y" /* yacc.c:1646  */
+#line 101 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("var_declaration", 'D', (yyvsp[-5].type), (yyvsp[-4].id)); add_symbol((yyvsp[-4].id), (yyvsp[-5].type), "var", NULL); }
-#line 1507 "wladus.tab.c" /* yacc.c:1646  */
+#line 1508 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 104 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_func_node("func_declaration", (yyvsp[-4].id), (yyvsp[-2].ast)); add_symbol((yyvsp[-4].id), (yyvsp[-5].type), "func", (yyvsp[0].ast)); }
-#line 1513 "wladus.tab.c" /* yacc.c:1646  */
+#line 105 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_func_node("func_declaration", (yyvsp[-4].id), (yyvsp[-2].ast), (yyvsp[0].ast)); add_symbol((yyvsp[-4].id), (yyvsp[-5].type), "func", (yyvsp[0].ast)); }
+#line 1514 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 108 "wladus.y" /* yacc.c:1646  */
+#line 109 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("params", 'D', NULL, (yyvsp[0].ast)); }
-#line 1519 "wladus.tab.c" /* yacc.c:1646  */
+#line 1520 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 109 "wladus.y" /* yacc.c:1646  */
+#line 110 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = NULL; }
-#line 1525 "wladus.tab.c" /* yacc.c:1646  */
+#line 1526 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 113 "wladus.y" /* yacc.c:1646  */
+#line 114 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("param_list", 'D', (yyvsp[-2].ast), (yyvsp[0].ast)); }
-#line 1531 "wladus.tab.c" /* yacc.c:1646  */
+#line 1532 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 114 "wladus.y" /* yacc.c:1646  */
+#line 115 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node("param_list", 'D', NULL, (yyvsp[0].ast)); }
-#line 1537 "wladus.tab.c" /* yacc.c:1646  */
+#line 1538 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 118 "wladus.y" /* yacc.c:1646  */
+#line 119 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_var_node("param_list", (yyvsp[-1].type), (yyvsp[0].id)); }
-#line 1543 "wladus.tab.c" /* yacc.c:1646  */
+#line 1544 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 119 "wladus.y" /* yacc.c:1646  */
+#line 120 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_var_node("param_list", (yyvsp[-3].type), (yyvsp[-2].id)); }
-#line 1549 "wladus.tab.c" /* yacc.c:1646  */
+#line 1550 "wladus.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 16:
+#line 124 "wladus.y" /* yacc.c:1646  */
+    { (yyval.ast) = add_ast_node("compound_list", 'D', NULL, NULL); }
+#line 1556 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1553 "wladus.tab.c" /* yacc.c:1646  */
+#line 1560 "wladus.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1784,7 +1791,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 224 "wladus.y" /* yacc.c:1906  */
+#line 225 "wladus.y" /* yacc.c:1906  */
 
 
 struct ast_node* add_ast_node(char *data, char *node_type, struct ast_node *left, struct ast_node *right){
@@ -1798,13 +1805,14 @@ struct ast_node* add_ast_node(char *data, char *node_type, struct ast_node *left
   return ast_node;
 }
 
-struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node *params){
+struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node *params, struct ast_node *func_body){
   struct ast_func_node* ast_node = (struct ast_func_node*)malloc(sizeof(struct ast_func_node));
 
   ast_node->node_type = 'F';
   ast_node->data = (char *) strdup(data);
   ast_node->func_name = func_name;
   ast_node->params = params;
+  ast_node->func_body = func_body;
 
   return ast_node;
 }
@@ -1818,6 +1826,61 @@ struct ast_node* add_ast_var_node(char *data, char *type, char *name){
   ast_node->name = (char *) strdup(name);
 
   return ast_node;
+}
+
+void print_ast_node(struct ast_node *s, int depth) {
+  if(s == NULL) return;
+
+  printf("%*s", depth, "");
+  printf("%s\n", s->data);
+
+  switch (s->node_type){
+    case 'D':
+      print_ast_node(s->left, depth + 1);
+      print_ast_node(s->right, depth + 1);
+      break;
+    case 'F': 
+      {
+        struct ast_func_node *node = (struct ast_func_node *) s;
+        if(node->params) print_ast_node(node->params, depth+1);
+        print_ast_node(node->func_body, depth+1);
+      }
+      break;
+  }
+  
+}
+
+void print_syntax_tree() {
+  struct ast_node *s = syntax_tree;
+
+  printf("======  SYNTAX TREE ======\n");
+  print_ast_node(s, 0);
+  printf("\n");
+}
+
+void free_syntax_tree(struct ast_node *s){
+  if(s == NULL) return;
+
+  free(s->data);
+  switch (s->node_type){
+    case 'D':
+      if(s->left) {
+        free_syntax_tree(s->left);
+      }
+      if(s->right) {
+        free_syntax_tree(s->right);
+      }
+      free(s);
+      break;
+    case 'F': 
+      {
+        struct ast_func_node *node = (struct ast_func_node *) s;
+        if(node->params) free_syntax_tree(node->params);
+        free_syntax_tree(node->func_body);
+        free(node);
+      }
+      break;
+  }
 }
 
 void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_node){
@@ -1846,35 +1909,6 @@ void print_symbol_table() {
   }
 }
 
-void print_ast_node(struct ast_node *s, int depth) {
-  if(s == NULL) return;
-
-  printf("%*s", depth, "");
-  printf("%s\n", s->data);
-
-  switch (s->node_type){
-    case 'D':
-      print_ast_node(s->left, depth + 1);
-      print_ast_node(s->right, depth + 1);
-      break;
-    case 'F': 
-      {
-        struct ast_func_node *node = (struct ast_func_node *) s;
-        if(node->params) print_ast_node(node->params, depth+1);
-      }
-      break;
-  }
-  
-}
-
-void print_syntax_tree() {
-  struct ast_node *s = syntax_tree;
-
-  printf("======  SYNTAX TREE ======\n");
-  print_ast_node(s, 0);
-  printf("\n");
-}
-
 void free_symbol_table(){
   struct symbol_node *s;
   for(s=symbol_table; s != NULL; s=s->hh.next) {
@@ -1884,30 +1918,6 @@ void free_symbol_table(){
     free(s->object_type);
     s->function = NULL;
     free(s);
-  }
-}
-
-void free_syntax_tree(struct ast_node *s){
-  if(s == NULL) return;
-
-  free(s->data);
-  switch (s->node_type){
-    case 'D':
-      if(s->left) {
-        free_syntax_tree(s->left);
-      }
-      if(s->right) {
-        free_syntax_tree(s->right);
-      }
-      free(s);
-      break;
-    case 'F': 
-      {
-        struct ast_func_node *node = (struct ast_func_node *) s;
-        if(node->params) free_syntax_tree(node->params);
-        free(node);
-      }
-      break;
   }
 }
 

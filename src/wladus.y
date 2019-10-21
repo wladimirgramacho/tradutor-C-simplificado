@@ -10,7 +10,7 @@
 int yylex();
 int yyerror(const char *s);
 struct ast_node* add_ast_node(char *data, char *node_type, struct ast_node *left, struct ast_node *right);
-struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node *params);
+struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node *params, struct ast_node *func_body);
 void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_node);
 struct ast_node* add_ast_var_node(char *data, char *type, char *name);
 
@@ -26,6 +26,7 @@ struct ast_func_node { // function calls
   char *data;
   char *func_name;
   struct ast_node *params;
+  struct ast_node *func_body;
 };
 
 struct ast_var_node { // variables
@@ -101,7 +102,7 @@ var_declaration:
 ;
 
 func_declaration:
-  TYPE ID '(' params ')' compound_statement     { $$ = add_ast_func_node("func_declaration", $2, $4); add_symbol($2, $1, "func", $6); }
+  TYPE ID '(' params ')' compound_statement     { $$ = add_ast_func_node("func_declaration", $2, $4, $6); add_symbol($2, $1, "func", $6); }
 ;
 
 params:
@@ -120,7 +121,7 @@ param:
 ;
 
 compound_statement:
-  '{' local_declarations statement_list '}'
+  '{' local_declarations statement_list '}'     { $$ = add_ast_node("compound_list", 'D', NULL, NULL); }
 ;
 
 local_declarations:
@@ -234,13 +235,14 @@ struct ast_node* add_ast_node(char *data, char *node_type, struct ast_node *left
   return ast_node;
 }
 
-struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node *params){
+struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node *params, struct ast_node *func_body){
   struct ast_func_node* ast_node = (struct ast_func_node*)malloc(sizeof(struct ast_func_node));
 
   ast_node->node_type = 'F';
   ast_node->data = (char *) strdup(data);
   ast_node->func_name = func_name;
   ast_node->params = params;
+  ast_node->func_body = func_body;
 
   return ast_node;
 }
@@ -254,6 +256,61 @@ struct ast_node* add_ast_var_node(char *data, char *type, char *name){
   ast_node->name = (char *) strdup(name);
 
   return ast_node;
+}
+
+void print_ast_node(struct ast_node *s, int depth) {
+  if(s == NULL) return;
+
+  printf("%*s", depth, "");
+  printf("%s\n", s->data);
+
+  switch (s->node_type){
+    case 'D':
+      print_ast_node(s->left, depth + 1);
+      print_ast_node(s->right, depth + 1);
+      break;
+    case 'F': 
+      {
+        struct ast_func_node *node = (struct ast_func_node *) s;
+        if(node->params) print_ast_node(node->params, depth+1);
+        print_ast_node(node->func_body, depth+1);
+      }
+      break;
+  }
+  
+}
+
+void print_syntax_tree() {
+  struct ast_node *s = syntax_tree;
+
+  printf("======  SYNTAX TREE ======\n");
+  print_ast_node(s, 0);
+  printf("\n");
+}
+
+void free_syntax_tree(struct ast_node *s){
+  if(s == NULL) return;
+
+  free(s->data);
+  switch (s->node_type){
+    case 'D':
+      if(s->left) {
+        free_syntax_tree(s->left);
+      }
+      if(s->right) {
+        free_syntax_tree(s->right);
+      }
+      free(s);
+      break;
+    case 'F': 
+      {
+        struct ast_func_node *node = (struct ast_func_node *) s;
+        if(node->params) free_syntax_tree(node->params);
+        free_syntax_tree(node->func_body);
+        free(node);
+      }
+      break;
+  }
 }
 
 void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_node){
@@ -282,35 +339,6 @@ void print_symbol_table() {
   }
 }
 
-void print_ast_node(struct ast_node *s, int depth) {
-  if(s == NULL) return;
-
-  printf("%*s", depth, "");
-  printf("%s\n", s->data);
-
-  switch (s->node_type){
-    case 'D':
-      print_ast_node(s->left, depth + 1);
-      print_ast_node(s->right, depth + 1);
-      break;
-    case 'F': 
-      {
-        struct ast_func_node *node = (struct ast_func_node *) s;
-        if(node->params) print_ast_node(node->params, depth+1);
-      }
-      break;
-  }
-  
-}
-
-void print_syntax_tree() {
-  struct ast_node *s = syntax_tree;
-
-  printf("======  SYNTAX TREE ======\n");
-  print_ast_node(s, 0);
-  printf("\n");
-}
-
 void free_symbol_table(){
   struct symbol_node *s;
   for(s=symbol_table; s != NULL; s=s->hh.next) {
@@ -320,30 +348,6 @@ void free_symbol_table(){
     free(s->object_type);
     s->function = NULL;
     free(s);
-  }
-}
-
-void free_syntax_tree(struct ast_node *s){
-  if(s == NULL) return;
-
-  free(s->data);
-  switch (s->node_type){
-    case 'D':
-      if(s->left) {
-        free_syntax_tree(s->left);
-      }
-      if(s->right) {
-        free_syntax_tree(s->right);
-      }
-      free(s);
-      break;
-    case 'F': 
-      {
-        struct ast_func_node *node = (struct ast_func_node *) s;
-        if(node->params) free_syntax_tree(node->params);
-        free(node);
-      }
-      break;
   }
 }
 
