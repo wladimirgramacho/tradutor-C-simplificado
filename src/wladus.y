@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include "uthash.h"
 
-
 int yylex();
 int yyerror(const char *s);
 struct ast_node* add_ast_node(char *data, int node_type, struct ast_node *left, struct ast_node *right);
@@ -100,12 +99,23 @@ struct ast_interpol_str_node { // for string interpolation
   struct ast_node *expression;
 };
 
+typedef struct param {
+  char *name;
+  char *type;
+  struct param *next;
+} param;
+
 struct symbol_node {
-  char *name;                 // key field
-  char *type;                 // int | float | string | void
-  char symbol_type;           // 'V' or 'F'
-  struct ast_node *function;  // function body
-  UT_hash_handle hh;          // makes this structure hashable
+  char *name;                     // key field
+  char *type;                     // int | float | string | void
+  char symbol_type;               // 'V' or 'F'
+  UT_hash_handle hh;              // makes this structure hashable
+  struct {
+    struct ast_node *func_body;   // function body
+    int num_params;
+    struct param *param_list;
+    struct symbol_node *symbols;
+  } func_fields;
 };
 
 struct symbol_node *symbol_table = NULL;
@@ -615,7 +625,7 @@ void add_symbol(char *name, char *type, char symbol_type, struct ast_node *ast_n
     s->name = (char *) strdup(name);
     s->type = (char *) strdup(type);
     s->symbol_type = symbol_type;
-    s->function = ast_node;
+    s->func_fields.func_body = ast_node;
 
     HASH_ADD_STR(symbol_table, name, s);
   }
@@ -637,7 +647,7 @@ void free_symbol_table(){
     HASH_DEL(symbol_table, s);
     free(s->name);
     free(s->type);
-    s->function = NULL;
+    s->func_fields.func_body = NULL;
     free(s);
   }
 }
