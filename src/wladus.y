@@ -19,7 +19,7 @@ struct ast_node* add_ast_int_node(char *data, int value);
 struct ast_node* add_ast_float_node(char *data, float value);
 struct ast_node* add_ast_str_node(char *data, struct ast_node *append, char *value);
 struct ast_node* add_ast_interpol_str_node(char *data, struct ast_node *append, struct ast_node *expression);
-void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_node);
+void add_symbol(char *name, char *type, char symbol_type, struct ast_node *ast_node);
 struct ast_node* add_ast_var_node(char *data, char *type, char *name);
 
 struct ast_node {
@@ -102,8 +102,8 @@ struct ast_interpol_str_node { // for string interpolation
 
 struct symbol_node {
   char *name;                 // key field
-  char *type;
-  char *object_type;          // "var" or "func"
+  char *type;                 // int | float | string | void
+  char symbol_type;           // 'V' or 'F'
   struct ast_node *function;  // function body
   UT_hash_handle hh;          // makes this structure hashable
 };
@@ -162,11 +162,11 @@ declaration:
 ;
 
 var_declaration:
-  TYPE ID ';'                                   { $$ = add_ast_var_node("var_declaration", $1, $2); add_symbol($2, $1, "var", NULL); }
+  TYPE ID ';'                                   { $$ = add_ast_var_node("var_declaration", $1, $2); add_symbol($2, $1, 'V', NULL); }
 ;
 
 func_declaration:
-  TYPE ID '(' params ')' compound_statement     { $$ = add_ast_func_node("func_declaration", $2, $4, $6); add_symbol($2, $1, "func", $6); }
+  TYPE ID '(' params ')' compound_statement     { $$ = add_ast_func_node("func_declaration", $2, $4, $6); add_symbol($2, $1, 'F', $6); }
 ;
 
 params:
@@ -605,7 +605,7 @@ void free_syntax_tree(struct ast_node *s){
   }
 }
 
-void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_node){
+void add_symbol(char *name, char *type, char symbol_type, struct ast_node *ast_node){
   struct symbol_node *s;
 
   HASH_FIND_STR(symbol_table, name, s);
@@ -614,7 +614,7 @@ void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_
 
     s->name = (char *) strdup(name);
     s->type = (char *) strdup(type);
-    s->object_type = (char *) strdup(object_type);
+    s->symbol_type = symbol_type;
     s->function = ast_node;
 
     HASH_ADD_STR(symbol_table, name, s);
@@ -625,9 +625,9 @@ void print_symbol_table() {
   struct symbol_node *s;
 
   printf("===============  SYMBOL TABLE ===============\n");
-  printf("NAME\t\tTYPE\t\tOBJECT_TYPE\n");
+  printf("NAME\t\tTYPE\t\tSYMBOL_TYPE\n");
   for(s=symbol_table; s != NULL; s=s->hh.next) {
-    printf("%s\t\t%s\t\t%s\n", s->name, s->type, s->object_type);
+    printf("%s\t\t%s\t\t%c\n", s->name, s->type, s->symbol_type);
   }
 }
 
@@ -637,7 +637,6 @@ void free_symbol_table(){
     HASH_DEL(symbol_table, s);
     free(s->name);
     free(s->type);
-    free(s->object_type);
     s->function = NULL;
     free(s);
   }

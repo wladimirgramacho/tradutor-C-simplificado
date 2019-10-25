@@ -80,7 +80,7 @@ struct ast_node* add_ast_int_node(char *data, int value);
 struct ast_node* add_ast_float_node(char *data, float value);
 struct ast_node* add_ast_str_node(char *data, struct ast_node *append, char *value);
 struct ast_node* add_ast_interpol_str_node(char *data, struct ast_node *append, struct ast_node *expression);
-void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_node);
+void add_symbol(char *name, char *type, char symbol_type, struct ast_node *ast_node);
 struct ast_node* add_ast_var_node(char *data, char *type, char *name);
 
 struct ast_node {
@@ -163,8 +163,8 @@ struct ast_interpol_str_node { // for string interpolation
 
 struct symbol_node {
   char *name;                 // key field
-  char *type;
-  char *object_type;          // "var" or "func"
+  char *type;                 // int | float | string | void
+  char symbol_type;           // 'V' or 'F'
   struct ast_node *function;  // function body
   UT_hash_handle hh;          // makes this structure hashable
 };
@@ -1556,13 +1556,13 @@ yyreduce:
 
   case 7:
 #line 165 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_var_node("var_declaration", (yyvsp[-2].type), (yyvsp[-1].id)); add_symbol((yyvsp[-1].id), (yyvsp[-2].type), "var", NULL); }
+    { (yyval.ast) = add_ast_var_node("var_declaration", (yyvsp[-2].type), (yyvsp[-1].id)); add_symbol((yyvsp[-1].id), (yyvsp[-2].type), 'V', NULL); }
 #line 1561 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 8:
 #line 169 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_func_node("func_declaration", (yyvsp[-4].id), (yyvsp[-2].ast), (yyvsp[0].ast)); add_symbol((yyvsp[-4].id), (yyvsp[-5].type), "func", (yyvsp[0].ast)); }
+    { (yyval.ast) = add_ast_func_node("func_declaration", (yyvsp[-4].id), (yyvsp[-2].ast), (yyvsp[0].ast)); add_symbol((yyvsp[-4].id), (yyvsp[-5].type), 'F', (yyvsp[0].ast)); }
 #line 1567 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
@@ -2434,7 +2434,7 @@ void free_syntax_tree(struct ast_node *s){
   }
 }
 
-void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_node){
+void add_symbol(char *name, char *type, char symbol_type, struct ast_node *ast_node){
   struct symbol_node *s;
 
   HASH_FIND_STR(symbol_table, name, s);
@@ -2443,7 +2443,7 @@ void add_symbol(char *name, char *type, char *object_type, struct ast_node *ast_
 
     s->name = (char *) strdup(name);
     s->type = (char *) strdup(type);
-    s->object_type = (char *) strdup(object_type);
+    s->symbol_type = symbol_type;
     s->function = ast_node;
 
     HASH_ADD_STR(symbol_table, name, s);
@@ -2454,9 +2454,9 @@ void print_symbol_table() {
   struct symbol_node *s;
 
   printf("===============  SYMBOL TABLE ===============\n");
-  printf("NAME\t\tTYPE\t\tOBJECT_TYPE\n");
+  printf("NAME\t\tTYPE\t\tSYMBOL_TYPE\n");
   for(s=symbol_table; s != NULL; s=s->hh.next) {
-    printf("%s\t\t%s\t\t%s\n", s->name, s->type, s->object_type);
+    printf("%s\t\t%s\t\t%c\n", s->name, s->type, s->symbol_type);
   }
 }
 
@@ -2466,7 +2466,6 @@ void free_symbol_table(){
     HASH_DEL(symbol_table, s);
     free(s->name);
     free(s->type);
-    free(s->object_type);
     s->function = NULL;
     free(s);
   }
