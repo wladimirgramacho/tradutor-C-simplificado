@@ -625,7 +625,10 @@ void add_symbol(char *name, char *type, char symbol_type, struct ast_node *ast_n
     s->name = (char *) strdup(name);
     s->type = (char *) strdup(type);
     s->symbol_type = symbol_type;
-    s->func_fields.func_body = ast_node;
+
+    if(symbol_type = 'F') {
+      s->func_fields.func_body = ast_node;
+    }
 
     HASH_ADD_STR(symbol_table, name, s);
   }
