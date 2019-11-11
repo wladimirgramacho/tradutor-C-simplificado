@@ -8,8 +8,15 @@
 
 int yylex();
 int yyerror(const char *s);
+
+typedef struct param {
+  char *name;
+  char *type;
+  struct param *next;
+} param;
+
 struct ast_node* add_ast_node(char *data, int node_type, struct ast_node *left, struct ast_node *right);
-struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node *params, struct ast_node *func_body);
+struct ast_node* add_ast_func_node(char *data, char *func_name, param *params, struct ast_node *func_body);
 struct ast_node* add_ast_cond_node(char *data, struct ast_node *condition, struct ast_node *if_branch, struct ast_node *else_branch);
 struct ast_node* add_ast_iter_node(char *data, struct ast_node *condition, struct ast_node *while_branch);
 struct ast_node* add_ast_op_node(char *data, char *operator, struct ast_node *left, struct ast_node *right);
@@ -18,8 +25,9 @@ struct ast_node* add_ast_int_node(char *data, int value);
 struct ast_node* add_ast_float_node(char *data, float value);
 struct ast_node* add_ast_str_node(char *data, struct ast_node *append, char *value);
 struct ast_node* add_ast_interpol_str_node(char *data, struct ast_node *append, struct ast_node *expression);
-void add_symbol(char *name, char *type, char symbol_type, struct ast_node *ast_node);
+void add_symbol(char *name, char *type, char symbol_type, struct ast_node *ast_node, param *param);
 struct ast_node* add_ast_var_node(char *data, char *type, char *name);
+param* add_param(char *type, char *name, param *next);
 
 struct ast_node {
   int node_type;
@@ -32,7 +40,7 @@ struct ast_func_node { // function declarations
   int node_type;
   char *data;
   char *func_name;
-  struct ast_node *params;
+  param *params;
   struct ast_node *func_body;
 };
 
@@ -99,12 +107,6 @@ struct ast_interpol_str_node { // for string interpolation
   struct ast_node *expression;
 };
 
-typedef struct param {
-  char *name;
-  char *type;
-  struct param *next;
-} param;
-
 struct symbol_node {
   char *name;                     // key field
   char *type;                     // int | float | string | void
@@ -112,8 +114,7 @@ struct symbol_node {
   UT_hash_handle hh;              // makes this structure hashable
   struct {
     struct ast_node *func_body;   // function body
-    int num_params;
-    struct param *param_list;
+    param *param_list;
     struct symbol_node *symbols;
   } func_fields;
 };
@@ -132,6 +133,7 @@ struct ast_node* syntax_tree;
   char *str;
 
   struct ast_node *ast;
+  struct param *param;
 }
 
  
@@ -149,10 +151,12 @@ struct ast_node* syntax_tree;
 %left '+' '-'
 %left '*' '/'
 
-%type <ast> prog declarations declaration var_declaration func_declaration param_list param
-%type <ast> local_declarations statement_list compound_statement statement params
+%type <ast> prog declarations declaration var_declaration func_declaration
+%type <ast> local_declarations statement_list compound_statement statement 
 %type <ast> expression_statement conditional_statement iteration_statement return_statement
 %type <ast> expression var simple_expression op_expression term call args arg_list string
+
+%type <param> params
 
 %start prog
 %%
@@ -172,26 +176,19 @@ declaration:
 ;
 
 var_declaration:
-  TYPE ID ';'                                   { $$ = add_ast_var_node("var_declaration", $1, $2); add_symbol($2, $1, 'V', NULL); }
+  TYPE ID ';'                                   { $$ = add_ast_var_node("var_declaration", $1, $2); add_symbol($2, $1, 'V', NULL, NULL); }
 ;
 
 func_declaration:
-  TYPE ID '(' params ')' compound_statement     { $$ = add_ast_func_node("func_declaration", $2, $4, $6); add_symbol($2, $1, 'F', $6); }
+  TYPE ID '(' params ')' compound_statement     { $$ = add_ast_func_node("func_declaration", $2, $4, $6); add_symbol($2, $1, 'F', $6, $4); }
 ;
 
 params:
-  param_list                                    { $$ = add_ast_node("params", 'A', NULL, $1); }
+  TYPE ID ',' params                            { $$ = add_param($1, $2, $4); }
+| TYPE ID                                       { $$ = add_param($1, $2, NULL); }
 |                                               { $$ = NULL; }
 ;
 
-param_list:
-  param_list ',' param                          { $$ = add_ast_node("param_list", 'A', $1, $3); }
-| param                                         { $$ = add_ast_node("param_list", 'A', NULL, $1); }
-;
-
-param:
-  TYPE ID                                       { $$ = add_ast_var_node("param", $1, $2); }
-;
 
 compound_statement:
   '{' local_declarations statement_list '}'     { $$ = add_ast_node("compound_statement", 'A', $2, $3); }
@@ -303,7 +300,7 @@ struct ast_node* add_ast_node(char *data, int node_type, struct ast_node *left, 
   return ast_node;
 }
 
-struct ast_node* add_ast_func_node(char *data, char *func_name, struct ast_node *params, struct ast_node *func_body){
+struct ast_node* add_ast_func_node(char *data, char *func_name, param *params, struct ast_node *func_body){
   struct ast_func_node* ast_node = (struct ast_func_node*)malloc(sizeof(struct ast_func_node));
 
   ast_node->node_type = 'F';
@@ -412,6 +409,15 @@ struct ast_node* add_ast_interpol_str_node(char *data, struct ast_node *append, 
   return (struct ast_node *) ast_node;
 }
 
+void print_params(param *param, int depth){
+  if(param == NULL) return;
+
+  printf("%*s", depth, "");
+  printf("%s", param->type);
+  printf("%s", param->name);
+  print_params(param->next, depth);
+}
+
 void print_ast_node(struct ast_node *s, int depth) {
   if(s == NULL) return;
 
@@ -428,7 +434,7 @@ void print_ast_node(struct ast_node *s, int depth) {
       {
         struct ast_func_node *node = (struct ast_func_node *) s;
         printf(" (%s)\n", node->func_name);
-        if(node->params) print_ast_node(node->params, depth+1);
+        if(node->params) print_params(node->params, depth+1);
         print_ast_node(node->func_body, depth+1);
       }
       break;
@@ -523,6 +529,14 @@ void print_syntax_tree() {
   printf("\n");
 }
 
+void free_params(param *param){
+  if(param == NULL) return;
+  free(param->type);
+  free(param->name);
+  free_params(param->next);
+  free(param);
+}
+
 void free_syntax_tree(struct ast_node *s){
   if(s == NULL) return;
 
@@ -536,7 +550,7 @@ void free_syntax_tree(struct ast_node *s){
     case 'F':
       {
         struct ast_func_node *node = (struct ast_func_node *) s;
-        if(node->params) free_syntax_tree(node->params);
+        if(node->params) free_params(node->params);
         free(node->func_name);
         free_syntax_tree(node->func_body);
         free(node);
@@ -615,7 +629,7 @@ void free_syntax_tree(struct ast_node *s){
   }
 }
 
-void add_symbol(char *name, char *type, char symbol_type, struct ast_node *ast_node){
+void add_symbol(char *name, char *type, char symbol_type, struct ast_node *ast_node, param *param){
   struct symbol_node *s;
 
   HASH_FIND_STR(symbol_table, name, s);
@@ -628,10 +642,22 @@ void add_symbol(char *name, char *type, char symbol_type, struct ast_node *ast_n
 
     if(symbol_type = 'F') {
       s->func_fields.func_body = ast_node;
+      s->func_fields.param_list = param;
     }
 
     HASH_ADD_STR(symbol_table, name, s);
   }
+}
+
+param* add_param(char *type, char *name, param *next){
+  param *p;
+
+  p = (param *)malloc(sizeof *p);
+
+  p->type = (char *) strdup(type);
+  p->name = (char *) strdup(name);
+  p->next = next;
+  return p;
 }
 
 void print_symbol_table() {

@@ -103,5 +103,5 @@ interpol_end        "}"
 %%
 
 void yyerror(const char *s){
-  fprintf(stderr, "%d: %s \n", yylineno, s);
+  fprintf(stderr, "%d: %s %s\n", yylineno, s, yytext);
 }
