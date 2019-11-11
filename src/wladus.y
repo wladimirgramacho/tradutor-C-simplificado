@@ -671,8 +671,9 @@ void print_symbol_table() {
 }
 
 void free_symbol_table(){
-  struct symbol_node *s;
-  for(s=symbol_table; s != NULL; s=s->hh.next) {
+  struct symbol_node *s, *tmp;
+
+  HASH_ITER(hh, symbol_table, s, tmp) {
     HASH_DEL(symbol_table, s);
     free(s->name);
     free(s->type);
