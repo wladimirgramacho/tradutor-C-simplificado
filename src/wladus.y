@@ -25,8 +25,8 @@ struct ast_node* add_ast_int_node(char *data, int value);
 struct ast_node* add_ast_float_node(char *data, float value);
 struct ast_node* add_ast_str_node(char *data, struct ast_node *append, char *value);
 struct ast_node* add_ast_interpol_str_node(char *data, struct ast_node *append, struct ast_node *expression);
-void add_symbol(char *name, char *type, char symbol_type, struct ast_node *ast_node, param *param);
 struct ast_node* add_ast_var_node(char *data, char *type, char *name);
+void add_symbol(char *name, char *type, char symbol_type, struct ast_node *ast_node, param *param);
 param* add_param(char *type, char *name, param *next);
 
 struct ast_node {
@@ -152,7 +152,7 @@ struct ast_node* syntax_tree;
 %left '*' '/'
 
 %type <ast> prog declarations declaration var_declaration func_declaration
-%type <ast> local_declarations statement_list compound_statement statement 
+%type <ast> local_declarations statement_list compound_statement statement local_var_declaration
 %type <ast> expression_statement conditional_statement iteration_statement return_statement
 %type <ast> expression var simple_expression op_expression term call args arg_list string
 
@@ -189,15 +189,17 @@ params:
 |                                               { $$ = NULL; }
 ;
 
-
 compound_statement:
   '{' local_declarations statement_list '}'     { $$ = add_ast_node("compound_statement", 'A', $2, $3); }
 ;
 
 local_declarations:
-  local_declarations var_declaration            { $$ = add_ast_node("local_declarations", 'A', $1, $2); }
+  local_declarations local_var_declaration      { $$ = add_ast_node("local_declarations", 'A', $1, $2); }
 |                                               { $$ = NULL; }
 ;
+
+local_var_declaration:
+  TYPE ID ';'                                   { $$ = add_ast_var_node("var_declaration", $1, $2);}
 
 statement_list:
   statement_list statement                      { $$ = add_ast_node("statement_list", 'A', $1, $2); }
