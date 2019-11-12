@@ -168,17 +168,17 @@ struct ast_node* syntax_tree;
 %%
 
 prog:
-  declarations                                  { syntax_tree = add_ast_node("program", 'A', NULL, $1); }
+  declarations                                  { syntax_tree = $1; }
 ;
 
 declarations:
   declarations declaration                      { $$ = add_ast_node("declarations", 'A', $1, $2); }
-| declaration                                   { $$ = add_ast_node("declarations", 'A', NULL, $1); }
+| declaration                                   { $$ = $1; }
 ;
 
 declaration:
-  var_declaration                               { $$ = add_ast_node("declaration", 'A', NULL, $1); }
-| func_declaration                              { $$ = add_ast_node("declaration", 'A', NULL, $1); }
+  var_declaration                               { $$ = $1; }
+| func_declaration                              { $$ = $1; }
 ;
 
 var_declaration:
@@ -190,7 +190,7 @@ func_declaration:
 ;
 
 params:
-  TYPE ID ',' params                            { $$ = add_param($1, $2, $4); }
+  params ',' TYPE ID                            { $$ = add_param($3, $4, $1); }
 | TYPE ID                                       { $$ = add_param($1, $2, NULL); }
 |                                               { $$ = NULL; }
 ;
@@ -213,14 +213,14 @@ statement_list:
 ;
 
 statement:
-  expression_statement                          { $$ = add_ast_node("statement", 'A', NULL, $1); }
-| conditional_statement                         { $$ = add_ast_node("statement", 'A', NULL, $1); }
-| iteration_statement                           { $$ = add_ast_node("statement", 'A', NULL, $1); }
-| return_statement                              { $$ = add_ast_node("statement", 'A', NULL, $1); }
+  expression_statement                          { $$ = $1; }
+| conditional_statement                         { $$ = $1; }
+| iteration_statement                           { $$ = $1; }
+| return_statement                              { $$ = $1; }
 ;
 
 expression_statement:
-  expression ';'                                { $$ = add_ast_node("expression_statement", 'A', NULL, $1); }
+  expression ';'                                { $$ = $1; }
 ;
 
 conditional_statement:
@@ -233,13 +233,13 @@ iteration_statement:
 ;
 
 return_statement:
-  RETURN expression ';'                         { $$ = add_ast_node("return_statement", 'A', NULL, $2); }
-| RETURN ';'                                    { $$ = add_ast_node("return_statement", 'A', NULL, NULL); }
+  RETURN expression ';'                         { $$ = $2; }
+| RETURN ';'                                    { $$ = NULL; }
 ;
 
 expression:
   var EQ expression                             { $$ = add_ast_op_node("expression", $2, $1, $3); }
-| simple_expression                             { $$ = add_ast_node("expression", 'A', NULL, $1); }
+| simple_expression                             { $$ = $1; }
 ;
 
 var:
@@ -253,7 +253,7 @@ simple_expression:
 | op_expression CLE op_expression               { $$ = add_ast_op_node("simple_expression", $2, $1, $3); }
 | op_expression CGT op_expression               { $$ = add_ast_op_node("simple_expression", $2, $1, $3); }
 | op_expression CGE op_expression               { $$ = add_ast_op_node("simple_expression", $2, $1, $3); }
-| op_expression                                 { $$ = add_ast_node("simple_expression", 'A', NULL, $1); }
+| op_expression                                 { $$ = $1; }
 ;
 
 op_expression:
@@ -261,7 +261,7 @@ op_expression:
 | op_expression MINUS term                      { $$ = add_ast_op_node("op_expression", $2, $1, $3); }
 | op_expression MULT term                       { $$ = add_ast_op_node("op_expression", $2, $1, $3); }
 | op_expression DIV term                        { $$ = add_ast_op_node("op_expression", $2, $1, $3); }
-| term                                          { $$ = add_ast_node("op_expression", 'A', NULL, $1); }
+| term                                          { $$ = $1; }
 ;
 
 term:
@@ -280,13 +280,13 @@ call:
 ;
 
 args:
-  arg_list                                      { $$ = add_ast_node("args", 'A', NULL, $1); }
+  arg_list                                      { $$ = $1; }
 |                                               { $$ = NULL; }
 ;
 
 arg_list:
   arg_list ',' simple_expression                { $$ = add_ast_node("arg_list", 'A', $1, $3); }
-| simple_expression                             { $$ = add_ast_node("arg_list", 'A', NULL, $1); }
+| simple_expression                             { $$ = $1; }
 ;
 
 string:
