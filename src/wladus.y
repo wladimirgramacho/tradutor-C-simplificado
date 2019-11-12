@@ -15,6 +15,12 @@ typedef struct param {
   struct param *next;
 } param;
 
+typedef struct simple_symbol_node {
+  char *name;
+  char *type;
+  struct simple_symbol_node *next;
+} simple_symbol_node;
+
 struct ast_node* add_ast_node(char *data, int node_type, struct ast_node *left, struct ast_node *right);
 struct ast_node* add_ast_func_node(char *data, char *func_name, param *params, struct ast_node *func_body);
 struct ast_node* add_ast_cond_node(char *data, struct ast_node *condition, struct ast_node *if_branch, struct ast_node *else_branch);
@@ -26,7 +32,7 @@ struct ast_node* add_ast_float_node(char *data, float value);
 struct ast_node* add_ast_str_node(char *data, struct ast_node *append, char *value);
 struct ast_node* add_ast_interpol_str_node(char *data, struct ast_node *append, struct ast_node *expression);
 struct ast_node* add_ast_var_node(char *data, char *type, char *name);
-void add_symbol(char *name, char *type, char symbol_type, struct ast_node *ast_node, param *param);
+void add_symbol(char *name, char *type, char symbol_type, char *scope, struct ast_node *ast_node, param *param);
 param* add_param(char *type, char *name, param *next);
 
 struct ast_node {
@@ -115,7 +121,7 @@ struct symbol_node {
   struct {
     struct ast_node *func_body;   // function body
     param *param_list;
-    struct symbol_node *symbols;
+    simple_symbol_node *symbols;
   } func_fields;
 };
 
@@ -176,11 +182,11 @@ declaration:
 ;
 
 var_declaration:
-  TYPE ID ';'                                   { $$ = add_ast_var_node("var_declaration", $1, $2); add_symbol($2, $1, 'V', NULL, NULL); }
+  TYPE ID ';'                                   { $$ = add_ast_var_node("var_declaration", $1, $2); add_symbol($2, $1, 'V', NULL, NULL, NULL); }
 ;
 
 func_declaration:
-  TYPE ID '(' params ')' compound_statement     { $$ = add_ast_func_node("func_declaration", $2, $4, $6); add_symbol($2, $1, 'F', $6, $4); }
+  TYPE ID '(' params ')' compound_statement     { $$ = add_ast_func_node("func_declaration", $2, $4, $6); add_symbol($2, $1, 'F', NULL, $6, $4); }
 ;
 
 params:
@@ -631,23 +637,47 @@ void free_syntax_tree(struct ast_node *s){
   }
 }
 
-void add_symbol(char *name, char *type, char symbol_type, struct ast_node *ast_node, param *param){
+void add_symbol(char *name, char *type, char symbol_type, char *scope, struct ast_node *ast_node, param *param){
   struct symbol_node *s;
 
-  HASH_FIND_STR(symbol_table, name, s);
-  if(s == NULL){
-    s = (struct symbol_node *)malloc(sizeof *s);
+  if(scope == NULL) {
+    HASH_FIND_STR(symbol_table, name, s);
+    if(s == NULL){
+      s = (struct symbol_node *)malloc(sizeof *s);
 
-    s->name = (char *) strdup(name);
-    s->type = (char *) strdup(type);
-    s->symbol_type = symbol_type;
+      s->name = (char *) strdup(name);
+      s->type = (char *) strdup(type);
+      s->symbol_type = symbol_type;
 
-    if(symbol_type = 'F') {
-      s->func_fields.func_body = ast_node;
-      s->func_fields.param_list = param;
+      if(symbol_type = 'F') {
+        s->func_fields.func_body = ast_node;
+        s->func_fields.param_list = param;
+      }
+
+      HASH_ADD_STR(symbol_table, name, s);
+    }
+    else {
+      // ERROR: VARIABLE BEING REDECLARED
+      return;
+    }
+  }
+  else {
+    HASH_FIND_STR(symbol_table, name, s);
+    if(s != NULL){
+      // ERROR: VARIABLE BEING REDECLARED
+      return;
     }
 
-    HASH_ADD_STR(symbol_table, name, s);
+    HASH_FIND_STR(symbol_table, scope, s);
+    simple_symbol_node *tmp;
+    for (tmp = s->func_fields.symbols; tmp->next != NULL; tmp = tmp->next){
+      // CHECK IF VARIABLE INSIDE SCOPE IS ALREADY DECLARED. IF IS, ERROR
+    }
+    tmp->next = (simple_symbol_node *)malloc(sizeof *tmp);
+
+    tmp->next->name = (char *) strdup(name);
+    tmp->next->type = (char *) strdup(type);
+    tmp->next->next = NULL;
   }
 }
 
