@@ -23,7 +23,6 @@ typedef struct simple_symbol_node {
 
 struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_node *right);
 struct ast_node* add_ast_func_node(char *func_name, param *params, struct ast_node *func_body);
-struct ast_node* add_ast_cond_node(struct ast_node *condition, struct ast_node *if_branch, struct ast_node *else_branch);
 struct ast_node* add_ast_iter_node(struct ast_node *condition, struct ast_node *while_branch);
 struct ast_node* add_ast_op_node(char *operator, struct ast_node *left, struct ast_node *right);
 struct ast_node* add_ast_call_node(char *func_name, struct ast_node *args);
@@ -45,13 +44,6 @@ struct ast_func_node { // function declarations
   char *func_name;
   param *params;
   struct ast_node *func_body;
-};
-
-struct ast_cond_node { // conditional statements
-  int node_type;
-  struct ast_node *condition;
-  struct ast_node *if_branch;
-  struct ast_node *else_branch;
 };
 
 struct ast_iter_node { // for "while" statements
@@ -206,8 +198,8 @@ expression_statement:
 ;
 
 conditional_statement:
-  IF '(' expression ')' compound_statement      { $$ = add_ast_cond_node($3, $5, NULL); }
-| IF '(' expression ')' compound_statement ELSE  compound_statement { $$ = add_ast_cond_node($3, $5, $7); }
+  IF '(' expression ')' compound_statement      { $$ = add_ast_node('C', $3, $5); }
+| IF '(' expression ')' compound_statement ELSE  compound_statement { $$ = add_ast_node('C', $3, add_ast_node('c', $5, $7)); }
 ;
 
 iteration_statement:
@@ -296,17 +288,6 @@ struct ast_node* add_ast_func_node(char *func_name, param *params, struct ast_no
   ast_node->func_name = (char *) strdup(func_name);
   ast_node->params = params;
   ast_node->func_body = func_body;
-
-  return (struct ast_node *) ast_node;
-}
-
-struct ast_node* add_ast_cond_node(struct ast_node *condition, struct ast_node *if_branch, struct ast_node *else_branch){
-  struct ast_cond_node* ast_node = (struct ast_cond_node*)malloc(sizeof(struct ast_cond_node));
-
-  ast_node->node_type = 'C';
-  ast_node->condition = condition;
-  ast_node->if_branch = if_branch;
-  ast_node->else_branch = else_branch;
 
   return (struct ast_node *) ast_node;
 }
@@ -417,21 +398,10 @@ void print_ast_node(struct ast_node *s, int depth) {
       break;
     case 'C':
       {
-        struct ast_cond_node *node = (struct ast_cond_node *) s;
         printf("\n");
-        printf("%*s", depth, "");
-        printf("-- condition --\n");
-        print_ast_node(node->condition, depth + 1);
-
-        printf("%*s", depth, "");
-        printf("-- if body --\n");
-        print_ast_node(node->if_branch, depth + 1);
-
-        if(node->else_branch) {
-          printf("%*s", depth, "");
-          printf("-- else body --\n");
-          print_ast_node(node->else_branch, depth + 1);
-        }
+        print_ast_node(s->left, depth + 1);
+        print_ast_node(s->right, depth + 1);
+        break;
       }
       break;
     case 'W':
@@ -529,11 +499,16 @@ void free_syntax_tree(struct ast_node *s){
       break;
     case 'C':
       {
-        struct ast_cond_node *node = (struct ast_cond_node *) s;
-        free_syntax_tree(node->condition);
-        free_syntax_tree(node->if_branch);
-        if(node->else_branch) free_syntax_tree(node->else_branch);
-        free(node);
+        if(s->left) free_syntax_tree(s->left);
+        if(s->right) free_syntax_tree(s->right);
+        free(s);
+      }
+      break;
+    case 'c':
+      {
+        if(s->left) free_syntax_tree(s->left);
+        if(s->right) free_syntax_tree(s->right);
+        free(s);
       }
       break;
     case 'W':
