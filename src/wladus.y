@@ -273,6 +273,7 @@ void print_ast_node(struct ast_node *s, int depth) {
 
   switch (s->node_type){
     case 'A':
+    case 'T':
       printf("\n");
       print_ast_node(s->left, depth + 1);
       print_ast_node(s->right, depth + 1);
@@ -336,13 +337,6 @@ void print_ast_node(struct ast_node *s, int depth) {
         print_ast_node(s->right, depth + 1);
       }
       break;
-    case 'T':
-      {
-        printf("\n");
-        print_ast_node(s->left, depth + 1);
-        print_ast_node(s->right, depth + 1);
-      }
-      break;
   }  
 }
 
@@ -367,6 +361,9 @@ void free_syntax_tree(struct ast_node *s){
 
   switch (s->node_type){
     case 'A':
+    case 'C':
+    case 'c':
+    case 'W':
       if(s->left) free_syntax_tree(s->left);
       if(s->right) free_syntax_tree(s->right);
       free(s);
@@ -387,25 +384,6 @@ void free_syntax_tree(struct ast_node *s){
         if(s->right) free_syntax_tree(s->right);
         free(s);
       }
-      break;
-    case 'C':
-      {
-        if(s->left) free_syntax_tree(s->left);
-        if(s->right) free_syntax_tree(s->right);
-        free(s);
-      }
-      break;
-    case 'c':
-      {
-        if(s->left) free_syntax_tree(s->left);
-        if(s->right) free_syntax_tree(s->right);
-        free(s);
-      }
-      break;
-    case 'W':
-      if(s->left) free_syntax_tree(s->left);
-      if(s->right) free_syntax_tree(s->right);
-      free(s);
       break;
     case 'L':
       {
