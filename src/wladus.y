@@ -31,7 +31,6 @@ struct ast_node* add_ast_int_node(int value);
 struct ast_node* add_ast_float_node(float value);
 struct ast_node* add_ast_str_node(struct ast_node *append, char *value);
 struct ast_node* add_ast_interpol_str_node(struct ast_node *append, struct ast_node *expression);
-struct ast_node* add_ast_var_node(char *type, char *name);
 void add_symbol(char *name, char *type, char symbol_type, char *scope, struct ast_node *ast_node, param *param);
 param* add_param(char *type, char *name, param *next);
 
@@ -46,12 +45,6 @@ struct ast_func_node { // function declarations
   char *func_name;
   param *params;
   struct ast_node *func_body;
-};
-
-struct ast_var_node { // variables
-  int node_type;
-  char *type;
-  char *name;
 };
 
 struct ast_cond_node { // conditional statements
@@ -171,7 +164,7 @@ declaration:
 ;
 
 var_declaration:
-  TYPE ID ';'                                   { $$ = add_ast_var_node($1, $2); add_symbol($2, $1, 'V', NULL, NULL, NULL); }
+  TYPE ID ';'                                   { $$ = NULL; add_symbol($2, $1, 'V', NULL, NULL, NULL); }
 ;
 
 func_declaration:
@@ -194,7 +187,7 @@ local_declarations:
 ;
 
 local_var_declaration:
-  TYPE ID ';'                                   { $$ = add_ast_var_node($1, $2);}
+  TYPE ID ';'                                   { $$ = NULL; add_symbol($2, $1, 'V', NULL, NULL, NULL); } // TODO: ADD SCOPE
 
 statement_list:
   statement_list statement                      { $$ = add_ast_node('A', $1, $2); }
@@ -232,7 +225,7 @@ expression:
 ;
 
 var:
-  ID                                            { $$ = add_ast_var_node("", $1); }
+  ID                                            { $$ = NULL; }
 ;
 
 simple_expression:
@@ -328,15 +321,6 @@ struct ast_node* add_ast_iter_node(struct ast_node *condition, struct ast_node *
   return (struct ast_node *) ast_node;
 }
 
-struct ast_node* add_ast_var_node(char *type, char *name){
-  struct ast_var_node* ast_node = (struct ast_var_node*)malloc(sizeof(struct ast_var_node));
-
-  ast_node->node_type = 'V';
-  ast_node->type = (char *) strdup(type);
-  ast_node->name = (char *) strdup(name);
-
-  return (struct ast_node *) ast_node;
-}
 
 struct ast_node* add_ast_op_node(char *operator, struct ast_node *left, struct ast_node *right){
   struct ast_op_node* ast_node = (struct ast_op_node*)malloc(sizeof(struct ast_op_node));
@@ -421,12 +405,6 @@ void print_ast_node(struct ast_node *s, int depth) {
         printf(" (%s)\n", node->func_name);
         if(node->params) print_params(node->params, depth+1);
         print_ast_node(node->func_body, depth+1);
-      }
-      break;
-    case 'V':
-      {
-        struct ast_var_node *node = (struct ast_var_node *) s;
-        printf(" (%s %s)\n", node->type, node->name);
       }
       break;
     case 'O':
@@ -537,14 +515,6 @@ void free_syntax_tree(struct ast_node *s){
         if(node->params) free_params(node->params);
         free(node->func_name);
         free_syntax_tree(node->func_body);
-        free(node);
-      }
-      break;
-    case 'V':
-      {
-        struct ast_var_node *node = (struct ast_var_node *) s;
-        free(node->type);
-        free(node->name);
         free(node);
       }
       break;
