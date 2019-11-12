@@ -917,7 +917,7 @@ case 10:
 YY_RULE_SETUP
 #line 62 "wladus.l"
 {
-                                        if(inside_string) { BEGIN(EXP); return INTERPOL_START; }
+                                        if(inside_string) { BEGIN(EXP); return ITP_START; }
                                         else              { return yytext[0]; }
                                       }
 	YY_BREAK
@@ -925,7 +925,7 @@ case 11:
 YY_RULE_SETUP
 #line 66 "wladus.l"
 {
-                                        if(inside_string) { BEGIN(0); return INTERPOL_END; }
+                                        if(inside_string) { BEGIN(0); return ITP_END; }
                                         else              { return yytext[0]; }
                                       }
 	YY_BREAK

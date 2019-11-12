@@ -68,8 +68,8 @@ extern int yydebug;
     MULT = 278,
     DIV = 279,
     QUOTES = 280,
-    INTERPOL_START = 281,
-    INTERPOL_END = 282
+    ITP_START = 281,
+    ITP_END = 282
   };
 #endif
 
@@ -78,7 +78,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 79 "wladus.y" /* yacc.c:1909  */
+#line 65 "wladus.y" /* yacc.c:1909  */
 
   char *id;
   char *type;

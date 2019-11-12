@@ -60,11 +60,11 @@ interpol_end        "}"
                                       }
 <STRING>{str}                         { yylval.str = (char *) strdup(yytext); return STR; }
 <STRING>{interpol_start}              {
-                                        if(inside_string) { BEGIN(EXP); return INTERPOL_START; }
+                                        if(inside_string) { BEGIN(EXP); return ITP_START; }
                                         else              { return yytext[0]; }
                                       }
 <EXP>{interpol_end}                   {
-                                        if(inside_string) { BEGIN(0); return INTERPOL_END; }
+                                        if(inside_string) { BEGIN(0); return ITP_END; }
                                         else              { return yytext[0]; }
                                       }
 

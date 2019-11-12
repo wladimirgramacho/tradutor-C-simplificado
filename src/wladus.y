@@ -23,8 +23,6 @@ typedef struct simple_symbol_node {
 
 struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_node *right);
 struct ast_node* add_ast_func_node(char *func_name, param *params, struct ast_node *func_body);
-struct ast_node* add_ast_str_node(struct ast_node *append, char *value);
-struct ast_node* add_ast_interpol_str_node(struct ast_node *append, struct ast_node *expression);
 void add_symbol(char *name, char *type, char symbol_type, char *scope, struct ast_node *ast_node, param *param);
 param* add_param(char *type, char *name, param *next);
 
@@ -46,18 +44,6 @@ struct ast_func_node { // function declarations
   char *func_name;
   param *params;
   struct ast_node *func_body;
-};
-
-struct ast_str_node { // for constant strings
-  int node_type;
-  struct ast_node *append;
-  char *value;
-};
-
-struct ast_interpol_str_node { // for string interpolation
-  int node_type;
-  struct ast_node *append;
-  struct ast_node *expression;
 };
 
 struct symbol_node {
@@ -99,7 +85,7 @@ struct ast_node* syntax_tree;
 %token <op> EQ CEQ CNE CLT CLE CGT CGE
 %token <op> PLUS MINUS MULT DIV
 %token QUOTES
-%token INTERPOL_START INTERPOL_END
+%token ITP_START ITP_END
 %right EQ
 %left '+' '-'
 %left '*' '/'
@@ -237,8 +223,14 @@ arg_list:
 ;
 
 string:
-  string STR                                    { $$ = add_ast_str_node($1, $2); }
-| string INTERPOL_START simple_expression INTERPOL_END { $$ = add_ast_interpol_str_node($1, $3); }
+  string STR                                    {
+                                                  $$ = add_ast_node('S', NULL, $1);
+                                                  // $$->string = (char *) strdup($2);
+                                                }
+| string ITP_START simple_expression ITP_END    {
+                                                  $$ = add_ast_node('T', $1, $3);
+                                                  // $$->string = strdup("");
+                                                }
 |                                               { $$ = NULL; }
 ;
 
@@ -261,26 +253,6 @@ struct ast_node* add_ast_func_node(char *func_name, param *params, struct ast_no
   ast_node->func_name = (char *) strdup(func_name);
   ast_node->params = params;
   ast_node->func_body = func_body;
-
-  return (struct ast_node *) ast_node;
-}
-
-struct ast_node* add_ast_str_node(struct ast_node *append, char *value){
-  struct ast_str_node* ast_node = (struct ast_str_node*)malloc(sizeof(struct ast_str_node));
-
-  ast_node->node_type = 'S';
-  ast_node->append = append;
-  ast_node->value = (char *) strdup(value);
-
-  return (struct ast_node *) ast_node;
-}
-
-struct ast_node* add_ast_interpol_str_node(struct ast_node *append, struct ast_node *expression){
-  struct ast_interpol_str_node* ast_node = (struct ast_interpol_str_node*)malloc(sizeof(struct ast_interpol_str_node));
-
-  ast_node->node_type = 'T';
-  ast_node->append = append;
-  ast_node->expression = expression;
 
   return (struct ast_node *) ast_node;
 }
@@ -359,17 +331,16 @@ void print_ast_node(struct ast_node *s, int depth) {
       break;
     case 'S':
       {
-        struct ast_str_node *node = (struct ast_str_node *) s;
-        printf(" (%s)\n", node->value);
-        print_ast_node(node->append, depth + 1);
+        printf(" (%s)\n", s->string);
+        print_ast_node(s->left, depth + 1);
+        print_ast_node(s->right, depth + 1);
       }
       break;
     case 'T':
       {
-        struct ast_interpol_str_node *node = (struct ast_interpol_str_node *) s;
         printf("\n");
-        print_ast_node(node->append, depth + 1);
-        print_ast_node(node->expression, depth + 1);
+        print_ast_node(s->left, depth + 1);
+        print_ast_node(s->right, depth + 1);
       }
       break;
   }  
@@ -456,18 +427,18 @@ void free_syntax_tree(struct ast_node *s){
       break;
     case 'S':
       {
-        struct ast_str_node *node = (struct ast_str_node *) s;
-        free(node->value);
-        if(node->append) free(node->append);
-        free(node);
+        free(s->string);
+        if(s->left) free_syntax_tree(s->left);
+        if(s->right) free_syntax_tree(s->right);
+        free(s);
       }
       break;
     case 'T':
       {
-        struct ast_interpol_str_node *node = (struct ast_interpol_str_node *) s;
-        if(node->append) free(node->append);
-        if(node->expression) free(node->expression);
-        free(node);
+        free(s->string);
+        if(s->left) free_syntax_tree(s->left);
+        if(s->right) free_syntax_tree(s->right);
+        free(s);
       }
       break;
   }
