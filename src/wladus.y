@@ -23,7 +23,6 @@ typedef struct simple_symbol_node {
 
 struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_node *right);
 struct ast_node* add_ast_func_node(char *func_name, param *params, struct ast_node *func_body);
-struct ast_node* add_ast_op_node(char *operator, struct ast_node *left, struct ast_node *right);
 struct ast_node* add_ast_call_node(char *func_name, struct ast_node *args);
 struct ast_node* add_ast_int_node(int value);
 struct ast_node* add_ast_float_node(float value);
@@ -49,13 +48,6 @@ struct ast_func_node { // function declarations
   char *func_name;
   param *params;
   struct ast_node *func_body;
-};
-
-struct ast_op_node { // operation statements
-  int node_type;
-  struct ast_node *left;
-  struct ast_node *right;
-  char *operator;
 };
 
 struct ast_call_node { // function calls
@@ -211,29 +203,29 @@ return_statement:
 ;
 
 expression:
-  var EQ expression                             { $$ = add_ast_op_node($2, $1, $3); }
+  var EQ expression                             { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
 | simple_expression                             { $$ = $1; }
 ;
 
 var:
-  ID                                            { $$ = NULL; }
+  ID                                            { $$ = NULL; } // TODO: check if identifier exists and is variable
 ;
 
 simple_expression:
-  op_expression CEQ op_expression               { $$ = add_ast_op_node($2, $1, $3); }
-| op_expression CNE op_expression               { $$ = add_ast_op_node($2, $1, $3); }
-| op_expression CLT op_expression               { $$ = add_ast_op_node($2, $1, $3); }
-| op_expression CLE op_expression               { $$ = add_ast_op_node($2, $1, $3); }
-| op_expression CGT op_expression               { $$ = add_ast_op_node($2, $1, $3); }
-| op_expression CGE op_expression               { $$ = add_ast_op_node($2, $1, $3); }
+  op_expression CEQ op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
+| op_expression CNE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
+| op_expression CLT op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
+| op_expression CLE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
+| op_expression CGT op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
+| op_expression CGE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
 | op_expression                                 { $$ = $1; }
 ;
 
 op_expression:
-  op_expression PLUS term                       { $$ = add_ast_op_node($2, $1, $3); }
-| op_expression MINUS term                      { $$ = add_ast_op_node($2, $1, $3); }
-| op_expression MULT term                       { $$ = add_ast_op_node($2, $1, $3); }
-| op_expression DIV term                        { $$ = add_ast_op_node($2, $1, $3); }
+  op_expression PLUS term                       { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
+| op_expression MINUS term                      { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
+| op_expression MULT term                       { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
+| op_expression DIV term                        { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
 | term                                          { $$ = $1; }
 ;
 
@@ -287,17 +279,6 @@ struct ast_node* add_ast_func_node(char *func_name, param *params, struct ast_no
   ast_node->func_name = (char *) strdup(func_name);
   ast_node->params = params;
   ast_node->func_body = func_body;
-
-  return (struct ast_node *) ast_node;
-}
-
-struct ast_node* add_ast_op_node(char *operator, struct ast_node *left, struct ast_node *right){
-  struct ast_op_node* ast_node = (struct ast_op_node*)malloc(sizeof(struct ast_op_node));
-
-  ast_node->node_type = 'O';
-  ast_node->operator = (char *) strdup(operator);
-  ast_node->left = left;
-  ast_node->right = right;
 
   return (struct ast_node *) ast_node;
 }
@@ -378,8 +359,7 @@ void print_ast_node(struct ast_node *s, int depth) {
       break;
     case 'O':
       {
-        struct ast_op_node *node = (struct ast_op_node *) s;
-        printf(" (%s)\n", node->operator);
+        printf(" (%s)\n", s->operator);
         print_ast_node(s->left, depth + 1);
         print_ast_node(s->right, depth + 1);
       }
@@ -477,11 +457,10 @@ void free_syntax_tree(struct ast_node *s){
       break;
     case 'O':
       {
-        struct ast_op_node *node = (struct ast_op_node *) s;
-        free(node->operator);
-        if(node->left) free_syntax_tree(node->left);
-        if(node->right) free_syntax_tree(node->right);
-        free(node);
+        free(s->operator);
+        if(s->left) free_syntax_tree(s->left);
+        if(s->right) free_syntax_tree(s->right);
+        free(s);
       }
       break;
     case 'C':
