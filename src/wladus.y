@@ -23,7 +23,6 @@ typedef struct simple_symbol_node {
 
 struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_node *right);
 struct ast_node* add_ast_func_node(char *func_name, param *params, struct ast_node *func_body);
-struct ast_node* add_ast_call_node(char *func_name, struct ast_node *args);
 struct ast_node* add_ast_str_node(struct ast_node *append, char *value);
 struct ast_node* add_ast_interpol_str_node(struct ast_node *append, struct ast_node *expression);
 void add_symbol(char *name, char *type, char symbol_type, char *scope, struct ast_node *ast_node, param *param);
@@ -38,6 +37,7 @@ struct ast_node {
     float decimal;
     char *string;
     char *operator;
+    char *func_name;
   };
 };
 
@@ -46,12 +46,6 @@ struct ast_func_node { // function declarations
   char *func_name;
   param *params;
   struct ast_node *func_body;
-};
-
-struct ast_call_node { // function calls
-  int node_type;
-  char *func_name;
-  struct ast_node *args;
 };
 
 struct ast_str_node { // for constant strings
@@ -223,13 +217,13 @@ term:
 | call                                          { $$ = $1; }
 | NUM                                           { $$ = add_ast_node('I', NULL, NULL); $$->integer = $1; }
 | DEC                                           { $$ = add_ast_node('D', NULL, NULL); $$->decimal = $1; }
-| QUOTES string QUOTES                          { $$ = add_ast_node('A', NULL, $2); }
+| QUOTES string QUOTES                          { $$ = $2; }
 ;
 
 call:
-  ID '(' args ')'                               { $$ = add_ast_call_node($1, $3); }
-| WRITE '(' simple_expression ')'               { $$ = add_ast_call_node("write", $3); }
-| READ '(' var ')'                              { $$ = add_ast_call_node("read", $3); }
+  ID '(' args ')'                               { $$ = add_ast_node('L', NULL, $3); $$->func_name = (char *) strdup($1); }
+| WRITE '(' simple_expression ')'               { $$ = add_ast_node('L', NULL, $3); $$->func_name = (char *) strdup("write"); }
+| READ '(' var ')'                              { $$ = add_ast_node('L', NULL, $3); $$->func_name = (char *) strdup("read"); }
 ;
 
 args:
@@ -269,14 +263,6 @@ struct ast_node* add_ast_func_node(char *func_name, param *params, struct ast_no
   ast_node->func_body = func_body;
 
   return (struct ast_node *) ast_node;
-}
-
-struct ast_node* add_ast_call_node(char *func_name, struct ast_node *args){
-  struct ast_call_node* ast_node = (struct ast_call_node*)malloc(sizeof(struct ast_call_node));
-
-  ast_node->node_type = 'L';
-  ast_node->func_name = (char *) strdup(func_name);
-  ast_node->args = args;
 }
 
 struct ast_node* add_ast_str_node(struct ast_node *append, char *value){
@@ -356,9 +342,9 @@ void print_ast_node(struct ast_node *s, int depth) {
       break;
     case 'L':
       {
-        struct ast_call_node *node = (struct ast_call_node *) s;
-        printf(" (%s)\n", node->func_name);
-        print_ast_node(node->args, depth + 1);
+        printf(" (%s)\n", s->func_name);
+        print_ast_node(s->left, depth + 1);
+        print_ast_node(s->right, depth + 1);
       }
       break;
     case 'I':
@@ -452,10 +438,10 @@ void free_syntax_tree(struct ast_node *s){
       break;
     case 'L':
       {
-        struct ast_call_node *node = (struct ast_call_node *) s;
-        free(node->func_name);
-        free_syntax_tree(node->args);
-        free(node);
+        free(s->func_name);
+        if(s->left) free_syntax_tree(s->left);
+        if(s->right) free_syntax_tree(s->right);
+        free(s);
       }
       break;
     case 'I':
