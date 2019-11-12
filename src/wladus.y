@@ -36,6 +36,12 @@ struct ast_node {
   int node_type;
   struct ast_node *left;
   struct ast_node *right;
+  union {
+    int integer;
+    float decimal;
+    char *string;
+    char *operator;
+  };
 };
 
 struct ast_func_node { // function declarations
