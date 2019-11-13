@@ -146,7 +146,7 @@ local_declarations:
 ;
 
 local_var_declaration:
-  TYPE ID ';'                                   { $$ = NULL; add_symbol($2, $1, 'V'); } // TODO: ADD SCOPE
+  TYPE ID ';'                                   { $$ = NULL; add_symbol($2, $1, 'V'); }
 
 statement_list:
   statement_list statement                      { $$ = add_ast_node('A', $1, $2); }
