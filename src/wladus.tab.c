@@ -2384,6 +2384,14 @@ void print_symbol_table() {
   }
 }
 
+void free_simple_symbol_node(simple_symbol_node * node){
+  if(node == NULL) return;
+  free_simple_symbol_node(node->next);
+  free(node->name);
+  free(node->type);
+  free(node);
+}
+
 void free_symbol_table(){
   struct symbol_node *s, *tmp;
 
@@ -2392,6 +2400,7 @@ void free_symbol_table(){
     free(s->name);
     free(s->type);
     s->func_fields.func_body = NULL;
+    free_simple_symbol_node(s->func_fields.symbols);
     free(s);
   }
 }
