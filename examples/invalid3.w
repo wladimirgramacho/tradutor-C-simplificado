@@ -3,4 +3,6 @@ int main(){
   int a;
 
   c = 3;
+
+  print(a);
 }

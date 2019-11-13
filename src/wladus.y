@@ -238,7 +238,12 @@ term:
 ;
 
 call:
-  ID '(' args ')'                               { $$ = add_ast_node('L', NULL, $3); $$->func_name = (char *) strdup($1); }
+  ID '(' args ')'                               {
+                                                  $$ = add_ast_node('L', NULL, $3);
+                                                  $$->func_name = (char *) strdup($1);
+                                                  struct symbol_node *s = find_symbol($1);
+                                                  if(s == NULL) error_not_declared("function", $1);
+                                                }
 | WRITE '(' simple_expression ')'               { $$ = add_ast_node('L', NULL, $3); $$->func_name = (char *) strdup("write"); }
 | READ '(' var ')'                              { $$ = add_ast_node('L', NULL, $3); $$->func_name = (char *) strdup("read"); }
 ;
@@ -478,9 +483,7 @@ struct symbol_node* find_symbol(char *name){
   HASH_FIND_STR(symbol_table, top->scope_name, s);
 
   simple_symbol_node *tmp;
-  for (tmp = s->func_fields.symbols; tmp != NULL && (strcmp(tmp->name, name) != 0); tmp = tmp->next){
-    // printf("tmp->name = %s\n", tmp->name);
-  }
+  for (tmp = s->func_fields.symbols; tmp != NULL && (strcmp(tmp->name, name) != 0); tmp = tmp->next);
 
   return (struct symbol_node *) tmp;
 }
