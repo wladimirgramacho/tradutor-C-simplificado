@@ -5,6 +5,7 @@
 %{
 #include <stdio.h>
 #include "uthash.h"
+#include "utstack.h"
 
 int yylex();
 int yyerror(const char *s);
@@ -21,9 +22,14 @@ typedef struct simple_symbol_node {
   struct simple_symbol_node *next;
 } simple_symbol_node;
 
+typedef struct scope {
+  char *scope_name;
+  struct scope *next;
+} scope;
+
 struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_node *right);
 struct ast_node* add_ast_func_node(char *func_name, param *params, struct ast_node *func_body);
-void add_symbol(char *name, char *type, char symbol_type, char *scope, struct ast_node *ast_node, param *param);
+void add_symbol(char *name, char *type, char symbol_type, param *param);
 param* add_param(char *type, char *name, param *next);
 
 struct ast_node {
@@ -59,7 +65,8 @@ struct symbol_node {
 };
 
 struct symbol_node *symbol_table = NULL;
-struct ast_node* syntax_tree;
+struct ast_node* syntax_tree = NULL;
+struct scope* scope_stack = NULL;
 %}
 
 %union {
@@ -115,11 +122,24 @@ declaration:
 ;
 
 var_declaration:
-  TYPE ID ';'                                   { $$ = NULL; add_symbol($2, $1, 'V', NULL, NULL, NULL); }
+  TYPE ID ';'                                   { $$ = NULL; add_symbol($2, $1, 'V', NULL); }
 ;
 
 func_declaration:
-  TYPE ID '(' params ')' compound_statement     { $$ = add_ast_func_node($2, $4, $6); add_symbol($2, $1, 'F', NULL, $6, $4); }
+  TYPE ID '(' params ')'                        {
+                                                  scope *new_scope = (scope *)malloc(sizeof *new_scope);
+                                                  new_scope->scope_name = (char *) strdup($2);
+                                                  STACK_PUSH(scope_stack, new_scope);
+                                                  add_symbol($2, $1, 'F', $4);
+                                                }
+  compound_statement                            {
+                                                  $$ = add_ast_func_node($2, $4, $7);
+                                                  scope *old_scope;
+                                                  STACK_POP(scope_stack, old_scope);
+                                                  free(old_scope->scope_name);
+                                                  free(old_scope);
+                                                  scope_stack = NULL;
+                                                }
 ;
 
 params:
@@ -138,7 +158,7 @@ local_declarations:
 ;
 
 local_var_declaration:
-  TYPE ID ';'                                   { $$ = NULL; add_symbol($2, $1, 'V', NULL, NULL, NULL); } // TODO: ADD SCOPE
+  TYPE ID ';'                                   { $$ = NULL; add_symbol($2, $1, 'V', NULL); } // TODO: ADD SCOPE
 
 statement_list:
   statement_list statement                      { $$ = add_ast_node('A', $1, $2); }
@@ -422,10 +442,10 @@ void free_syntax_tree(struct ast_node *s){
   }
 }
 
-void add_symbol(char *name, char *type, char symbol_type, char *scope, struct ast_node *ast_node, param *param){
+void add_symbol(char *name, char *type, char symbol_type, param *param){
   struct symbol_node *s;
 
-  if(scope == NULL) {
+  if(symbol_type == 'F') {
     HASH_FIND_STR(symbol_table, name, s);
     if(s == NULL){
       s = (struct symbol_node *)malloc(sizeof *s);
@@ -433,36 +453,64 @@ void add_symbol(char *name, char *type, char symbol_type, char *scope, struct as
       s->name = (char *) strdup(name);
       s->type = (char *) strdup(type);
       s->symbol_type = symbol_type;
-
-      if(symbol_type = 'F') {
-        s->func_fields.func_body = ast_node;
-        s->func_fields.param_list = param;
-      }
+      // s->func_fields.func_body = ast_node;
+      s->func_fields.param_list = param;
+      s->func_fields.symbols = NULL;
 
       HASH_ADD_STR(symbol_table, name, s);
     }
     else {
-      // ERROR: VARIABLE BEING REDECLARED
+      // ERROR: FUNCTION ALREADY DECLARED
       return;
     }
   }
   else {
-    HASH_FIND_STR(symbol_table, name, s);
-    if(s != NULL){
-      // ERROR: VARIABLE BEING REDECLARED
-      return;
-    }
+    if(STACK_TOP(scope_stack) == NULL){
+      HASH_FIND_STR(symbol_table, name, s);
+      if(s == NULL){
+        s = (struct symbol_node *)malloc(sizeof *s);
 
-    HASH_FIND_STR(symbol_table, scope, s);
-    simple_symbol_node *tmp;
-    for (tmp = s->func_fields.symbols; tmp->next != NULL; tmp = tmp->next){
-      // CHECK IF VARIABLE INSIDE SCOPE IS ALREADY DECLARED. IF IS, ERROR
-    }
-    tmp->next = (simple_symbol_node *)malloc(sizeof *tmp);
+        s->name = (char *) strdup(name);
+        s->type = (char *) strdup(type);
+        s->symbol_type = symbol_type;
 
-    tmp->next->name = (char *) strdup(name);
-    tmp->next->type = (char *) strdup(type);
-    tmp->next->next = NULL;
+        HASH_ADD_STR(symbol_table, name, s);
+      }
+      else {
+        // ERROR: VARIABLE ALREADY DECLARED
+        return;
+      }
+    }
+    else {
+      scope * top = STACK_TOP(scope_stack);
+      HASH_FIND_STR(symbol_table, top->scope_name, s);
+
+      simple_symbol_node *tmp, *new_node;
+
+      new_node = (simple_symbol_node *)malloc(sizeof *new_node);
+      new_node->name = (char *) strdup(name);
+      new_node->type = (char *) strdup(type);
+      new_node->next = NULL;
+
+      if(s->func_fields.symbols == NULL){
+        s->func_fields.symbols = new_node;
+        return;
+      }
+
+      for (tmp = s->func_fields.symbols; tmp != NULL; tmp = tmp->next){
+        if(strcmp(tmp->name, name) == 0){
+          char * error_message = (char *)malloc(50 * sizeof(char));
+          sprintf(error_message, "semantic error, variable '%s' was already declared", name);
+          yyerror(error_message);
+          free(error_message);
+          free(new_node->name);
+          free(new_node->type);
+          free(new_node);
+          return;
+        }
+      }
+      tmp = new_node;
+    }
   }
 }
 
