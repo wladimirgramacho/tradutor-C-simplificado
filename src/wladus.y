@@ -181,6 +181,7 @@ statement:
 
 expression_statement:
   expression ';'                                { $$ = $1; }
+| error ';'                                     { $$ = NULL; }
 ;
 
 conditional_statement:
