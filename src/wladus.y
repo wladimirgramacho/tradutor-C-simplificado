@@ -31,6 +31,9 @@ struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_n
 struct ast_node* add_ast_func_node(char *func_name, param *params, struct ast_node *func_body);
 void add_symbol(char *name, char *type, char symbol_type, param *param);
 param* add_param(char *type, char *name, param *next);
+simple_symbol_node* create_simple_symbol_node(char *name, char *type);
+
+void error_redeclaration(char *symbol_type, char *name);
 
 struct ast_node {
   int node_type;
@@ -460,7 +463,7 @@ void add_symbol(char *name, char *type, char symbol_type, param *param){
       HASH_ADD_STR(symbol_table, name, s);
     }
     else {
-      // ERROR: FUNCTION ALREADY DECLARED
+      error_redeclaration("function", name);
       return;
     }
   }
@@ -477,16 +480,14 @@ void add_symbol(char *name, char *type, char symbol_type, param *param){
         HASH_ADD_STR(symbol_table, name, s);
       }
       else {
-        // ERROR: VARIABLE ALREADY DECLARED
+        error_redeclaration("variable", name);
         return;
       }
     }
     else {
       HASH_FIND_STR(symbol_table, name, s);
       if(s != NULL){
-        char * error_message = (char *)malloc(50 * sizeof(char));
-        sprintf(error_message, "semantic error, variable '%s' was already declared", name);
-        yyerror(error_message);
+        error_redeclaration("variable", name);
         return;
       }
 
@@ -495,10 +496,7 @@ void add_symbol(char *name, char *type, char symbol_type, param *param){
 
       simple_symbol_node *tmp, *new_node;
 
-      new_node = (simple_symbol_node *)malloc(sizeof *new_node);
-      new_node->name = (char *) strdup(name);
-      new_node->type = (char *) strdup(type);
-      new_node->next = NULL;
+      new_node = create_simple_symbol_node(name, type);
 
       if(s->func_fields.symbols == NULL){
         s->func_fields.symbols = new_node;
@@ -507,10 +505,7 @@ void add_symbol(char *name, char *type, char symbol_type, param *param){
 
       for (tmp = s->func_fields.symbols; tmp != NULL; tmp = tmp->next){
         if(strcmp(tmp->name, name) == 0){
-          char * error_message = (char *)malloc(50 * sizeof(char));
-          sprintf(error_message, "semantic error, variable '%s' was already declared", name);
-          yyerror(error_message);
-          free(error_message);
+          error_redeclaration("variable", name);
           free(new_node->name);
           free(new_node->type);
           free(new_node);
@@ -520,6 +515,21 @@ void add_symbol(char *name, char *type, char symbol_type, param *param){
       tmp = new_node;
     }
   }
+}
+
+simple_symbol_node* create_simple_symbol_node(char *name, char *type){
+  simple_symbol_node *new_node = (simple_symbol_node *)malloc(sizeof *new_node);
+  new_node->name = (char *) strdup(name);
+  new_node->type = (char *) strdup(type);
+  new_node->next = NULL;
+  return new_node;
+}
+
+void error_redeclaration(char *symbol_type, char *name){
+  char * error_message = (char *)malloc(50 * sizeof(char));
+  sprintf(error_message, "semantic error, %s '%s' was already declared", symbol_type, name);
+  yyerror(error_message);
+  free(error_message);
 }
 
 param* add_param(char *type, char *name, param *next){
