@@ -7,6 +7,8 @@ void func(int value){
 int main(){
   string str;
   int var;
+  int a;
+  int b;
 
   str = "";
 

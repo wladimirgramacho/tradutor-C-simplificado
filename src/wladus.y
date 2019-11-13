@@ -29,10 +29,13 @@ typedef struct scope {
 
 struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_node *right);
 struct ast_node* add_ast_func_node(char *func_name, param *params, struct ast_node *func_body);
-void add_symbol(char *name, char *type, char symbol_type, param *param);
 param* add_param(char *type, char *name, param *next);
+
+void add_symbol(char *name, char *type, char symbol_type, param *param);
+struct symbol_node* find_symbol(char *name);
 simple_symbol_node* create_simple_symbol_node(char *name, char *type);
 
+void error_not_declared(char *symbol_type, char *name);
 void error_redeclaration(char *symbol_type, char *name);
 
 struct ast_node {
@@ -129,14 +132,15 @@ var_declaration:
 ;
 
 func_declaration:
-  TYPE ID '(' params ')'                        {
+  TYPE ID                                       {
                                                   scope *new_scope = (scope *)malloc(sizeof *new_scope);
                                                   new_scope->scope_name = (char *) strdup($2);
                                                   STACK_PUSH(scope_stack, new_scope);
-                                                  add_symbol($2, $1, 'F', $4);
+                                                  add_symbol($2, $1, 'F', NULL);
                                                 }
+  '(' params ')'                                { ; }
   compound_statement                            {
-                                                  $$ = add_ast_func_node($2, $4, $7);
+                                                  $$ = add_ast_func_node($2, $5, $8);
                                                   scope *old_scope;
                                                   STACK_POP(scope_stack, old_scope);
                                                   free(old_scope->scope_name);
@@ -199,7 +203,11 @@ expression:
 ;
 
 var:
-  ID                                            { $$ = NULL; } // TODO: check if identifier exists and is variable
+  ID                                            {
+                                                  $$ = NULL;
+                                                  struct symbol_node *s = find_symbol($1);
+                                                  if(s == NULL) error_not_declared("variable", $1);
+                                                }
 ;
 
 simple_expression:
@@ -460,6 +468,23 @@ struct symbol_node* build_symbol(char *name, char *type, char symbol_type, param
   return s;
 }
 
+struct symbol_node* find_symbol(char *name){
+  struct symbol_node *s;
+
+  HASH_FIND_STR(symbol_table, name, s);
+  if(s != NULL) return s;
+
+  scope * top = STACK_TOP(scope_stack);
+  HASH_FIND_STR(symbol_table, top->scope_name, s);
+
+  simple_symbol_node *tmp;
+  for (tmp = s->func_fields.symbols; tmp != NULL && (strcmp(tmp->name, name) != 0); tmp = tmp->next){
+    // printf("tmp->name = %s\n", tmp->name);
+  }
+
+  return (struct symbol_node *) tmp;
+}
+
 void add_symbol(char *name, char *type, char symbol_type, param *param){
   struct symbol_node *s;
 
@@ -505,7 +530,7 @@ void add_symbol(char *name, char *type, char symbol_type, param *param){
         return;
       }
 
-      for (tmp = s->func_fields.symbols; tmp != NULL; tmp = tmp->next){
+      for (tmp = s->func_fields.symbols; tmp->next != NULL; tmp = tmp->next){
         if(strcmp(tmp->name, name) == 0){ // local variable is already declared in function -> error
           error_redeclaration("variable", name);
           free(new_node->name);
@@ -514,7 +539,14 @@ void add_symbol(char *name, char *type, char symbol_type, param *param){
           return;
         }
       }
-      tmp = new_node;
+      if(strcmp(tmp->name, name) == 0){ // local variable is already declared in function -> error
+        error_redeclaration("variable", name);
+        free(new_node->name);
+        free(new_node->type);
+        free(new_node);
+        return;
+      }
+      tmp->next = new_node;
     }
   }
 }
@@ -525,6 +557,13 @@ simple_symbol_node* create_simple_symbol_node(char *name, char *type){
   new_node->type = (char *) strdup(type);
   new_node->next = NULL;
   return new_node;
+}
+
+void error_not_declared(char *symbol_type, char *name){
+  char * error_message = (char *)malloc(50 * sizeof(char));
+  sprintf(error_message, "semantic error, %s '%s' was not declared", symbol_type, name);
+  yyerror(error_message);
+  free(error_message);
 }
 
 void error_redeclaration(char *symbol_type, char *name){
@@ -549,9 +588,17 @@ void print_symbol_table() {
   struct symbol_node *s;
 
   printf("===============  SYMBOL TABLE ===============\n");
-  printf("NAME\t\tTYPE\t\tSYMBOL_TYPE\n");
+  printf("NAME\t\tTYPE\t\tSYMBOL_TYPE\t\tSCOPE SYMBOLS\n");
   for(s=symbol_table; s != NULL; s=s->hh.next) {
-    printf("%s\t\t%s\t\t%c\n", s->name, s->type, s->symbol_type);
+    printf("%s\t\t%s\t\t%c", s->name, s->type, s->symbol_type);
+    if(s->symbol_type == 'F'){
+      simple_symbol_node *tmp;
+      printf("\t\t\t");
+      for (tmp = s->func_fields.symbols; tmp != NULL; tmp = tmp->next){
+        printf("%s %s, ", tmp->type, tmp->name);
+      }
+    }
+    printf("\n");
   }
 }
 

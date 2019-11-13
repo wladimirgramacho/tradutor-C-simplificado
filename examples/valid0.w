@@ -3,7 +3,7 @@
 int main(string str){
   int a;
   int b;
-  float pi;
+  float decimal;
 
   a = 10;
   b = a * 3;
