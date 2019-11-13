@@ -445,21 +445,28 @@ void free_syntax_tree(struct ast_node *s){
   }
 }
 
+struct symbol_node* build_symbol(char *name, char *type, char symbol_type, param *param){
+  struct symbol_node *s = (struct symbol_node *)malloc(sizeof *s);
+
+  s->name = (char *) strdup(name);
+  s->type = (char *) strdup(type);
+  s->symbol_type = symbol_type;
+  if(symbol_type == 'F'){
+    // s->func_fields.func_body = ast_node;
+    s->func_fields.param_list = param;
+    s->func_fields.symbols = NULL;
+  }
+
+  return s;
+}
+
 void add_symbol(char *name, char *type, char symbol_type, param *param){
   struct symbol_node *s;
 
   if(symbol_type == 'F') {
     HASH_FIND_STR(symbol_table, name, s);
     if(s == NULL){ // function not declared -> add to symbol table
-      s = (struct symbol_node *)malloc(sizeof *s);
-
-      s->name = (char *) strdup(name);
-      s->type = (char *) strdup(type);
-      s->symbol_type = symbol_type;
-      // s->func_fields.func_body = ast_node;
-      s->func_fields.param_list = param;
-      s->func_fields.symbols = NULL;
-
+      s = build_symbol(name, type, symbol_type, param);
       HASH_ADD_STR(symbol_table, name, s);
     }
     else { // function already declared -> error
@@ -471,12 +478,7 @@ void add_symbol(char *name, char *type, char symbol_type, param *param){
     if(STACK_TOP(scope_stack) == NULL){ // is not inside function
       HASH_FIND_STR(symbol_table, name, s);
       if(s == NULL){ // global variable not declared -> add to symbol table
-        s = (struct symbol_node *)malloc(sizeof *s);
-
-        s->name = (char *) strdup(name);
-        s->type = (char *) strdup(type);
-        s->symbol_type = symbol_type;
-
+        s = build_symbol(name, type, symbol_type, param);
         HASH_ADD_STR(symbol_table, name, s);
       }
       else { // global variable already declared -> error
