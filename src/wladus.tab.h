@@ -78,7 +78,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 78 "wladus.y" /* yacc.c:1909  */
+#line 62 "wladus.y" /* yacc.c:1909  */
 
   char *id;
   char *type;
@@ -89,9 +89,8 @@ union YYSTYPE
   char *str;
 
   struct ast_node *ast;
-  struct param *param;
 
-#line 95 "wladus.tab.h" /* yacc.c:1909  */
+#line 94 "wladus.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

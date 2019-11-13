@@ -10,12 +10,6 @@
 int yylex();
 int yyerror(const char *s);
 
-typedef struct param {
-  char *name;
-  char *type;
-  struct param *next;
-} param;
-
 typedef struct simple_symbol_node {
   char *name;
   char *type;
@@ -28,10 +22,8 @@ typedef struct scope {
 } scope;
 
 struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_node *right);
-struct ast_node* add_ast_func_node(char *func_name, param *params, struct ast_node *func_body);
-param* add_param(char *type, char *name, param *next);
 
-void add_symbol(char *name, char *type, char symbol_type, param *param);
+void add_symbol(char *name, char *type, char symbol_type);
 struct symbol_node* find_symbol(char *name);
 simple_symbol_node* create_simple_symbol_node(char *name, char *type);
 
@@ -51,13 +43,6 @@ struct ast_node {
   };
 };
 
-struct ast_func_node { // function declarations
-  int node_type;
-  char *func_name;
-  param *params;
-  struct ast_node *func_body;
-};
-
 struct symbol_node {
   char *name;                     // key field
   char *type;                     // int | float | string | void
@@ -65,7 +50,6 @@ struct symbol_node {
   UT_hash_handle hh;              // makes this structure hashable
   struct {
     struct ast_node *func_body;   // function body
-    param *param_list;
     simple_symbol_node *symbols;
   } func_fields;
 };
@@ -85,7 +69,6 @@ struct scope* scope_stack = NULL;
   char *str;
 
   struct ast_node *ast;
-  struct param *param;
 }
 
  
@@ -103,12 +86,10 @@ struct scope* scope_stack = NULL;
 %left '+' '-'
 %left '*' '/'
 
-%type <ast> prog declarations declaration var_declaration func_declaration
+%type <ast> prog declarations declaration var_declaration func_declaration params
 %type <ast> local_declarations statement_list compound_statement statement local_var_declaration
 %type <ast> expression_statement conditional_statement iteration_statement return_statement
 %type <ast> expression var simple_expression op_expression term call args arg_list string
-
-%type <param> params
 
 %start prog
 %%
@@ -128,7 +109,7 @@ declaration:
 ;
 
 var_declaration:
-  TYPE ID ';'                                   { $$ = NULL; add_symbol($2, $1, 'V', NULL); }
+  TYPE ID ';'                                   { $$ = NULL; add_symbol($2, $1, 'V'); }
 ;
 
 func_declaration:
@@ -136,11 +117,11 @@ func_declaration:
                                                   scope *new_scope = (scope *)malloc(sizeof *new_scope);
                                                   new_scope->scope_name = (char *) strdup($2);
                                                   STACK_PUSH(scope_stack, new_scope);
-                                                  add_symbol($2, $1, 'F', NULL);
+                                                  add_symbol($2, $1, 'F');
                                                 }
   '(' params ')'                                { ; }
   compound_statement                            {
-                                                  $$ = add_ast_func_node($2, $5, $8);
+                                                  $$ = add_ast_node('F', NULL, $8);
                                                   scope *old_scope;
                                                   STACK_POP(scope_stack, old_scope);
                                                   free(old_scope->scope_name);
@@ -150,8 +131,8 @@ func_declaration:
 ;
 
 params:
-  params ',' TYPE ID                            { $$ = add_param($3, $4, $1); add_symbol($4, $3, 'P', NULL); }
-| TYPE ID                                       { $$ = add_param($1, $2, NULL); add_symbol($2, $1, 'P', NULL); }
+  params ',' TYPE ID                            { $$ = $1; add_symbol($4, $3, 'P'); }
+| TYPE ID                                       { $$ = NULL; add_symbol($2, $1, 'P'); }
 |                                               { $$ = NULL; }
 ;
 
@@ -165,7 +146,7 @@ local_declarations:
 ;
 
 local_var_declaration:
-  TYPE ID ';'                                   { $$ = NULL; add_symbol($2, $1, 'V', NULL); } // TODO: ADD SCOPE
+  TYPE ID ';'                                   { $$ = NULL; add_symbol($2, $1, 'V'); } // TODO: ADD SCOPE
 
 statement_list:
   statement_list statement                      { $$ = add_ast_node('A', $1, $2); }
@@ -283,26 +264,6 @@ struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_n
   return ast_node;
 }
 
-struct ast_node* add_ast_func_node(char *func_name, param *params, struct ast_node *func_body){
-  struct ast_func_node* ast_node = (struct ast_func_node*)malloc(sizeof(struct ast_func_node));
-
-  ast_node->node_type = 'F';
-  ast_node->func_name = (char *) strdup(func_name);
-  ast_node->params = params;
-  ast_node->func_body = func_body;
-
-  return (struct ast_node *) ast_node;
-}
-
-void print_params(param *param, int depth){
-  if(param == NULL) return;
-
-  printf("%*s", depth, "");
-  printf("%s", param->type);
-  printf("%s", param->name);
-  print_params(param->next, depth);
-}
-
 void print_ast_node(struct ast_node *s, int depth) {
   if(s == NULL) return;
 
@@ -317,10 +278,8 @@ void print_ast_node(struct ast_node *s, int depth) {
       break;
     case 'F':
       {
-        struct ast_func_node *node = (struct ast_func_node *) s;
-        printf(" (%s)\n", node->func_name);
-        if(node->params) print_params(node->params, depth+1);
-        print_ast_node(node->func_body, depth+1);
+        printf(" \n");
+        print_ast_node(s->right, depth+1);
       }
       break;
     case 'O':
@@ -385,14 +344,6 @@ void print_syntax_tree() {
   printf("\n");
 }
 
-void free_params(param *param){
-  if(param == NULL) return;
-  free(param->type);
-  free(param->name);
-  free_params(param->next);
-  free(param);
-}
-
 void free_syntax_tree(struct ast_node *s){
   if(s == NULL) return;
 
@@ -407,11 +358,8 @@ void free_syntax_tree(struct ast_node *s){
       break;
     case 'F':
       {
-        struct ast_func_node *node = (struct ast_func_node *) s;
-        if(node->params) free_params(node->params);
-        free(node->func_name);
-        free_syntax_tree(node->func_body);
-        free(node);
+        free_syntax_tree(s->right);
+        free(s);
       }
       break;
     case 'O':
@@ -459,7 +407,7 @@ void free_syntax_tree(struct ast_node *s){
   }
 }
 
-struct symbol_node* build_symbol(char *name, char *type, char symbol_type, param *param){
+struct symbol_node* build_symbol(char *name, char *type, char symbol_type){
   struct symbol_node *s = (struct symbol_node *)malloc(sizeof *s);
 
   s->name = (char *) strdup(name);
@@ -467,7 +415,6 @@ struct symbol_node* build_symbol(char *name, char *type, char symbol_type, param
   s->symbol_type = symbol_type;
   if(symbol_type == 'F'){
     // s->func_fields.func_body = ast_node;
-    s->func_fields.param_list = param;
     s->func_fields.symbols = NULL;
   }
 
@@ -489,13 +436,13 @@ struct symbol_node* find_symbol(char *name){
   return (struct symbol_node *) tmp;
 }
 
-void add_symbol(char *name, char *type, char symbol_type, param *param){
+void add_symbol(char *name, char *type, char symbol_type){
   struct symbol_node *s;
 
   if(symbol_type == 'F') {
     HASH_FIND_STR(symbol_table, name, s);
     if(s == NULL){ // function not declared -> add to symbol table
-      s = build_symbol(name, type, symbol_type, param);
+      s = build_symbol(name, type, symbol_type);
       HASH_ADD_STR(symbol_table, name, s);
     }
     else { // function already declared -> error
@@ -507,7 +454,7 @@ void add_symbol(char *name, char *type, char symbol_type, param *param){
     if(STACK_TOP(scope_stack) == NULL){ // is not inside function
       HASH_FIND_STR(symbol_table, name, s);
       if(s == NULL){ // global variable not declared -> add to symbol table
-        s = build_symbol(name, type, symbol_type, param);
+        s = build_symbol(name, type, symbol_type);
         HASH_ADD_STR(symbol_table, name, s);
       }
       else { // global variable already declared -> error
@@ -575,17 +522,6 @@ void error_redeclaration(char *symbol_type, char *name){
   sprintf(error_message, "semantic error, %s '%s' was already declared", symbol_type, name);
   yyerror(error_message);
   free(error_message);
-}
-
-param* add_param(char *type, char *name, param *next){
-  param *p;
-
-  p = (param *)malloc(sizeof *p);
-
-  p->type = (char *) strdup(type);
-  p->name = (char *) strdup(name);
-  p->next = next;
-  return p;
 }
 
 void print_symbol_table() {
