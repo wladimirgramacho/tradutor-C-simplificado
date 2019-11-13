@@ -193,20 +193,20 @@ var:
 ;
 
 simple_expression:
-  op_expression CEQ op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
-| op_expression CNE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
-| op_expression CLT op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
-| op_expression CLE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
-| op_expression CGT op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
-| op_expression CGE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
+  op_expression CEQ op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
+| op_expression CNE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
+| op_expression CLT op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
+| op_expression CLE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
+| op_expression CGT op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
+| op_expression CGE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
 | op_expression                                 { $$ = $1; }
 ;
 
 op_expression:
-  op_expression PLUS term                       { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
-| op_expression MINUS term                      { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
-| op_expression MULT term                       { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
-| op_expression DIV term                        { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
+  op_expression PLUS term                       { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
+| op_expression MINUS term                      { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
+| op_expression MULT term                       { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
+| op_expression DIV term                        { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
 | term                                          { $$ = $1; }
 ;
 
