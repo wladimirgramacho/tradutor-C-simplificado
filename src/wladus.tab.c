@@ -2104,7 +2104,7 @@ yyreturn:
 
 
 struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_node *right){
-  struct ast_node* ast_node = (struct ast_node*)malloc(sizeof(struct ast_node));
+  struct ast_node* ast_node = (struct ast_node*)calloc(1, sizeof(struct ast_node));
 
   ast_node->node_type = node_type;
   ast_node->left = left;
