@@ -450,7 +450,7 @@ void add_symbol(char *name, char *type, char symbol_type, param *param){
 
   if(symbol_type == 'F') {
     HASH_FIND_STR(symbol_table, name, s);
-    if(s == NULL){
+    if(s == NULL){ // function not declared -> add to symbol table
       s = (struct symbol_node *)malloc(sizeof *s);
 
       s->name = (char *) strdup(name);
@@ -462,15 +462,15 @@ void add_symbol(char *name, char *type, char symbol_type, param *param){
 
       HASH_ADD_STR(symbol_table, name, s);
     }
-    else {
+    else { // function already declared -> error
       error_redeclaration("function", name);
       return;
     }
   }
   else {
-    if(STACK_TOP(scope_stack) == NULL){
+    if(STACK_TOP(scope_stack) == NULL){ // is not inside function
       HASH_FIND_STR(symbol_table, name, s);
-      if(s == NULL){
+      if(s == NULL){ // global variable not declared -> add to symbol table
         s = (struct symbol_node *)malloc(sizeof *s);
 
         s->name = (char *) strdup(name);
@@ -479,14 +479,14 @@ void add_symbol(char *name, char *type, char symbol_type, param *param){
 
         HASH_ADD_STR(symbol_table, name, s);
       }
-      else {
+      else { // global variable already declared -> error
         error_redeclaration("variable", name);
         return;
       }
     }
-    else {
+    else { // is inside function
       HASH_FIND_STR(symbol_table, name, s);
-      if(s != NULL){
+      if(s != NULL){ // local variable is declared as global variable -> error
         error_redeclaration("variable", name);
         return;
       }
@@ -504,7 +504,7 @@ void add_symbol(char *name, char *type, char symbol_type, param *param){
       }
 
       for (tmp = s->func_fields.symbols; tmp != NULL; tmp = tmp->next){
-        if(strcmp(tmp->name, name) == 0){
+        if(strcmp(tmp->name, name) == 0){ // local variable is already declared in function -> error
           error_redeclaration("variable", name);
           free(new_node->name);
           free(new_node->type);
