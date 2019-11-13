@@ -482,6 +482,14 @@ void add_symbol(char *name, char *type, char symbol_type, param *param){
       }
     }
     else {
+      HASH_FIND_STR(symbol_table, name, s);
+      if(s != NULL){
+        char * error_message = (char *)malloc(50 * sizeof(char));
+        sprintf(error_message, "semantic error, variable '%s' was already declared", name);
+        yyerror(error_message);
+        return;
+      }
+
       scope * top = STACK_TOP(scope_stack);
       HASH_FIND_STR(symbol_table, top->scope_name, s);
 
