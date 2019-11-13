@@ -119,7 +119,7 @@ struct ast_func_node { // function declarations
 struct symbol_node {
   char *name;                     // key field
   char *type;                     // int | float | string | void
-  char symbol_type;               // 'V' or 'F'
+  char symbol_type;               // 'V' (variable) | 'F' (function) | 'P' (parameter)
   UT_hash_handle hh;              // makes this structure hashable
   struct {
     struct ast_node *func_body;   // function body
@@ -1547,13 +1547,13 @@ yyreduce:
 
   case 10:
 #line 149 "wladus.y" /* yacc.c:1646  */
-    { (yyval.param) = add_param((yyvsp[-1].type), (yyvsp[0].id), (yyvsp[-3].param)); }
+    { (yyval.param) = add_param((yyvsp[-1].type), (yyvsp[0].id), (yyvsp[-3].param)); add_symbol((yyvsp[0].id), (yyvsp[-1].type), 'P', NULL); }
 #line 1552 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 11:
 #line 150 "wladus.y" /* yacc.c:1646  */
-    { (yyval.param) = add_param((yyvsp[-1].type), (yyvsp[0].id), NULL); }
+    { (yyval.param) = add_param((yyvsp[-1].type), (yyvsp[0].id), NULL); add_symbol((yyvsp[0].id), (yyvsp[-1].type), 'P', NULL); }
 #line 1558 "wladus.tab.c" /* yacc.c:1646  */
     break;
 

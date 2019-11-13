@@ -58,7 +58,7 @@ struct ast_func_node { // function declarations
 struct symbol_node {
   char *name;                     // key field
   char *type;                     // int | float | string | void
-  char symbol_type;               // 'V' or 'F'
+  char symbol_type;               // 'V' (variable) | 'F' (function) | 'P' (parameter)
   UT_hash_handle hh;              // makes this structure hashable
   struct {
     struct ast_node *func_body;   // function body
@@ -146,8 +146,8 @@ func_declaration:
 ;
 
 params:
-  params ',' TYPE ID                            { $$ = add_param($3, $4, $1); }
-| TYPE ID                                       { $$ = add_param($1, $2, NULL); }
+  params ',' TYPE ID                            { $$ = add_param($3, $4, $1); add_symbol($4, $3, 'P', NULL); }
+| TYPE ID                                       { $$ = add_param($1, $2, NULL); add_symbol($2, $1, 'P', NULL); }
 |                                               { $$ = NULL; }
 ;
 
