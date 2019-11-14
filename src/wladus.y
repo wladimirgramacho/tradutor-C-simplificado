@@ -132,7 +132,7 @@ func_declaration:
   '(' params ')'                                { ; }
   compound_statement                            {
                                                   $$ = add_ast_node('F', NULL, $8);
-                                                  $$->func_name = $2;
+                                                  $$->func_name = (char *) strdup($2);
 
                                                   symbol_node *s = find_symbol($2);
                                                   s->func_fields.func_body = $8;
@@ -317,7 +317,7 @@ void print_ast_node(struct ast_node *s, int depth) {
     case 'F':
       {
         // symbol_node * function = find_symbol(s->func_name);
-        printf(" %s\n", s->func_name);
+        printf("%s\n", s->func_name);
 
         print_ast_node(s->right, depth+1);
       }

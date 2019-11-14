@@ -1544,7 +1544,7 @@ yyreduce:
 #line 133 "wladus.y" /* yacc.c:1646  */
     {
                                                   (yyval.ast) = add_ast_node('F', NULL, (yyvsp[0].ast));
-                                                  (yyval.ast)->func_name = (yyvsp[-6].id);
+                                                  (yyval.ast)->func_name = (char *) strdup((yyvsp[-6].id));
 
                                                   symbol_node *s = find_symbol((yyvsp[-6].id));
                                                   s->func_fields.func_body = (yyvsp[0].ast);
@@ -2166,7 +2166,7 @@ void print_ast_node(struct ast_node *s, int depth) {
     case 'F':
       {
         // symbol_node * function = find_symbol(s->func_name);
-        printf(" %s\n", s->func_name);
+        printf("%s\n", s->func_name);
 
         print_ast_node(s->right, depth+1);
       }
