@@ -74,6 +74,8 @@ void error_not_declared(char *symbol_type, char *name);
 void error_redeclaration(char *symbol_type, char *name);
 void error_type_mismatch(char left_dtype, char right_dtype);
 
+int mismatch(char left_dtype, char right_dtype);
+
 struct symbol_node *symbol_table = NULL;
 struct ast_node* syntax_tree = NULL;
 struct scope* scope_stack = NULL;
@@ -205,7 +207,7 @@ return_statement:
 
 expression:
   var EQ expression                             {
-                                                  if($1->dtype != $3->dtype){ error_type_mismatch($1->dtype, $3->dtype); }
+                                                  if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else {
                                                     $$ = add_ast_node('O', $1, $3);
                                                     $$->operator = (char *) strdup($2);
@@ -225,20 +227,20 @@ var:
 ;
 
 simple_expression:
-  op_expression CEQ op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
-| op_expression CNE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
-| op_expression CLT op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
-| op_expression CLE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
-| op_expression CGT op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
-| op_expression CGE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
+  op_expression CEQ op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
+| op_expression CNE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
+| op_expression CLT op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
+| op_expression CLE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
+| op_expression CGT op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
+| op_expression CGE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
 | op_expression                                 { $$ = $1; }
 ;
 
 op_expression:
-  op_expression PLUS term                       { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
-| op_expression MINUS term                      { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
-| op_expression MULT term                       { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
-| op_expression DIV term                        { $$ = add_ast_node('O', $1, $3); $$->operator = $2; }
+  op_expression PLUS term                       { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
+| op_expression MINUS term                      { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
+| op_expression MULT term                       { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
+| op_expression DIV term                        { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
 | term                                          { $$ = $1; }
 ;
 
@@ -290,6 +292,7 @@ struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_n
   ast_node->node_type = node_type;
   ast_node->left = left;
   ast_node->right = right;
+  ast_node->dtype = '0'; // empty dtype
 
   return ast_node;
 }
@@ -455,6 +458,10 @@ char * dtype_to_type(char dtype){
   else if(dtype == 'f') { return "float"; }
   else if(dtype == 's') { return "string"; }
   else if(dtype == 'v') { return "void"; }
+}
+
+int mismatch(char left_dtype, char right_dtype){
+  return left_dtype != '0' && right_dtype != '0' && left_dtype != right_dtype;
 }
 
 symbol_node* build_symbol(char *name, char *type, char symbol_type){
