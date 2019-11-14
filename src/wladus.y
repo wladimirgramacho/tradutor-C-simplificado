@@ -137,7 +137,7 @@ declaration:
 ;
 
 var_declaration:
-  TYPE ID ';'                                   { $$ = NULL; add_symbol($2, $1, 'V'); }
+  TYPE ID ';'                                   { $$ = NULL; add_symbol($2, $1, 'V'); free($1); free($2); }
 ;
 
 func_declaration:
@@ -160,12 +160,14 @@ func_declaration:
                                                   free(old_scope->scope_name);
                                                   free(old_scope);
                                                   scope_stack = NULL;
+                                                  free($1);
+                                                  free($2);
                                                 }
 ;
 
 params:
-  params ',' TYPE ID                            { $$ = $1; add_symbol($4, $3, 'P'); }
-| TYPE ID                                       { $$ = NULL; add_symbol($2, $1, 'P'); }
+  params ',' TYPE ID                            { $$ = $1; add_symbol($4, $3, 'P'); free($3); free($4); }
+| TYPE ID                                       { $$ = NULL; add_symbol($2, $1, 'P'); free($1); free($2); }
 |                                               { $$ = NULL; }
 ;
 
@@ -179,7 +181,13 @@ local_declarations:
 ;
 
 local_var_declaration:
-  TYPE ID ';'                                   { $$ = add_ast_node('V', NULL, NULL); $$->dtype = type_to_dtype($1); add_symbol($2, $1, 'V'); }
+  TYPE ID ';'                                   {
+                                                  $$ = add_ast_node('V', NULL, NULL);
+                                                  $$->dtype = type_to_dtype($1);
+                                                  add_symbol($2, $1, 'V');
+                                                  free($1);
+                                                  free($2);
+                                                }
 
 statement_list:
   statement_list statement                      { $$ = add_ast_node('A', $1, $2); }
@@ -231,6 +239,7 @@ var:
                                                   symbol_node *s = find_symbol($1);
                                                   if(s == NULL){ error_not_declared("variable", $1); }
                                                   else { $$->dtype = s->type; }
+                                                  free($1);
                                                 }
 ;
 
