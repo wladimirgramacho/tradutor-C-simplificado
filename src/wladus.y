@@ -30,7 +30,8 @@ int yyerror(const char *s);
 
 typedef struct simple_symbol_node {
   char *name;
-  char type;
+  char dtype;
+  char symbol_type;
   struct simple_symbol_node *next;
 } simple_symbol_node;
 
@@ -68,7 +69,7 @@ struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_n
 
 void add_symbol(char *name, char *type, char symbol_type);
 symbol_node* find_symbol(char *name);
-simple_symbol_node* create_simple_symbol_node(char *name, char type);
+simple_symbol_node* create_simple_symbol_node(char *name, char dtype, char symbol_type);
 
 void error_not_declared(char *symbol_type, char *name);
 void error_redeclaration(char *symbol_type, char *name);
@@ -558,7 +559,7 @@ void add_symbol(char *name, char *type, char symbol_type){
       simple_symbol_node *tmp, *new_node;
 
       char dtype = type_to_dtype(type);
-      new_node = create_simple_symbol_node(name, dtype);
+      new_node = create_simple_symbol_node(name, dtype, symbol_type);
 
       if(s->func_fields.symbols == NULL){
         s->func_fields.symbols = new_node;
@@ -584,10 +585,11 @@ void add_symbol(char *name, char *type, char symbol_type){
   }
 }
 
-simple_symbol_node* create_simple_symbol_node(char *name, char type){
+simple_symbol_node* create_simple_symbol_node(char *name, char dtype, char symbol_type){
   simple_symbol_node *new_node = (simple_symbol_node *)malloc(sizeof *new_node);
   new_node->name = (char *) strdup(name);
-  new_node->type = type;
+  new_node->dtype = dtype;
+  new_node->symbol_type = symbol_type;
   new_node->next = NULL;
   return new_node;
 }
@@ -627,12 +629,12 @@ void print_symbol_table() {
   printf("===============  SYMBOL TABLE ===============\n");
   printf("NAME\t\tTYPE\t\tSYMBOL_TYPE\t\tSCOPE SYMBOLS\n");
   for(s=symbol_table; s != NULL; s=s->hh.next) {
-    printf("%s\t\t%c\t\t%c", s->name, s->type, s->symbol_type);
+    printf("%s\t\t%s\t\t%c", s->name, dtype_to_type(s->type), s->symbol_type);
     if(s->symbol_type == 'F'){
-      simple_symbol_node *tmp;
+      simple_symbol_node *ss;
       printf("\t\t\t");
-      for (tmp = s->func_fields.symbols; tmp != NULL; tmp = tmp->next){
-        printf("%c %s, ", tmp->type, tmp->name);
+      for (ss = s->func_fields.symbols; ss != NULL; ss = ss->next){
+        printf("(%c) %s %s, ", ss->symbol_type, dtype_to_type(ss->dtype), ss->name);
       }
     }
     printf("\n");
