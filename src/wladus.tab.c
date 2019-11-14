@@ -89,7 +89,7 @@ typedef struct symbol_node {
   UT_hash_handle hh;              // makes this structure hashable
   struct {
     struct ast_node *func_body;   // function body
-    simple_symbol_node *symbols;
+    simple_symbol_node *symbols;  // params and variables inside function scope
   } func_fields;
 } symbol_node;
 

@@ -19,3 +19,4 @@ test:
 	./prog < ../examples/invalid2.w
 	./prog < ../examples/invalid3.w
 	./prog < ../examples/invalid4.w
+	./prog < ../examples/invalid5.w
