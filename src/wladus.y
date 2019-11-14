@@ -122,6 +122,10 @@ func_declaration:
   '(' params ')'                                { ; }
   compound_statement                            {
                                                   $$ = add_ast_node('F', NULL, $8);
+
+                                                  struct symbol_node *s = find_symbol($2);
+                                                  s->func_fields.func_body = $8;
+
                                                   scope *old_scope;
                                                   STACK_POP(scope_stack, old_scope);
                                                   free(old_scope->scope_name);
