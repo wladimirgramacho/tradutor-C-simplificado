@@ -23,7 +23,7 @@ typedef struct scope {
 
 typedef struct symbol_node {
   char *name;                     // key field
-  char *type;                     // int | float | string | void
+  char type;                      // 'i'nt | 'f'loat | 's'tring | 'v'oid
   char symbol_type;               // 'V' (variable) | 'F' (function) | 'P' (parameter)
   UT_hash_handle hh;              // makes this structure hashable
   struct {
@@ -34,6 +34,7 @@ typedef struct symbol_node {
 
 struct ast_node {
   int node_type;
+  char dtype;
   struct ast_node *left;
   struct ast_node *right;
   union {
@@ -184,7 +185,11 @@ return_statement:
 ;
 
 expression:
-  var EQ expression                             { $$ = add_ast_node('O', $1, $3); $$->operator = (char *) strdup($2); }
+  var EQ expression                             {
+                                                  $$ = add_ast_node('O', $1, $3);
+                                                  $$->operator = (char *) strdup($2);
+
+                                                }
 | simple_expression                             { $$ = $1; }
 ;
 
@@ -218,7 +223,7 @@ term:
   '(' simple_expression ')'                     { $$ = $2; }
 | var                                           { $$ = $1; }
 | call                                          { $$ = $1; }
-| NUM                                           { $$ = add_ast_node('I', NULL, NULL); $$->integer = $1; }
+| NUM                                           { $$ = add_ast_node('I', NULL, NULL); $$->integer = $1; $$->dtype = 'i'; }
 | DEC                                           { $$ = add_ast_node('D', NULL, NULL); $$->decimal = $1; }
 | QUOTES string QUOTES                          { $$ = $2; }
 ;
@@ -409,7 +414,10 @@ symbol_node* build_symbol(char *name, char *type, char symbol_type){
   symbol_node *s = (symbol_node *)malloc(sizeof *s);
 
   s->name = (char *) strdup(name);
-  s->type = (char *) strdup(type);
+  if(strcmp(type, "int") == 0) { s->type = 'i'; }
+  else if(strcmp(type, "float") == 0) { s->type = 'f'; }
+  else if(strcmp(type, "string") == 0) { s->type = 's'; }
+  else if(strcmp(type, "void") == 0) { s->type = 'v'; }
   s->symbol_type = symbol_type;
   if(symbol_type == 'F'){
     // s->func_fields.func_body = ast_node;
@@ -528,7 +536,7 @@ void print_symbol_table() {
   printf("===============  SYMBOL TABLE ===============\n");
   printf("NAME\t\tTYPE\t\tSYMBOL_TYPE\t\tSCOPE SYMBOLS\n");
   for(s=symbol_table; s != NULL; s=s->hh.next) {
-    printf("%s\t\t%s\t\t%c", s->name, s->type, s->symbol_type);
+    printf("%s\t\t%c\t\t%c", s->name, s->type, s->symbol_type);
     if(s->symbol_type == 'F'){
       simple_symbol_node *tmp;
       printf("\t\t\t");
@@ -544,7 +552,6 @@ void free_simple_symbol_node(simple_symbol_node * node){
   if(node == NULL) return;
   free_simple_symbol_node(node->next);
   free(node->name);
-  free(node->type);
   free(node);
 }
 
@@ -554,7 +561,6 @@ void free_symbol_table(){
   HASH_ITER(hh, symbol_table, s, tmp) {
     HASH_DEL(symbol_table, s);
     free(s->name);
-    free(s->type);
     s->func_fields.func_body = NULL;
     free_simple_symbol_node(s->func_fields.symbols);
     free(s);
