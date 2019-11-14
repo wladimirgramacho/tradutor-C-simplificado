@@ -14,9 +14,11 @@ int main(string str){
   }
   if(b == 1){
     float d;
+    d = d * 3.0;
   }
   else {
     float e;
+    d = d + 4.5;
   }
   if(b <= 1){
     b = a * 4;

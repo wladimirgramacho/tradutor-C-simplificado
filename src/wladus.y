@@ -76,6 +76,7 @@ void error_type_mismatch(char left_dtype, char right_dtype);
 
 int mismatch(char left_dtype, char right_dtype);
 
+char type_to_dtype(char *type);
 char * dtype_to_type(char dtype);
 
 struct symbol_node *symbol_table = NULL;
@@ -175,7 +176,7 @@ local_declarations:
 ;
 
 local_var_declaration:
-  TYPE ID ';'                                   { $$ = NULL; add_symbol($2, $1, 'V'); }
+  TYPE ID ';'                                   { $$ = add_ast_node('V', NULL, NULL); $$->dtype = type_to_dtype($1); add_symbol($2, $1, 'V'); }
 
 statement_list:
   statement_list statement                      { $$ = add_ast_node('A', $1, $2); }
@@ -195,8 +196,8 @@ expression_statement:
 ;
 
 conditional_statement:
-  IF '(' expression ')' compound_statement      { $$ = add_ast_node('C', $3, $5); }
-| IF '(' expression ')' compound_statement ELSE  compound_statement { $$ = add_ast_node('C', $3, add_ast_node('c', $5, $7)); }
+  IF '(' expression ')' compound_statement      { $$ = add_ast_node('C', add_ast_node('c', $3, $5), NULL); }
+| IF '(' expression ')' compound_statement ELSE  compound_statement { $$ = add_ast_node('C', add_ast_node('c', $3, $5), $7); }
 ;
 
 iteration_statement:
@@ -304,10 +305,15 @@ struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_n
 void print_ast_node(struct ast_node *s, int depth) {
   if(s == NULL) return;
 
+  if(s->node_type == 'A'){
+    print_ast_node(s->left, depth);
+    print_ast_node(s->right, depth);
+    return;
+  }
+
   printf("%*s", depth, "");
 
   switch (s->node_type){
-    case 'A':
     case 'T':
       printf("\n");
       print_ast_node(s->left, depth + 1);
@@ -328,24 +334,42 @@ void print_ast_node(struct ast_node *s, int depth) {
         print_ast_node(s->right, depth + 1);
       }
       break;
-    case 'C':
+    case 'c':
       {
-        printf("\n");
-        print_ast_node(s->left, depth + 1);
-        print_ast_node(s->right, depth + 1);
+        printf("if\n");
+
+        printf("%*s", depth + 1, "");
+        printf("-- condition --\n");
+        print_ast_node(s->left, depth + 2);
+
+        printf("%*s", depth + 1, "");
+        printf("-- body --\n");
+        print_ast_node(s->right, depth + 2);
       }
       break;
+    case 'C':
+      {
+        print_ast_node(s->left, depth);
+
+        if(s->right) {
+          printf("%*s", depth + 1, "");
+          printf("-- else --\n");
+          print_ast_node(s->right, depth + 2);
+        }
+      }
+      break;
+    
     case 'W':
       {
-        printf("\n");
+        printf("while\n");
 
-        printf("%*s", depth, "");
+        printf("%*s", depth + 1, "");
         printf("-- condition --\n");
-        print_ast_node(s->left, depth + 1);
+        print_ast_node(s->left, depth + 2);
 
-        printf("%*s", depth, "");
-        printf("-- while body --\n");
-        print_ast_node(s->right, depth + 1);
+        printf("%*s", depth + 1, "");
+        printf("-- body --\n");
+        print_ast_node(s->right, depth + 2);
       }
       break;
     case 'L':
