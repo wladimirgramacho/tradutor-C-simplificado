@@ -13,7 +13,7 @@ comp:
 
 test:
 	./prog < ../examples/valid0.w
-# 	./prog < ../examples/valid1.w
+	./prog < ../examples/valid1.w
 	./prog < ../examples/valid2.w
 	./prog < ../examples/invalid1.w
 	./prog < ../examples/invalid2.w

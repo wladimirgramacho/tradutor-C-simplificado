@@ -254,7 +254,7 @@ term:
                                                 }
 | NUM                                           { $$ = add_ast_node('I', NULL, NULL); $$->integer = $1; $$->dtype = 'i'; }
 | DEC                                           { $$ = add_ast_node('D', NULL, NULL); $$->decimal = $1; $$->dtype = 'f'; }
-| QUOTES string QUOTES                          { $$ = $2; }
+| QUOTES string QUOTES                          { $$ = $2; $$->dtype = 's'; }
 ;
 
 call:
@@ -281,7 +281,7 @@ arg_list:
 string:
   string STR                                    { $$ = add_ast_node('S', NULL, $1); }
 | string ITP_START simple_expression ITP_END    { $$ = add_ast_node('T', $1, $3); }
-|                                               { $$ = NULL; }
+|                                               { $$ = add_ast_node('S', NULL, NULL); }
 ;
 
 %%

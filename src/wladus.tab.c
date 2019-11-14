@@ -1827,7 +1827,7 @@ yyreduce:
 
   case 51:
 #line 257 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = (yyvsp[-1].ast); }
+    { (yyval.ast) = (yyvsp[-1].ast); (yyval.ast)->dtype = 's'; }
 #line 1832 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
@@ -1892,7 +1892,7 @@ yyreduce:
 
   case 61:
 #line 284 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = NULL; }
+    { (yyval.ast) = add_ast_node('S', NULL, NULL); }
 #line 1897 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
