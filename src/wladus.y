@@ -195,9 +195,10 @@ expression:
 
 var:
   ID                                            {
-                                                  $$ = NULL;
+                                                  $$ = add_ast_node('V', NULL, NULL);
                                                   symbol_node *s = find_symbol($1);
-                                                  if(s == NULL) error_not_declared("variable", $1);
+                                                  if(s == NULL){ error_not_declared("variable", $1); }
+                                                  else { $$->dtype = s->type; }
                                                 }
 ;
 
@@ -336,6 +337,11 @@ void print_ast_node(struct ast_node *s, int depth) {
         print_ast_node(s->right, depth + 1);
       }
       break;
+    case 'V':
+      {
+        printf(" (ID)\n");
+      }
+      break;
   }  
 }
 
@@ -355,6 +361,7 @@ void free_syntax_tree(struct ast_node *s){
     case 'C':
     case 'c':
     case 'W':
+    case 'V':
       if(s->left) free_syntax_tree(s->left);
       if(s->right) free_syntax_tree(s->right);
       free(s);
@@ -410,14 +417,18 @@ void free_syntax_tree(struct ast_node *s){
   }
 }
 
+char get_dtype(char *type){
+  if(strcmp(type, "int") == 0) { return 'i'; }
+  else if(strcmp(type, "float") == 0) { return 'f'; }
+  else if(strcmp(type, "string") == 0) { return 's'; }
+  else if(strcmp(type, "void") == 0) { return 'v'; }
+}
+
 symbol_node* build_symbol(char *name, char *type, char symbol_type){
   symbol_node *s = (symbol_node *)malloc(sizeof *s);
 
   s->name = (char *) strdup(name);
-  if(strcmp(type, "int") == 0) { s->type = 'i'; }
-  else if(strcmp(type, "float") == 0) { s->type = 'f'; }
-  else if(strcmp(type, "string") == 0) { s->type = 's'; }
-  else if(strcmp(type, "void") == 0) { s->type = 'v'; }
+  s->type = get_dtype(type);
   s->symbol_type = symbol_type;
   if(symbol_type == 'F'){
     // s->func_fields.func_body = ast_node;
