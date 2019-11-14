@@ -2479,7 +2479,7 @@ void error_type_mismatch(char left_dtype, char right_dtype){
   char * right = (char *)malloc(7 * sizeof(char));
   strcpy(left, dtype_to_type(left_dtype));
   strcpy(right, dtype_to_type(right_dtype));
-  sprintf(error_message, "semantic error, " BOLDWHITE "‘%s‘" RESET " type mismatch with " BOLDWHITE "‘%s‘" RESET, left, right);
+  sprintf(error_message, "semantic error, ‘%s‘ type mismatch with ‘%s‘", left, right);
   yyerror(error_message);
   free(error_message);
 }

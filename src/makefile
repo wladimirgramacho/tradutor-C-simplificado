@@ -9,7 +9,7 @@ flex:
 	flex -o lex.yy.c wladus.l
 
 comp:
-	gcc wladus.tab.c lex.yy.c -o prog -ggdb3
+	gcc wladus.tab.c lex.yy.c -o prog
 
 test:
 	./prog < ../examples/valid0.w
