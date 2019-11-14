@@ -132,6 +132,7 @@ func_declaration:
   '(' params ')'                                { ; }
   compound_statement                            {
                                                   $$ = add_ast_node('F', NULL, $8);
+                                                  $$->dtype = type_to_dtype($1);
                                                   $$->func_name = (char *) strdup($2);
 
                                                   symbol_node *s = find_symbol($2);
@@ -310,14 +311,12 @@ void print_ast_node(struct ast_node *s, int depth) {
 
   switch (s->node_type){
     case 'T':
-      printf("\n");
       print_ast_node(s->left, depth + 1);
       print_ast_node(s->right, depth + 1);
       break;
     case 'F':
       {
-        // symbol_node * function = find_symbol(s->func_name);
-        printf("%s\n", s->func_name);
+        printf("%s \t\t type = %s\n", s->func_name, dtype_to_type(s->dtype));
 
         print_ast_node(s->right, depth+1);
       }
@@ -492,7 +491,6 @@ symbol_node* build_symbol(char *name, char *type, char symbol_type){
   s->type = type_to_dtype(type);
   s->symbol_type = symbol_type;
   if(symbol_type == 'F'){
-    // s->func_fields.func_body = ast_node;
     s->func_fields.symbols = NULL;
   }
 
