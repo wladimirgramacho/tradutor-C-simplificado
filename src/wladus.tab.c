@@ -556,9 +556,9 @@ static const yytype_uint16 yyrline[] =
      136,   158,   159,   160,   164,   168,   169,   173,   176,   177,
      181,   182,   183,   184,   188,   189,   193,   194,   198,   202,
      203,   207,   215,   219,   228,   229,   230,   231,   232,   233,
-     234,   238,   239,   240,   241,   242,   246,   247,   248,   249,
-     250,   251,   255,   261,   262,   266,   267,   271,   272,   276,
-     277,   278
+     234,   238,   239,   240,   241,   242,   246,   247,   248,   253,
+     254,   255,   259,   265,   266,   270,   271,   275,   276,   280,
+     281,   282
 };
 #endif
 
@@ -1803,95 +1803,99 @@ yyreduce:
 
   case 48:
 #line 248 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = (yyvsp[0].ast); }
-#line 1808 "wladus.tab.c" /* yacc.c:1646  */
+    {
+                                                  (yyval.ast) = (yyvsp[0].ast);
+                                                  symbol_node *s = find_symbol((yyvsp[0].ast)->func_name);
+                                                  if(s != NULL){ (yyval.ast)->dtype = s->type; }
+                                                }
+#line 1812 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 249 "wladus.y" /* yacc.c:1646  */
+#line 253 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node('I', NULL, NULL); (yyval.ast)->integer = (yyvsp[0].num); (yyval.ast)->dtype = 'i'; }
-#line 1814 "wladus.tab.c" /* yacc.c:1646  */
+#line 1818 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 250 "wladus.y" /* yacc.c:1646  */
+#line 254 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node('D', NULL, NULL); (yyval.ast)->decimal = (yyvsp[0].dec); (yyval.ast)->dtype = 'f'; }
-#line 1820 "wladus.tab.c" /* yacc.c:1646  */
+#line 1824 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 251 "wladus.y" /* yacc.c:1646  */
+#line 255 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = (yyvsp[-1].ast); }
-#line 1826 "wladus.tab.c" /* yacc.c:1646  */
+#line 1830 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 255 "wladus.y" /* yacc.c:1646  */
+#line 259 "wladus.y" /* yacc.c:1646  */
     {
                                                   (yyval.ast) = add_ast_node('L', NULL, (yyvsp[-1].ast));
                                                   (yyval.ast)->func_name = (char *) strdup((yyvsp[-3].id));
                                                   symbol_node *s = find_symbol((yyvsp[-3].id));
                                                   if(s == NULL) error_not_declared("function", (yyvsp[-3].id));
                                                 }
-#line 1837 "wladus.tab.c" /* yacc.c:1646  */
+#line 1841 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 261 "wladus.y" /* yacc.c:1646  */
+#line 265 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node('L', NULL, (yyvsp[-1].ast)); (yyval.ast)->func_name = (char *) strdup("write"); }
-#line 1843 "wladus.tab.c" /* yacc.c:1646  */
+#line 1847 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 262 "wladus.y" /* yacc.c:1646  */
+#line 266 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node('L', NULL, (yyvsp[-1].ast)); (yyval.ast)->func_name = (char *) strdup("read"); }
-#line 1849 "wladus.tab.c" /* yacc.c:1646  */
+#line 1853 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 266 "wladus.y" /* yacc.c:1646  */
+#line 270 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = (yyvsp[0].ast); }
-#line 1855 "wladus.tab.c" /* yacc.c:1646  */
+#line 1859 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 56:
-#line 267 "wladus.y" /* yacc.c:1646  */
+#line 271 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = NULL; }
-#line 1861 "wladus.tab.c" /* yacc.c:1646  */
+#line 1865 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 271 "wladus.y" /* yacc.c:1646  */
+#line 275 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node('A', (yyvsp[-2].ast), (yyvsp[0].ast)); }
-#line 1867 "wladus.tab.c" /* yacc.c:1646  */
+#line 1871 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 58:
-#line 272 "wladus.y" /* yacc.c:1646  */
+#line 276 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = (yyvsp[0].ast); }
-#line 1873 "wladus.tab.c" /* yacc.c:1646  */
+#line 1877 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 59:
-#line 276 "wladus.y" /* yacc.c:1646  */
+#line 280 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node('S', NULL, (yyvsp[-1].ast)); }
-#line 1879 "wladus.tab.c" /* yacc.c:1646  */
+#line 1883 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 60:
-#line 277 "wladus.y" /* yacc.c:1646  */
+#line 281 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node('T', (yyvsp[-3].ast), (yyvsp[-1].ast)); }
-#line 1885 "wladus.tab.c" /* yacc.c:1646  */
+#line 1889 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 61:
-#line 278 "wladus.y" /* yacc.c:1646  */
+#line 282 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = NULL; }
-#line 1891 "wladus.tab.c" /* yacc.c:1646  */
+#line 1895 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 1895 "wladus.tab.c" /* yacc.c:1646  */
+#line 1899 "wladus.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2126,7 +2130,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 281 "wladus.y" /* yacc.c:1906  */
+#line 285 "wladus.y" /* yacc.c:1906  */
 
 
 struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_node *right){
@@ -2420,8 +2424,8 @@ void error_redeclaration(char *symbol_type, char *name){
 
 void error_type_mismatch(char left_dtype, char right_dtype){
   char * error_message = (char *)malloc(50 * sizeof(char));
-  char * left = (char *)malloc(50 * sizeof(char));
-  char * right = (char *)malloc(50 * sizeof(char));
+  char * left = (char *)malloc(7 * sizeof(char));
+  char * right = (char *)malloc(7 * sizeof(char));
   strcpy(left, dtype_to_type(left_dtype));
   strcpy(right, dtype_to_type(right_dtype));
   sprintf(error_message, "semantic error, " BOLDWHITE "‘%s‘" RESET " type mismatch with " BOLDWHITE "‘%s‘" RESET, left, right);

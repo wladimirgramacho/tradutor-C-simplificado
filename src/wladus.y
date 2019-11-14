@@ -245,7 +245,11 @@ op_expression:
 term:
   '(' simple_expression ')'                     { $$ = $2; }
 | var                                           { $$ = $1; }
-| call                                          { $$ = $1; }
+| call                                          {
+                                                  $$ = $1;
+                                                  symbol_node *s = find_symbol($1->func_name);
+                                                  if(s != NULL){ $$->dtype = s->type; }
+                                                }
 | NUM                                           { $$ = add_ast_node('I', NULL, NULL); $$->integer = $1; $$->dtype = 'i'; }
 | DEC                                           { $$ = add_ast_node('D', NULL, NULL); $$->decimal = $1; $$->dtype = 'f'; }
 | QUOTES string QUOTES                          { $$ = $2; }
@@ -571,8 +575,8 @@ void error_redeclaration(char *symbol_type, char *name){
 
 void error_type_mismatch(char left_dtype, char right_dtype){
   char * error_message = (char *)malloc(50 * sizeof(char));
-  char * left = (char *)malloc(50 * sizeof(char));
-  char * right = (char *)malloc(50 * sizeof(char));
+  char * left = (char *)malloc(7 * sizeof(char));
+  char * right = (char *)malloc(7 * sizeof(char));
   strcpy(left, dtype_to_type(left_dtype));
   strcpy(right, dtype_to_type(right_dtype));
   sprintf(error_message, "semantic error, " BOLDWHITE "‘%s‘" RESET " type mismatch with " BOLDWHITE "‘%s‘" RESET, left, right);
