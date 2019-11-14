@@ -5,9 +5,11 @@ float fun(){
 
 int main(){
   int var;
-  var = 3.14;
+  float other_var;
 
+  var = 3.14;
   var = fun();
+  var = other_var;
 
   a();
 }

@@ -17,7 +17,7 @@ int inside_string = 0;
 
 letter              [a-zA-Z]
 digit               [0-9]
-identifier          {letter}({letter}|{digit})*
+identifier          {letter}({letter}|{digit}|_)*
 integer             {digit}+
 decimal             {digit}+"."{digit}+
 str                 (\\.|[^"#{}\\])*
