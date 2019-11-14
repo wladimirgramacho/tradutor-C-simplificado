@@ -7,12 +7,30 @@
 #include "uthash.h"
 #include "utstack.h"
 
+#define RESET       "\033[0m"
+#define BLACK       "\033[30m"
+#define RED         "\033[31m"
+#define GREEN       "\033[32m"
+#define YELLOW      "\033[33m"
+#define BLUE        "\033[34m"
+#define MAGENTA     "\033[35m"
+#define CYAN        "\033[36m"
+#define WHITE       "\033[37m"
+#define BOLDBLACK   "\033[1m\033[30m"
+#define BOLDRED     "\033[1m\033[31m"
+#define BOLDGREEN   "\033[1m\033[32m"
+#define BOLDYELLOW  "\033[1m\033[33m"
+#define BOLDBLUE    "\033[1m\033[34m"
+#define BOLDMAGENTA "\033[1m\033[35m"
+#define BOLDCYAN    "\033[1m\033[36m"
+#define BOLDWHITE   "\033[1m\033[37m"
+
 int yylex();
 int yyerror(const char *s);
 
 typedef struct simple_symbol_node {
   char *name;
-  char *type;
+  char type;
   struct simple_symbol_node *next;
 } simple_symbol_node;
 
@@ -50,10 +68,11 @@ struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_n
 
 void add_symbol(char *name, char *type, char symbol_type);
 symbol_node* find_symbol(char *name);
-simple_symbol_node* create_simple_symbol_node(char *name, char *type);
+simple_symbol_node* create_simple_symbol_node(char *name, char type);
 
 void error_not_declared(char *symbol_type, char *name);
 void error_redeclaration(char *symbol_type, char *name);
+void error_type_mismatch(char left_dtype, char right_dtype);
 
 struct symbol_node *symbol_table = NULL;
 struct ast_node* syntax_tree = NULL;
@@ -186,8 +205,11 @@ return_statement:
 
 expression:
   var EQ expression                             {
-                                                  $$ = add_ast_node('O', $1, $3);
-                                                  $$->operator = (char *) strdup($2);
+                                                  if($1->dtype != $3->dtype){ error_type_mismatch($1->dtype, $3->dtype); }
+                                                  else {
+                                                    $$ = add_ast_node('O', $1, $3);
+                                                    $$->operator = (char *) strdup($2);
+                                                  }
 
                                                 }
 | simple_expression                             { $$ = $1; }
@@ -225,7 +247,7 @@ term:
 | var                                           { $$ = $1; }
 | call                                          { $$ = $1; }
 | NUM                                           { $$ = add_ast_node('I', NULL, NULL); $$->integer = $1; $$->dtype = 'i'; }
-| DEC                                           { $$ = add_ast_node('D', NULL, NULL); $$->decimal = $1; }
+| DEC                                           { $$ = add_ast_node('D', NULL, NULL); $$->decimal = $1; $$->dtype = 'f'; }
 | QUOTES string QUOTES                          { $$ = $2; }
 ;
 
@@ -417,18 +439,25 @@ void free_syntax_tree(struct ast_node *s){
   }
 }
 
-char get_dtype(char *type){
+char type_to_dtype(char *type){
   if(strcmp(type, "int") == 0) { return 'i'; }
   else if(strcmp(type, "float") == 0) { return 'f'; }
   else if(strcmp(type, "string") == 0) { return 's'; }
   else if(strcmp(type, "void") == 0) { return 'v'; }
 }
 
+char * dtype_to_type(char dtype){
+  if(dtype == 'i') { return "int"; }
+  else if(dtype == 'f') { return "float"; }
+  else if(dtype == 's') { return "string"; }
+  else if(dtype == 'v') { return "void"; }
+}
+
 symbol_node* build_symbol(char *name, char *type, char symbol_type){
   symbol_node *s = (symbol_node *)malloc(sizeof *s);
 
   s->name = (char *) strdup(name);
-  s->type = get_dtype(type);
+  s->type = type_to_dtype(type);
   s->symbol_type = symbol_type;
   if(symbol_type == 'F'){
     // s->func_fields.func_body = ast_node;
@@ -491,7 +520,8 @@ void add_symbol(char *name, char *type, char symbol_type){
 
       simple_symbol_node *tmp, *new_node;
 
-      new_node = create_simple_symbol_node(name, type);
+      char dtype = type_to_dtype(type);
+      new_node = create_simple_symbol_node(name, dtype);
 
       if(s->func_fields.symbols == NULL){
         s->func_fields.symbols = new_node;
@@ -502,7 +532,6 @@ void add_symbol(char *name, char *type, char symbol_type){
         if(strcmp(tmp->name, name) == 0){ // local variable is already declared in function -> error
           error_redeclaration("variable", name);
           free(new_node->name);
-          free(new_node->type);
           free(new_node);
           return;
         }
@@ -510,7 +539,6 @@ void add_symbol(char *name, char *type, char symbol_type){
       if(strcmp(tmp->name, name) == 0){ // local variable is already declared in function -> error
         error_redeclaration("variable", name);
         free(new_node->name);
-        free(new_node->type);
         free(new_node);
         return;
       }
@@ -519,10 +547,10 @@ void add_symbol(char *name, char *type, char symbol_type){
   }
 }
 
-simple_symbol_node* create_simple_symbol_node(char *name, char *type){
+simple_symbol_node* create_simple_symbol_node(char *name, char type){
   simple_symbol_node *new_node = (simple_symbol_node *)malloc(sizeof *new_node);
   new_node->name = (char *) strdup(name);
-  new_node->type = (char *) strdup(type);
+  new_node->type = type;
   new_node->next = NULL;
   return new_node;
 }
@@ -541,6 +569,17 @@ void error_redeclaration(char *symbol_type, char *name){
   free(error_message);
 }
 
+void error_type_mismatch(char left_dtype, char right_dtype){
+  char * error_message = (char *)malloc(50 * sizeof(char));
+  char * left = (char *)malloc(50 * sizeof(char));
+  char * right = (char *)malloc(50 * sizeof(char));
+  strcpy(left, dtype_to_type(left_dtype));
+  strcpy(right, dtype_to_type(right_dtype));
+  sprintf(error_message, "semantic error, " BOLDWHITE "‘%s‘" RESET " type mismatch with " BOLDWHITE "‘%s‘" RESET, left, right);
+  yyerror(error_message);
+  free(error_message);
+}
+
 void print_symbol_table() {
   symbol_node *s;
 
@@ -552,7 +591,7 @@ void print_symbol_table() {
       simple_symbol_node *tmp;
       printf("\t\t\t");
       for (tmp = s->func_fields.symbols; tmp != NULL; tmp = tmp->next){
-        printf("%s %s, ", tmp->type, tmp->name);
+        printf("%c %s, ", tmp->type, tmp->name);
       }
     }
     printf("\n");
