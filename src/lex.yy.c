@@ -2051,7 +2051,10 @@ void yyfree (void * ptr )
 #line 103 "wladus.l"
 
 
+int has_error = 0;
+
 void yyerror(const char *s){
   fprintf(stderr, "%d: %s\n", yylineno, s);
+  has_error = 1;
 }
 

@@ -83,6 +83,8 @@ char * dtype_to_type(char dtype);
 struct symbol_node *symbol_table = NULL;
 struct ast_node* syntax_tree = NULL;
 struct scope* scope_stack = NULL;
+
+extern int has_error;
 %}
 
 %union {
@@ -675,8 +677,8 @@ void main (int argc, char **argv){
 
   yyparse();
 
-  if(print_table) print_symbol_table();
-  if(print_tree) print_syntax_tree();
+  if(!has_error && print_table) print_symbol_table();
+  if(!has_error && print_tree) print_syntax_tree();
   free_symbol_table();
   free_syntax_tree(syntax_tree);
 }
