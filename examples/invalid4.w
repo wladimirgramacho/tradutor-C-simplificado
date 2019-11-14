@@ -1,10 +1,10 @@
 int a;
-int a;
+int a; // variable redeclaration
 
 int main(){
-  int a;
+  int a; // variable redeclaration
 }
 
-int main(int b){
-  int b;
+int main(int b){ // function redeclaration
+  int b; // variable redeclaration
 }

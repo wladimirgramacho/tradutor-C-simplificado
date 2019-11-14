@@ -1,6 +1,6 @@
 int main(){
   int var;
   int value;
-  value = 1 || 0;
-  var = 3 \\ 1;
+  value = 1 || 0; // invalid operator
+  var = 3 \\ 1; // invalid operator
 }

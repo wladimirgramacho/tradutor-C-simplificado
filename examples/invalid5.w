@@ -7,12 +7,12 @@ int main(){
   int var;
   float other_var;
 
-  var = 3.14;
-  var = 3.14 + 2.35;
-  var = fun();
-  var = other_var;
+  var = 3.14; // type mismatch
+  var = 3.14 + 2.35; // type mismatch
+  var = fun(); // type mismatch
+  var = other_var; // type mismatch
 
-  a();
+  a(); // function not declared
 }
 
 int a(){
