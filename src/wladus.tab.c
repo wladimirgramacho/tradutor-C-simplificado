@@ -2206,12 +2206,12 @@ void print_ast_node(struct ast_node *s, int depth) {
       break;
     case 'I':
       {
-        printf(" (%d)\n", s->integer);
+        printf(" (%d) \t\t type = %s\n", s->integer, dtype_to_type(s->dtype));
       }
       break;
     case 'D':
       {
-        printf(" (%lf)\n", s->decimal);
+        printf(" (%lf) \t\t type = %s\n", s->decimal, dtype_to_type(s->dtype));
       }
       break;
     case 'S':
