@@ -2223,7 +2223,7 @@ void print_ast_node(struct ast_node *s, int depth) {
       break;
     case 'V':
       {
-        printf(" (ID)\n");
+        printf(" (ID) \t\t type = %s\n", dtype_to_type(s->dtype));
       }
       break;
   }  
