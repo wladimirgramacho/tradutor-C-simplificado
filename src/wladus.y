@@ -76,6 +76,8 @@ void error_type_mismatch(char left_dtype, char right_dtype);
 
 int mismatch(char left_dtype, char right_dtype);
 
+char * dtype_to_type(char dtype);
+
 struct symbol_node *symbol_table = NULL;
 struct ast_node* syntax_tree = NULL;
 struct scope* scope_stack = NULL;
@@ -211,7 +213,8 @@ expression:
                                                   if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else {
                                                     $$ = add_ast_node('O', $1, $3);
-                                                    $$->operator = (char *) strdup($2);
+                                                    $$->operator = $2;
+                                                    $$->dtype = $1->dtype;
                                                   }
 
                                                 }
@@ -320,7 +323,7 @@ void print_ast_node(struct ast_node *s, int depth) {
       break;
     case 'O':
       {
-        printf(" (%s)\n", s->operator);
+        printf(" (%s) \t\t type = %s\n", s->operator, dtype_to_type(s->dtype));
         print_ast_node(s->left, depth + 1);
         print_ast_node(s->right, depth + 1);
       }
