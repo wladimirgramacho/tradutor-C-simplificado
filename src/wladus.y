@@ -144,6 +144,7 @@ func_declaration:
   '(' params ')'                                { ; }
   compound_statement                            {
                                                   $$ = add_ast_node('F', NULL, $8);
+                                                  $$->func_name = $2;
 
                                                   symbol_node *s = find_symbol($2);
                                                   s->func_fields.func_body = $8;
@@ -311,7 +312,9 @@ void print_ast_node(struct ast_node *s, int depth) {
       break;
     case 'F':
       {
-        printf(" \n");
+        // symbol_node * function = find_symbol(s->func_name);
+        printf(" %s\n", s->func_name);
+
         print_ast_node(s->right, depth+1);
       }
       break;
@@ -460,10 +463,6 @@ char * dtype_to_type(char dtype){
   else if(dtype == 'v') { return "void"; }
 }
 
-int mismatch(char left_dtype, char right_dtype){
-  return left_dtype != '0' && right_dtype != '0' && left_dtype != right_dtype;
-}
-
 symbol_node* build_symbol(char *name, char *type, char symbol_type){
   symbol_node *s = (symbol_node *)malloc(sizeof *s);
 
@@ -564,6 +563,10 @@ simple_symbol_node* create_simple_symbol_node(char *name, char type){
   new_node->type = type;
   new_node->next = NULL;
   return new_node;
+}
+
+int mismatch(char left_dtype, char right_dtype){
+  return left_dtype != '0' && right_dtype != '0' && left_dtype != right_dtype;
 }
 
 void error_not_declared(char *symbol_type, char *name){
