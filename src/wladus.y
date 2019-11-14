@@ -21,14 +21,16 @@ typedef struct scope {
   struct scope *next;
 } scope;
 
-struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_node *right);
-
-void add_symbol(char *name, char *type, char symbol_type);
-struct symbol_node* find_symbol(char *name);
-simple_symbol_node* create_simple_symbol_node(char *name, char *type);
-
-void error_not_declared(char *symbol_type, char *name);
-void error_redeclaration(char *symbol_type, char *name);
+typedef struct symbol_node {
+  char *name;                     // key field
+  char *type;                     // int | float | string | void
+  char symbol_type;               // 'V' (variable) | 'F' (function) | 'P' (parameter)
+  UT_hash_handle hh;              // makes this structure hashable
+  struct {
+    struct ast_node *func_body;   // function body
+    simple_symbol_node *symbols;  // params and variables inside function scope
+  } func_fields;
+} symbol_node;
 
 struct ast_node {
   int node_type;
@@ -43,16 +45,14 @@ struct ast_node {
   };
 };
 
-struct symbol_node {
-  char *name;                     // key field
-  char *type;                     // int | float | string | void
-  char symbol_type;               // 'V' (variable) | 'F' (function) | 'P' (parameter)
-  UT_hash_handle hh;              // makes this structure hashable
-  struct {
-    struct ast_node *func_body;   // function body
-    simple_symbol_node *symbols;
-  } func_fields;
-};
+struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_node *right);
+
+void add_symbol(char *name, char *type, char symbol_type);
+symbol_node* find_symbol(char *name);
+simple_symbol_node* create_simple_symbol_node(char *name, char *type);
+
+void error_not_declared(char *symbol_type, char *name);
+void error_redeclaration(char *symbol_type, char *name);
 
 struct symbol_node *symbol_table = NULL;
 struct ast_node* syntax_tree = NULL;
@@ -123,7 +123,7 @@ func_declaration:
   compound_statement                            {
                                                   $$ = add_ast_node('F', NULL, $8);
 
-                                                  struct symbol_node *s = find_symbol($2);
+                                                  symbol_node *s = find_symbol($2);
                                                   s->func_fields.func_body = $8;
 
                                                   scope *old_scope;
@@ -191,7 +191,7 @@ expression:
 var:
   ID                                            {
                                                   $$ = NULL;
-                                                  struct symbol_node *s = find_symbol($1);
+                                                  symbol_node *s = find_symbol($1);
                                                   if(s == NULL) error_not_declared("variable", $1);
                                                 }
 ;
@@ -227,7 +227,7 @@ call:
   ID '(' args ')'                               {
                                                   $$ = add_ast_node('L', NULL, $3);
                                                   $$->func_name = (char *) strdup($1);
-                                                  struct symbol_node *s = find_symbol($1);
+                                                  symbol_node *s = find_symbol($1);
                                                   if(s == NULL) error_not_declared("function", $1);
                                                 }
 | WRITE '(' simple_expression ')'               { $$ = add_ast_node('L', NULL, $3); $$->func_name = (char *) strdup("write"); }
@@ -405,8 +405,8 @@ void free_syntax_tree(struct ast_node *s){
   }
 }
 
-struct symbol_node* build_symbol(char *name, char *type, char symbol_type){
-  struct symbol_node *s = (struct symbol_node *)malloc(sizeof *s);
+symbol_node* build_symbol(char *name, char *type, char symbol_type){
+  symbol_node *s = (symbol_node *)malloc(sizeof *s);
 
   s->name = (char *) strdup(name);
   s->type = (char *) strdup(type);
@@ -419,8 +419,8 @@ struct symbol_node* build_symbol(char *name, char *type, char symbol_type){
   return s;
 }
 
-struct symbol_node* find_symbol(char *name){
-  struct symbol_node *s;
+symbol_node* find_symbol(char *name){
+  symbol_node *s;
 
   HASH_FIND_STR(symbol_table, name, s);
   if(s != NULL) return s;
@@ -431,11 +431,11 @@ struct symbol_node* find_symbol(char *name){
   simple_symbol_node *tmp;
   for (tmp = s->func_fields.symbols; tmp != NULL && (strcmp(tmp->name, name) != 0); tmp = tmp->next);
 
-  return (struct symbol_node *) tmp;
+  return (symbol_node *) tmp;
 }
 
 void add_symbol(char *name, char *type, char symbol_type){
-  struct symbol_node *s;
+  symbol_node *s;
 
   if(symbol_type == 'F') {
     HASH_FIND_STR(symbol_table, name, s);
@@ -523,7 +523,7 @@ void error_redeclaration(char *symbol_type, char *name){
 }
 
 void print_symbol_table() {
-  struct symbol_node *s;
+  symbol_node *s;
 
   printf("===============  SYMBOL TABLE ===============\n");
   printf("NAME\t\tTYPE\t\tSYMBOL_TYPE\t\tSCOPE SYMBOLS\n");
@@ -549,7 +549,7 @@ void free_simple_symbol_node(simple_symbol_node * node){
 }
 
 void free_symbol_table(){
-  struct symbol_node *s, *tmp;
+  symbol_node *s, *tmp;
 
   HASH_ITER(hh, symbol_table, s, tmp) {
     HASH_DEL(symbol_table, s);
