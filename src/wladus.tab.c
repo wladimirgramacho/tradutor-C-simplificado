@@ -1885,19 +1885,19 @@ yyreduce:
 
   case 59:
 #line 287 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node('S', NULL, (yyvsp[-1].ast)); }
+    { (yyval.ast) = add_ast_node('S', NULL, (yyvsp[-1].ast)); (yyval.ast)->string = (char *) strdup("string"); }
 #line 1890 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 60:
 #line 288 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node('T', (yyvsp[-3].ast), (yyvsp[-1].ast)); }
+    { (yyval.ast) = add_ast_node('T', (yyvsp[-3].ast), (yyvsp[-1].ast));  (yyval.ast)->string = (char *) strdup("interpolated string"); }
 #line 1896 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 61:
 #line 289 "wladus.y" /* yacc.c:1646  */
-    { (yyval.ast) = add_ast_node('S', NULL, NULL); }
+    { (yyval.ast) = add_ast_node('S', NULL, NULL);  (yyval.ast)->string = (char *) strdup("empty string"); }
 #line 1902 "wladus.tab.c" /* yacc.c:1646  */
     break;
 

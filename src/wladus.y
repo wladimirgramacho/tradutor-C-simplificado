@@ -284,9 +284,9 @@ arg_list:
 ;
 
 string:
-  string STR                                    { $$ = add_ast_node('S', NULL, $1); }
-| string ITP_START simple_expression ITP_END    { $$ = add_ast_node('T', $1, $3); }
-|                                               { $$ = add_ast_node('S', NULL, NULL); }
+  string STR                                    { $$ = add_ast_node('S', NULL, $1); $$->string = (char *) strdup("string"); }
+| string ITP_START simple_expression ITP_END    { $$ = add_ast_node('T', $1, $3);  $$->string = (char *) strdup("interpolated string"); }
+|                                               { $$ = add_ast_node('S', NULL, NULL);  $$->string = (char *) strdup("empty string"); }
 ;
 
 %%
