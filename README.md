@@ -1,11 +1,14 @@
-# tradutor-C-simplificado
-Trabalho de Tradutores @ Universidade de Brasília
+# wladus-lang
+Programming Language (mini-C) implemented during Compilers couse at the University of Brasília.
 
-### Analisador Léxico
-Para executar o analisador léxico, basta executar:
+### Usage
+To compile the lexer and parser, run:
+```
+make all
+```
 
-`make flex`
+To run with examples (valid and invalid `.w` files)
 
-Caso queira ver a tabela de símbolos ao final da análise, adicione a opção `-t` às linhas no arquivo makefile que fazem a execução do programa. Por exemplo:
-
-`./src/lex/lexer examples/valid1.code -t`
+```
+make test
+```
