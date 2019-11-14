@@ -11,6 +11,7 @@ int main(){
   var = 3.14 + 2.35; // type mismatch
   var = fun(); // type mismatch
   var = other_var; // type mismatch
+  var = ""; // type mismatch
 
   a(); // function not declared
 }
