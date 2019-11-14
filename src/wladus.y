@@ -280,6 +280,7 @@ call:
                                                   $$->func_name = (char *) strdup($1);
                                                   symbol_node *s = find_symbol($1);
                                                   if(s == NULL) error_not_declared("function", $1);
+                                                  free($1);
                                                 }
 | WRITE '(' simple_expression ')'               { $$ = add_ast_node('L', NULL, $3); $$->func_name = (char *) strdup("write"); }
 | READ '(' var ')'                              { $$ = add_ast_node('L', NULL, $3); $$->func_name = (char *) strdup("read"); }
@@ -296,7 +297,7 @@ arg_list:
 ;
 
 string:
-  string STR                                    { $$ = add_ast_node('S', NULL, $1); $$->string = (char *) strdup("string"); }
+  string STR                                    { $$ = add_ast_node('S', NULL, $1); $$->string = (char *) strdup("string"); free($2); }
 | string ITP_START simple_expression ITP_END    { $$ = add_ast_node('T', $1, $3);  $$->string = (char *) strdup("interpolated string"); }
 |                                               { $$ = add_ast_node('S', NULL, NULL);  $$->string = (char *) strdup("empty string"); }
 ;
