@@ -9,6 +9,7 @@
 
 int yylex();
 int yyerror(const char *s);
+extern int yylex_destroy(void);
 
 typedef struct simple_symbol_node {
   char *name;
@@ -666,6 +667,7 @@ void main (int argc, char **argv){
   }
 
   yyparse();
+  yylex_destroy();
 
   if(!has_error && print_table) print_symbol_table();
   if(!has_error && print_tree) print_syntax_tree();
