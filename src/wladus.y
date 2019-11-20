@@ -422,6 +422,7 @@ void free_syntax_tree(struct ast_node *s){
       break;
     case 'F':
       {
+        free(s->func_name);
         free_syntax_tree(s->right);
         free(s);
       }
