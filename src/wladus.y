@@ -15,6 +15,7 @@ typedef struct simple_symbol_node {
   char *name;
   char dtype;
   char symbol_type;
+  int scope_level;
   struct simple_symbol_node *next;
 } simple_symbol_node;
 
@@ -54,7 +55,7 @@ struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_n
 
 void add_symbol(char *name, char *type, char symbol_type);
 symbol_node* find_symbol(char *name);
-simple_symbol_node* create_simple_symbol_node(char *name, char dtype, char symbol_type);
+simple_symbol_node* create_simple_symbol_node(char *name, char dtype, char symbol_type, int scope_level);
 
 void error_not_declared(char *symbol_type, char *name);
 void error_redeclaration(char *symbol_type, char *name);
@@ -193,10 +194,24 @@ expression_statement:
 ;
 
 conditional_statement:
-  IF '(' expression ')' compound_statement      {
+  startIf '(' expression ')' compound_statement {
                                                   $$ = add_ast_node('C', add_ast_node('c', $3, $5), NULL);
+                                                  scope *old_scope;
+                                                  STACK_POP(scope_stack, old_scope);
+                                                  free(old_scope->scope_name);
+                                                  free(old_scope);
                                                 }
-| IF '(' expression ')' compound_statement ELSE compound_statement { $$ = add_ast_node('C', add_ast_node('c', $3, $5), $7); }
+| startIf '(' expression ')' compound_statement ELSE compound_statement { $$ = add_ast_node('C', add_ast_node('c', $3, $5), $7); }
+;
+
+startIf:
+  IF                                            {
+                                                  scope *new_scope = (scope *)malloc(sizeof *new_scope);
+                                                  scope *top = STACK_TOP(scope_stack);
+                                                  new_scope->scope_name = (char *) strdup(top->scope_name);
+                                                  new_scope->scope_level = top->scope_level + 1;
+                                                  STACK_PUSH(scope_stack, new_scope);
+                                                }
 ;
 
 iteration_statement:
@@ -535,7 +550,7 @@ void add_symbol(char *name, char *type, char symbol_type){
     }
   }
   else {
-    if(STACK_TOP(scope_stack) == NULL){ // is not inside function
+    if(STACK_TOP(scope_stack) == NULL){ // is not inside scope
       HASH_FIND_STR(symbol_table, name, s);
       if(s == NULL){ // global variable not declared -> add to symbol table
         s = build_symbol(name, type, symbol_type, 0);
@@ -546,21 +561,19 @@ void add_symbol(char *name, char *type, char symbol_type){
         return;
       }
     }
-    else { // is inside function
+    else { // is inside scope
       HASH_FIND_STR(symbol_table, name, s);
       top = STACK_TOP(scope_stack);
       if(s != NULL && top->scope_level == s->scope_level){ // local variable is declared as global variable -> error
         error_redeclaration("variable", name);
         return;
       }
-
-      top = STACK_TOP(scope_stack);
       HASH_FIND_STR(symbol_table, top->scope_name, s);
 
       simple_symbol_node *tmp, *new_node;
 
       char dtype = type_to_dtype(type);
-      new_node = create_simple_symbol_node(name, dtype, symbol_type);
+      new_node = create_simple_symbol_node(name, dtype, symbol_type, top->scope_level);
 
       if(s->func_fields.symbols == NULL){
         s->func_fields.symbols = new_node;
@@ -568,14 +581,14 @@ void add_symbol(char *name, char *type, char symbol_type){
       }
 
       for (tmp = s->func_fields.symbols; tmp->next != NULL; tmp = tmp->next){
-        if(strcmp(tmp->name, name) == 0){ // local variable is already declared in function -> error
+        if(strcmp(tmp->name, name) == 0 && s->scope_level == top->scope_level){ // local variable is already declared in function -> error
           error_redeclaration("variable", name);
           free(new_node->name);
           free(new_node);
           return;
         }
       }
-      if(strcmp(tmp->name, name) == 0){ // local variable is already declared in function -> error
+      if(strcmp(tmp->name, name) == 0 && s->scope_level == top->scope_level){ // local variable is already declared in function -> error
         error_redeclaration("variable", name);
         free(new_node->name);
         free(new_node);
@@ -586,11 +599,12 @@ void add_symbol(char *name, char *type, char symbol_type){
   }
 }
 
-simple_symbol_node* create_simple_symbol_node(char *name, char dtype, char symbol_type){
+simple_symbol_node* create_simple_symbol_node(char *name, char dtype, char symbol_type, int scope_level){
   simple_symbol_node *new_node = (simple_symbol_node *)malloc(sizeof *new_node);
   new_node->name = (char *) strdup(name);
   new_node->dtype = dtype;
   new_node->symbol_type = symbol_type;
+  new_node->scope_level = scope_level;
   new_node->next = NULL;
   return new_node;
 }
@@ -635,7 +649,9 @@ void print_symbol_table() {
       simple_symbol_node *ss;
       printf("\t\t\t");
       for (ss = s->func_fields.symbols; ss != NULL; ss = ss->next){
-        printf("(%c) %s %s, ", ss->symbol_type, dtype_to_type(ss->dtype), ss->name);
+        printf("(%c) %s %s", ss->symbol_type, dtype_to_type(ss->dtype), ss->name);
+        if (ss->scope_level > 1) printf(" [%d]", ss->scope_level);
+        printf(", ");
       }
     }
     printf("\n");
