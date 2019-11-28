@@ -6,6 +6,12 @@ int x(int x, int y) {
       int y;
     }
   }
+  else {
+    int x;
+    if(0){
+      int x;
+    }
+  }
 
   return 1;
 }

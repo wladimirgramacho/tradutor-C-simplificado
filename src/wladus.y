@@ -201,7 +201,26 @@ conditional_statement:
                                                   free(old_scope->scope_name);
                                                   free(old_scope);
                                                 }
-| startIf '(' expression ')' compound_statement ELSE compound_statement { $$ = add_ast_node('C', add_ast_node('c', $3, $5), $7); }
+| startIf '(' expression ')' compound_statement {
+                                                  scope *old_scope;
+                                                  STACK_POP(scope_stack, old_scope);
+                                                  free(old_scope->scope_name);
+                                                  free(old_scope);
+                                                }
+  ELSE                                          {
+                                                  scope *new_scope = (scope *)malloc(sizeof *new_scope);
+                                                  scope *top = STACK_TOP(scope_stack);
+                                                  new_scope->scope_name = (char *) strdup(top->scope_name);
+                                                  new_scope->scope_level = top->scope_level + 1;
+                                                  STACK_PUSH(scope_stack, new_scope);
+                                                }
+  compound_statement                            {
+                                                  $$ = add_ast_node('C', add_ast_node('c', $3, $5), $9);
+                                                  scope *old_scope;
+                                                  STACK_POP(scope_stack, old_scope);
+                                                  free(old_scope->scope_name);
+                                                  free(old_scope);
+                                                }
 ;
 
 startIf:
