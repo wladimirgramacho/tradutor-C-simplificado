@@ -20,6 +20,7 @@ typedef struct simple_symbol_node {
 
 typedef struct scope {
   char *scope_name;
+  int scope_level;
   struct scope *next;
 } scope;
 
@@ -27,6 +28,7 @@ typedef struct symbol_node {
   char *name;                     // key field
   char type;                      // 'i'nt | 'f'loat | 's'tring | 'v'oid
   char symbol_type;               // 'V' (variable) | 'F' (function) | 'P' (parameter)
+  int scope_level;                // 0 for global variables and functions, 1..n inside functions
   UT_hash_handle hh;              // makes this structure hashable
   struct {
     struct ast_node *func_body;   // function body
@@ -82,7 +84,6 @@ extern int has_error;
   struct ast_node *ast;
 }
 
- 
 %token <id> ID
 %token <type> TYPE
 %token <num> NUM
@@ -125,10 +126,11 @@ var_declaration:
 
 func_declaration:
   TYPE ID                                       {
+                                                  add_symbol($2, $1, 'F');
                                                   scope *new_scope = (scope *)malloc(sizeof *new_scope);
                                                   new_scope->scope_name = (char *) strdup($2);
+                                                  new_scope->scope_level = 1;
                                                   STACK_PUSH(scope_stack, new_scope);
-                                                  add_symbol($2, $1, 'F');
                                                 }
   '(' params ')'                                { ; }
   compound_statement                            {
@@ -191,8 +193,10 @@ expression_statement:
 ;
 
 conditional_statement:
-  IF '(' expression ')' compound_statement      { $$ = add_ast_node('C', add_ast_node('c', $3, $5), NULL); }
-| IF '(' expression ')' compound_statement ELSE  compound_statement { $$ = add_ast_node('C', add_ast_node('c', $3, $5), $7); }
+  IF '(' expression ')' compound_statement      {
+                                                  $$ = add_ast_node('C', add_ast_node('c', $3, $5), NULL);
+                                                }
+| IF '(' expression ')' compound_statement ELSE compound_statement { $$ = add_ast_node('C', add_ast_node('c', $3, $5), $7); }
 ;
 
 iteration_statement:
@@ -486,12 +490,13 @@ char * dtype_to_type(char dtype){
   else if(dtype == 'v') { return "void"; }
 }
 
-symbol_node* build_symbol(char *name, char *type, char symbol_type){
+symbol_node* build_symbol(char *name, char *type, char symbol_type, int scope_level){
   symbol_node *s = (symbol_node *)malloc(sizeof *s);
 
   s->name = (char *) strdup(name);
   s->type = type_to_dtype(type);
   s->symbol_type = symbol_type;
+  s->scope_level = scope_level;
   if(symbol_type == 'F'){
     s->func_fields.symbols = NULL;
   }
@@ -516,11 +521,12 @@ symbol_node* find_symbol(char *name){
 
 void add_symbol(char *name, char *type, char symbol_type){
   symbol_node *s;
+  scope * top;
 
   if(symbol_type == 'F') {
     HASH_FIND_STR(symbol_table, name, s);
     if(s == NULL){ // function not declared -> add to symbol table
-      s = build_symbol(name, type, symbol_type);
+      s = build_symbol(name, type, symbol_type, 0);
       HASH_ADD_STR(symbol_table, name, s);
     }
     else { // function already declared -> error
@@ -532,7 +538,7 @@ void add_symbol(char *name, char *type, char symbol_type){
     if(STACK_TOP(scope_stack) == NULL){ // is not inside function
       HASH_FIND_STR(symbol_table, name, s);
       if(s == NULL){ // global variable not declared -> add to symbol table
-        s = build_symbol(name, type, symbol_type);
+        s = build_symbol(name, type, symbol_type, 0);
         HASH_ADD_STR(symbol_table, name, s);
       }
       else { // global variable already declared -> error
@@ -542,12 +548,13 @@ void add_symbol(char *name, char *type, char symbol_type){
     }
     else { // is inside function
       HASH_FIND_STR(symbol_table, name, s);
-      if(s != NULL){ // local variable is declared as global variable -> error
+      top = STACK_TOP(scope_stack);
+      if(s != NULL && top->scope_level == s->scope_level){ // local variable is declared as global variable -> error
         error_redeclaration("variable", name);
         return;
       }
 
-      scope * top = STACK_TOP(scope_stack);
+      top = STACK_TOP(scope_stack);
       HASH_FIND_STR(symbol_table, top->scope_name, s);
 
       simple_symbol_node *tmp, *new_node;
