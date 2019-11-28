@@ -600,14 +600,14 @@ void add_symbol(char *name, char *type, char symbol_type){
       }
 
       for (tmp = s->func_fields.symbols; tmp->next != NULL; tmp = tmp->next){
-        if(strcmp(tmp->name, name) == 0 && s->scope_level == top->scope_level){ // local variable is already declared in function -> error
+        if(strcmp(tmp->name, name) == 0 && tmp->scope_level == top->scope_level){ // local variable is already declared in function -> error
           error_redeclaration("variable", name);
           free(new_node->name);
           free(new_node);
           return;
         }
       }
-      if(strcmp(tmp->name, name) == 0 && s->scope_level == top->scope_level){ // local variable is already declared in function -> error
+      if(strcmp(tmp->name, name) == 0 && tmp->scope_level == top->scope_level){ // local variable is already declared in function -> error
         error_redeclaration("variable", name);
         free(new_node->name);
         free(new_node);

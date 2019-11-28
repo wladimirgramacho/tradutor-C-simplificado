@@ -5,7 +5,7 @@ void fun(){
 int main(){
   int a;
 
-  a = fun();
+  a = fun(); // type mismatch
 
   return 0;
 }

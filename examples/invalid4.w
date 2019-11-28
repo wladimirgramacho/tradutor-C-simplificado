@@ -2,7 +2,7 @@ int a;
 int a; // variable redeclaration
 
 int main(){
-  int a; // variable redeclaration
+  int a;
 }
 
 int main(int b){ // function redeclaration
