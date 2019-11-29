@@ -5,6 +5,7 @@
 %{
 #include <stdio.h>
 #include "uthash.h"
+#include "utstring.h"
 #include "utstack.h"
 
 int yylex();
@@ -51,6 +52,8 @@ struct ast_node {
   };
 };
 
+void gen(char * operation, int v1, int v2);
+
 struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_node *right);
 
 void add_symbol(char *name, char *type, char symbol_type);
@@ -69,6 +72,7 @@ char * dtype_to_type(char dtype);
 struct symbol_node *symbol_table = NULL;
 struct ast_node* syntax_tree = NULL;
 struct scope* scope_stack = NULL;
+UT_string *tac_code[999999];
 
 extern int has_error;
 %}
@@ -276,7 +280,7 @@ simple_expression:
 ;
 
 op_expression:
-  op_expression PLUS term                       { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
+  op_expression PLUS term                       { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } gen("add", $1->integer, $3->integer); }
 | op_expression MINUS term                      { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
 | op_expression MULT term                       { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
 | op_expression DIV term                        { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
@@ -325,6 +329,13 @@ string:
 ;
 
 %%
+
+void gen(char * operation, int v1, int v2){
+  utstring_new(tac_code[1]);
+  utstring_printf(tac_code[1], "%s $0, %d, %d\n", operation, v1, v2);
+  utstring_new(tac_code[2]);
+  utstring_printf(tac_code[2], "print $0\n");
+}
 
 struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_node *right){
   struct ast_node* ast_node = (struct ast_node*)calloc(1, sizeof(struct ast_node));
@@ -696,7 +707,7 @@ void free_symbol_table(){
   }
 }
 
-void main (int argc, char **argv){
+int main (int argc, char **argv){
   int print_table = 0;
   int print_tree = 0;
 
@@ -709,6 +720,9 @@ void main (int argc, char **argv){
     print_tree = 1;
   }
 
+  utstring_new(tac_code[0]);
+  utstring_printf(tac_code[0], ".code\n");
+
   yyparse();
   yylex_destroy();
 
@@ -716,4 +730,10 @@ void main (int argc, char **argv){
   if(!has_error && print_tree) print_syntax_tree();
   free_symbol_table();
   free_syntax_tree(syntax_tree);
+
+  for (int i = 0; i < 3; ++i){
+    printf("%s", utstring_body(tac_code[i]));
+  }
+
+  return 0;
 }
