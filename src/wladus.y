@@ -5,6 +5,7 @@
 %{
 #include <stdio.h>
 #include "uthash.h"
+#include "utlist.h"
 #include "utstring.h"
 #include "utstack.h"
 
@@ -52,7 +53,17 @@ struct ast_node {
   };
 };
 
-void gen(char * operation, int v1, int v2);
+typedef struct code_line {
+  UT_string *code;
+  struct code_line *prev;
+  struct code_line *next;
+} code_line;
+
+void gen3(char * operation, int rd, int rs, int rt);
+void gen2(char * operation, int rd, int rs);
+void gen1(char * operation, char * rd);
+void gen_table_symbol(char * type, char * name);
+void gen_label(char * label);
 
 struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_node *right);
 
@@ -72,7 +83,7 @@ char * dtype_to_type(char dtype);
 struct symbol_node *symbol_table = NULL;
 struct ast_node* syntax_tree = NULL;
 struct scope* scope_stack = NULL;
-UT_string *tac_code[999999];
+code_line *tac_code = NULL;
 
 extern int has_error;
 %}
@@ -126,12 +137,19 @@ declaration:
 ;
 
 var_declaration:
-  TYPE ID ';'                                   { $$ = NULL; add_symbol($2, $1, 'V'); free($1); free($2); }
+  TYPE ID ';'                                   {
+                                                  $$ = NULL;
+                                                  add_symbol($2, $1, 'V');
+                                                  gen_table_symbol($1, $2);
+                                                  free($1);
+                                                  free($2);
+                                                }
 ;
 
 func_declaration:
   TYPE ID                                       {
                                                   add_symbol($2, $1, 'F');
+                                                  gen_label($2);
                                                   scope *new_scope = (scope *)malloc(sizeof *new_scope);
                                                   new_scope->scope_name = (char *) strdup($2);
                                                   new_scope->scope_level = 1;
@@ -253,6 +271,7 @@ expression:
                                                     $$ = add_ast_node('O', $1, $3);
                                                     $$->operator = $2;
                                                     $$->dtype = $1->dtype;
+                                                    gen2("mov", 1, 0);
                                                   }
 
                                                 }
@@ -280,7 +299,7 @@ simple_expression:
 ;
 
 op_expression:
-  op_expression PLUS term                       { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } gen("add", $1->integer, $3->integer); }
+  op_expression PLUS term                       { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } gen3("add", 0, $1->integer, $3->integer); }
 | op_expression MINUS term                      { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
 | op_expression MULT term                       { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
 | op_expression DIV term                        { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
@@ -308,7 +327,11 @@ call:
                                                   if(s == NULL) error_not_declared("function", $1);
                                                   free($1);
                                                 }
-| WRITE '(' simple_expression ')'               { $$ = add_ast_node('L', NULL, $3); $$->func_name = (char *) strdup("write"); }
+| WRITE '(' simple_expression ')'               {
+                                                  $$ = add_ast_node('L', NULL, $3);
+                                                  $$->func_name = (char *) strdup("write");
+                                                  gen1("print", "a");
+                                                }
 | READ '(' var ')'                              { $$ = add_ast_node('L', NULL, $3); $$->func_name = (char *) strdup("read"); }
 ;
 
@@ -330,11 +353,39 @@ string:
 
 %%
 
-void gen(char * operation, int v1, int v2){
-  utstring_new(tac_code[1]);
-  utstring_printf(tac_code[1], "%s $0, %d, %d\n", operation, v1, v2);
-  utstring_new(tac_code[2]);
-  utstring_printf(tac_code[2], "print $0\n");
+void gen3(char * operation, int rd, int rs, int rt){
+  code_line *new_line = (code_line *)malloc(sizeof *new_line);
+  utstring_new(new_line->code);
+  utstring_printf(new_line->code, "%s $%d, %d, %d\n", operation, rd, rs, rt);
+  DL_APPEND(tac_code, new_line);
+}
+
+void gen2(char * operation, int rd, int rs){
+  code_line *new_line = (code_line *)malloc(sizeof *new_line);
+  utstring_new(new_line->code);
+  utstring_printf(new_line->code, "%s a, $%d\n", operation, rs);
+  DL_APPEND(tac_code, new_line);
+}
+
+void gen1(char * operation, char * rd){
+  code_line *new_line = (code_line *)malloc(sizeof *new_line);
+  utstring_new(new_line->code);
+  utstring_printf(new_line->code, "%s %s\n", operation, rd);
+  DL_APPEND(tac_code, new_line);
+}
+
+void gen_table_symbol(char * type, char * name){
+  code_line *new_line = (code_line *)malloc(sizeof *new_line);
+  utstring_new(new_line->code);
+  utstring_printf(new_line->code, "%s %s\n", type, name);
+  DL_PREPEND(tac_code, new_line);
+}
+
+void gen_label(char * label){
+  code_line *new_line = (code_line *)malloc(sizeof *new_line);
+  utstring_new(new_line->code);
+  utstring_printf(new_line->code, "%s:\n", label);
+  DL_APPEND(tac_code, new_line);
 }
 
 struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_node *right){
@@ -708,6 +759,7 @@ void free_symbol_table(){
 }
 
 int main (int argc, char **argv){
+  code_line *line;
   int print_table = 0;
   int print_tree = 0;
 
@@ -720,8 +772,10 @@ int main (int argc, char **argv){
     print_tree = 1;
   }
 
-  utstring_new(tac_code[0]);
-  utstring_printf(tac_code[0], ".code\n");
+  code_line *code_section = (code_line *)malloc(sizeof *code_section);
+  utstring_new(code_section->code);
+  utstring_printf(code_section->code, ".code\n");
+  DL_APPEND(tac_code, code_section);
 
   yyparse();
   yylex_destroy();
@@ -731,9 +785,12 @@ int main (int argc, char **argv){
   free_symbol_table();
   free_syntax_tree(syntax_tree);
 
-  for (int i = 0; i < 3; ++i){
-    printf("%s", utstring_body(tac_code[i]));
-  }
+  code_line *table_section = (code_line *)malloc(sizeof *table_section);
+  utstring_new(table_section->code);
+  utstring_printf(table_section->code, ".table\n");
+  DL_PREPEND(tac_code, table_section);
+
+  DL_FOREACH(tac_code, line) printf("%s", utstring_body(line->code));
 
   return 0;
 }

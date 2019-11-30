@@ -78,7 +78,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 80 "wladus.y" /* yacc.c:1909  */
+#line 91 "wladus.y" /* yacc.c:1909  */
 
   char *id;
   char *type;

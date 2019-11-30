@@ -1,3 +1,6 @@
+int a;
 int main(){
-  3 + 2;
+  a = 3 + 2;
+  write(a);
+  return 0;
 }
