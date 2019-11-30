@@ -83,11 +83,11 @@ interpol_end        "}"
 
 
 <INITIAL,EXP>{integer}                { 
-                                        yylval.num = atoi(yytext);
+                                        yylval.str = (char *) strdup(yytext);
                                         return NUM;
                                       }
 <INITIAL,EXP>{decimal}                {
-                                        yylval.dec = atof(yytext);
+                                        yylval.str = (char *) strdup(yytext);
                                         return DEC;
                                       }
 <INITIAL,EXP>{identifier}             {

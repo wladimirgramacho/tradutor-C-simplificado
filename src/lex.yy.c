@@ -988,7 +988,7 @@ case 23:
 YY_RULE_SETUP
 #line 85 "wladus.l"
 { 
-                                        yylval.num = atoi(yytext);
+                                        yylval.str = (char *) strdup(yytext);
                                         return NUM;
                                       }
 	YY_BREAK
@@ -996,7 +996,7 @@ case 24:
 YY_RULE_SETUP
 #line 89 "wladus.l"
 {
-                                        yylval.dec = atof(yytext);
+                                        yylval.str = (char *) strdup(yytext);
                                         return DEC;
                                       }
 	YY_BREAK

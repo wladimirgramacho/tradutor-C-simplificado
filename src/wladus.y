@@ -42,11 +42,11 @@ typedef struct symbol_node {
 struct ast_node {
   int node_type;
   char dtype;
+  char *addr;
+  char *value;
   struct ast_node *left;
   struct ast_node *right;
   union {
-    int integer;
-    float decimal;
     char *string;
     char *operator;
     char *func_name;
@@ -59,8 +59,9 @@ typedef struct code_line {
   struct code_line *next;
 } code_line;
 
-void gen3(char * operation, int rd, int rs, int rt);
-void gen2(char * operation, int rd, int rs);
+UT_string * newTemp();
+void gen3(char * operation, char * rd, char * rs, char * rt);
+void gen2(char * operation, char * rd, char * rs);
 void gen1(char * operation, char * rd);
 void gen_table_symbol(char * type, char * name);
 void gen_label(char * label);
@@ -85,6 +86,8 @@ struct ast_node* syntax_tree = NULL;
 struct scope* scope_stack = NULL;
 code_line *tac_code = NULL;
 
+int tmpGenerated = 0;
+
 extern int has_error;
 %}
 
@@ -93,8 +96,6 @@ extern int has_error;
   char *type;
   char *op;
 
-  int num;
-  double dec;
   char *str;
 
   struct ast_node *ast;
@@ -102,8 +103,8 @@ extern int has_error;
 
 %token <id> ID
 %token <type> TYPE
-%token <num> NUM
-%token <dec> DEC
+%token <str> NUM
+%token <str> DEC
 %token <str> STR
 %token WHILE IF ELSE RETURN WRITE READ
 %token <op> EQ CEQ CNE CLT CLE CGT CGE
@@ -284,7 +285,7 @@ expression:
                                                     $$ = add_ast_node('O', $1, $3);
                                                     $$->operator = $2;
                                                     $$->dtype = $1->dtype;
-                                                    gen2("mov", 1, 0);
+                                                    gen2("mov", $1->addr, $3->addr);
                                                   }
 
                                                 }
@@ -294,6 +295,7 @@ expression:
 var:
   ID                                            {
                                                   $$ = add_ast_node('V', NULL, NULL);
+                                                  $$->addr = (char *) strdup($1);
                                                   symbol_node *s = find_symbol($1);
                                                   if(s == NULL){ error_not_declared("variable", $1); }
                                                   else { $$->dtype = s->type; }
@@ -312,7 +314,15 @@ simple_expression:
 ;
 
 op_expression:
-  op_expression PLUS term                       { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } gen3("add", 0, $1->integer, $3->integer); }
+  op_expression PLUS term                       {
+                                                  $$ = add_ast_node('O', $1, $3);
+                                                  $$->operator = $2;
+                                                  if(mismatch($1->dtype, $3->dtype)){error_type_mismatch($1->dtype, $3->dtype); }
+                                                  else { $$->dtype = $1->dtype; }
+                                                  UT_string *tmp = newTemp();
+                                                  gen3("add", utstring_body(tmp), $1->value, $3->value);
+                                                  $$->addr = utstring_body(tmp);
+                                                }
 | op_expression MINUS term                      { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
 | op_expression MULT term                       { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
 | op_expression DIV term                        { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
@@ -327,8 +337,8 @@ term:
                                                   symbol_node *s = find_symbol($1->func_name);
                                                   if(s != NULL){ $$->dtype = s->type; }
                                                 }
-| NUM                                           { $$ = add_ast_node('I', NULL, NULL); $$->integer = $1; $$->dtype = 'i'; }
-| DEC                                           { $$ = add_ast_node('D', NULL, NULL); $$->decimal = $1; $$->dtype = 'f'; }
+| NUM                                           { $$ = add_ast_node('I', NULL, NULL); $$->value = $1; $$->dtype = 'i'; }
+| DEC                                           { $$ = add_ast_node('D', NULL, NULL); $$->value = $1; $$->dtype = 'f'; }
 | QUOTES string QUOTES                          { $$ = $2; $$->dtype = 's'; }
 ;
 
@@ -366,17 +376,25 @@ string:
 
 %%
 
-void gen3(char * operation, int rd, int rs, int rt){
+UT_string * newTemp(){
+  UT_string *tmp;
+  utstring_new(tmp);
+  utstring_printf(tmp, "$%d", tmpGenerated);
+  tmpGenerated++;
+  return tmp;
+}
+
+void gen3(char * operation, char * rd, char * rs, char * rt){
   code_line *new_line = (code_line *)malloc(sizeof *new_line);
   utstring_new(new_line->code);
-  utstring_printf(new_line->code, "%s $%d, %d, %d\n", operation, rd, rs, rt);
+  utstring_printf(new_line->code, "%s %s, %s, %s\n", operation, rd, rs, rt);
   DL_APPEND(tac_code, new_line);
 }
 
-void gen2(char * operation, int rd, int rs){
+void gen2(char * operation, char * rd, char * rs){
   code_line *new_line = (code_line *)malloc(sizeof *new_line);
   utstring_new(new_line->code);
-  utstring_printf(new_line->code, "%s a, $%d\n", operation, rs);
+  utstring_printf(new_line->code, "%s %s, %s\n", operation, rd, rs);
   DL_APPEND(tac_code, new_line);
 }
 
@@ -489,12 +507,12 @@ void print_ast_node(struct ast_node *s, int depth) {
       break;
     case 'I':
       {
-        printf(" (%d) \t\t type = %s\n", s->integer, dtype_to_type(s->dtype));
+        printf(" (%s) \t\t type = %s\n", s->value, dtype_to_type(s->dtype));
       }
       break;
     case 'D':
       {
-        printf(" (%lf) \t\t type = %s\n", s->decimal, dtype_to_type(s->dtype));
+        printf(" (%s) \t\t type = %s\n", s->value, dtype_to_type(s->dtype));
       }
       break;
     case 'S':
@@ -789,7 +807,6 @@ int main (int argc, char **argv){
   utstring_new(code_section->code);
   utstring_printf(code_section->code, ".code\n");
   DL_APPEND(tac_code, code_section);
-
   yyparse();
   yylex_destroy();
 
