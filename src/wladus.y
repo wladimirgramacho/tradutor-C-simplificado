@@ -70,6 +70,8 @@ struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_n
 void add_symbol(char *name, char *type, char symbol_type);
 symbol_node* find_symbol(char *name);
 simple_symbol_node* create_simple_symbol_node(char *name, char dtype, char symbol_type, int scope_level);
+void create_internal_scope();
+void remove_scope();
 
 void error_not_declared(char *symbol_type, char *name);
 void error_redeclaration(char *symbol_type, char *name);
@@ -164,10 +166,7 @@ func_declaration:
                                                   symbol_node *s = find_symbol($2);
                                                   s->func_fields.func_body = $8;
 
-                                                  scope *old_scope;
-                                                  STACK_POP(scope_stack, old_scope);
-                                                  free(old_scope->scope_name);
-                                                  free(old_scope);
+                                                  remove_scope();
                                                   scope_stack = NULL;
                                                   free($1);
                                                   free($2);
@@ -218,57 +217,25 @@ expression_statement:
 conditional_statement:
   startIf '(' simple_expression ')' compound_statement {
                                                   $$ = add_ast_node('C', add_ast_node('c', $3, $5), NULL);
-                                                  scope *old_scope;
-                                                  STACK_POP(scope_stack, old_scope);
-                                                  free(old_scope->scope_name);
-                                                  free(old_scope);
+                                                  remove_scope();
                                                 }
-| startIf '(' simple_expression ')' compound_statement {
-                                                  scope *old_scope;
-                                                  STACK_POP(scope_stack, old_scope);
-                                                  free(old_scope->scope_name);
-                                                  free(old_scope);
-                                                }
-  ELSE                                          {
-                                                  scope *new_scope = (scope *)malloc(sizeof *new_scope);
-                                                  scope *top = STACK_TOP(scope_stack);
-                                                  new_scope->scope_name = (char *) strdup(top->scope_name);
-                                                  new_scope->scope_level = top->scope_level + 1;
-                                                  STACK_PUSH(scope_stack, new_scope);
-                                                }
+| startIf '(' simple_expression ')' compound_statement { remove_scope(); }
+  ELSE                                          { create_internal_scope(); }
   compound_statement                            {
                                                   $$ = add_ast_node('C', add_ast_node('c', $3, $5), $9);
-                                                  scope *old_scope;
-                                                  STACK_POP(scope_stack, old_scope);
-                                                  free(old_scope->scope_name);
-                                                  free(old_scope);
+                                                  remove_scope();
                                                 }
 ;
 
 startIf:
-  IF                                            {
-                                                  scope *new_scope = (scope *)malloc(sizeof *new_scope);
-                                                  scope *top = STACK_TOP(scope_stack);
-                                                  new_scope->scope_name = (char *) strdup(top->scope_name);
-                                                  new_scope->scope_level = top->scope_level + 1;
-                                                  STACK_PUSH(scope_stack, new_scope);
-                                                }
+  IF                                            { create_internal_scope(); }
 ;
 
 iteration_statement:
-  WHILE '(' simple_expression ')'               {
-                                                  scope *new_scope = (scope *)malloc(sizeof *new_scope);
-                                                  scope *top = STACK_TOP(scope_stack);
-                                                  new_scope->scope_name = (char *) strdup(top->scope_name);
-                                                  new_scope->scope_level = top->scope_level + 1;
-                                                  STACK_PUSH(scope_stack, new_scope);
-                                                }
+  WHILE '(' simple_expression ')'               { create_internal_scope(); }
   compound_statement                            {
                                                   $$ = add_ast_node('W', $3, $6);
-                                                  scope *old_scope;
-                                                  STACK_POP(scope_stack, old_scope);
-                                                  free(old_scope->scope_name);
-                                                  free(old_scope);
+                                                  remove_scope();
                                                 }
 ;
 
@@ -660,6 +627,21 @@ char * dtype_to_type(char dtype){
   else if(dtype == 'f') { return "float"; }
   else if(dtype == 's') { return "string"; }
   else if(dtype == 'v') { return "void"; }
+}
+
+void create_internal_scope(){
+  scope *new_scope = (scope *)malloc(sizeof *new_scope);
+  scope *top = STACK_TOP(scope_stack);
+  new_scope->scope_name = (char *) strdup(top->scope_name);
+  new_scope->scope_level = top->scope_level + 1;
+  STACK_PUSH(scope_stack, new_scope);
+}
+
+void remove_scope(){
+  scope *old_scope;
+  STACK_POP(scope_stack, old_scope);
+  free(old_scope->scope_name);
+  free(old_scope);
 }
 
 symbol_node* build_symbol(char *name, char *type, char symbol_type, int scope_level){
