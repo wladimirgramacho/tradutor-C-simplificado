@@ -58,7 +58,7 @@ typedef struct code_line {
   struct code_line *next;
 } code_line;
 
-UT_string * newTemp();
+char * newTemp();
 void gen3(char * operation, char * rd, char * rs, char * rt);
 void gen2(char * operation, char * rd, char * rs);
 void gen1(char * operation, char * rd);
@@ -99,6 +99,10 @@ extern int has_error;
 
   struct ast_node *ast;
 }
+%type <ast> prog declarations declaration var_declaration func_declaration params
+%type <ast> local_declarations statement_list compound_statement statement local_var_declaration
+%type <ast> expression_statement conditional_statement iteration_statement return_statement
+%type <ast> expression var simple_expression op_expression term call args arg_list string
 
 %token <id> ID
 %token <type> TYPE
@@ -106,18 +110,14 @@ extern int has_error;
 %token <str> DEC
 %token <str> STR
 %token WHILE IF ELSE RETURN WRITE READ
-%token <op> EQ CEQ CNE CLT CLE CGT CGE
-%token <op> PLUS MINUS MULT DIV
 %token QUOTES
 %token ITP_START ITP_END
-%right EQ
-%left '+' '-'
-%left '*' '/'
 
-%type <ast> prog declarations declaration var_declaration func_declaration params
-%type <ast> local_declarations statement_list compound_statement statement local_var_declaration
-%type <ast> expression_statement conditional_statement iteration_statement return_statement
-%type <ast> expression var simple_expression op_expression term call args arg_list string
+%right <op> EQ
+%left <op> CEQ CNE CLT CLE CGT CGE
+%left '*' '/'
+%left '+' '-'
+
 
 %start prog
 %%
@@ -303,28 +303,74 @@ var:
 ;
 
 simple_expression:
-  op_expression CEQ op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
-| op_expression CNE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
-| op_expression CLT op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
-| op_expression CLE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
-| op_expression CGT op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
-| op_expression CGE op_expression               { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
+  op_expression CEQ op_expression               {
+                                                  $$ = add_ast_node('O', $1, $3);
+                                                  $$->operator = $2;
+                                                  if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
+                                                  else { $$->dtype = $1->dtype; }
+                                                }
+| op_expression CNE op_expression               {
+                                                  $$ = add_ast_node('O', $1, $3);
+                                                  $$->operator = $2;
+                                                  if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
+                                                  else { $$->dtype = $1->dtype; }
+                                                }
+| op_expression CLT op_expression               {
+                                                  $$ = add_ast_node('O', $1, $3);
+                                                  $$->operator = $2;
+                                                  if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
+                                                  else { $$->dtype = $1->dtype; }
+                                                }
+| op_expression CLE op_expression               {
+                                                  $$ = add_ast_node('O', $1, $3);
+                                                  $$->operator = $2;
+                                                  if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
+                                                  else { $$->dtype = $1->dtype; }
+                                                }
+| op_expression CGT op_expression               {
+                                                  $$ = add_ast_node('O', $1, $3);
+                                                  $$->operator = $2;
+                                                  if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
+                                                  else { $$->dtype = $1->dtype; }
+                                                }
+| op_expression CGE op_expression               {
+                                                  $$ = add_ast_node('O', $1, $3);
+                                                  $$->operator = $2;
+                                                  if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
+                                                  else { $$->dtype = $1->dtype; }
+                                                }
 | op_expression                                 { $$ = $1; }
 ;
 
 op_expression:
-  op_expression PLUS term                       {
-                                                  $$ = add_ast_node('O', $1, $3);
-                                                  $$->operator = $2;
+  op_expression '+' term                        {
+                                                  $$ = add_ast_node('A', $1, $3);
                                                   if(mismatch($1->dtype, $3->dtype)){error_type_mismatch($1->dtype, $3->dtype); }
                                                   else { $$->dtype = $1->dtype; }
-                                                  UT_string *tmp = newTemp();
-                                                  gen3("add", utstring_body(tmp), $1->addr, $3->addr);
-                                                  $$->addr = utstring_body(tmp);
+                                                  $$->addr = newTemp();
+                                                  gen3("add", $$->addr, $1->addr, $3->addr);
                                                 }
-| op_expression MINUS term                      { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
-| op_expression MULT term                       { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
-| op_expression DIV term                        { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
+| op_expression '-' term                        {
+                                                  $$ = add_ast_node('A', $1, $3);
+                                                  if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
+                                                  else { $$->dtype = $1->dtype; }
+                                                  $$->addr = newTemp();
+                                                  gen3("sub", $$->addr, $1->addr, $3->addr);
+                                                }
+| op_expression '*' term                        {
+                                                  $$ = add_ast_node('A', $1, $3);
+                                                  if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
+                                                  else { $$->dtype = $1->dtype; }
+                                                  $$->addr = newTemp();
+                                                  gen3("mul", $$->addr, $1->addr, $3->addr);
+                                                }
+| op_expression '/' term                        {
+                                                  $$ = add_ast_node('A', $1, $3);
+                                                  if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
+                                                  else { $$->dtype = $1->dtype; }
+                                                  $$->addr = newTemp();
+                                                  gen3("div", $$->addr, $1->addr, $3->addr);
+                                                }
 | term                                          { $$ = $1; }
 ;
 
@@ -375,12 +421,12 @@ string:
 
 %%
 
-UT_string * newTemp(){
+char * newTemp(){
   UT_string *tmp;
   utstring_new(tmp);
   utstring_printf(tmp, "$%d", tmpGenerated);
   tmpGenerated++;
-  return tmp;
+  return utstring_body(tmp);
 }
 
 void gen3(char * operation, char * rd, char * rs, char * rt){

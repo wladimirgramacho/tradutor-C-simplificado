@@ -56,20 +56,16 @@ extern int yydebug;
     RETURN = 266,
     WRITE = 267,
     READ = 268,
-    EQ = 269,
-    CEQ = 270,
-    CNE = 271,
-    CLT = 272,
-    CLE = 273,
-    CGT = 274,
-    CGE = 275,
-    PLUS = 276,
-    MINUS = 277,
-    MULT = 278,
-    DIV = 279,
-    QUOTES = 280,
-    ITP_START = 281,
-    ITP_END = 282
+    QUOTES = 269,
+    ITP_START = 270,
+    ITP_END = 271,
+    EQ = 272,
+    CEQ = 273,
+    CNE = 274,
+    CLT = 275,
+    CLE = 276,
+    CGT = 277,
+    CGE = 278
   };
 #endif
 
@@ -78,7 +74,7 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 94 "wladus.y" /* yacc.c:1909  */
+#line 93 "wladus.y" /* yacc.c:1909  */
 
   char *id;
   char *type;
@@ -88,7 +84,7 @@ union YYSTYPE
 
   struct ast_node *ast;
 
-#line 92 "wladus.tab.h" /* yacc.c:1909  */
+#line 88 "wladus.tab.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

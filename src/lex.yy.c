@@ -967,22 +967,22 @@ YY_RULE_SETUP
 case 19:
 YY_RULE_SETUP
 #line 79 "wladus.l"
-{ yylval.op = (char *) strdup(yytext); return PLUS; }
+{ return '+'; }
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
 #line 80 "wladus.l"
-{ yylval.op = (char *) strdup(yytext); return MINUS; }
+{ return '-'; }
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
 #line 81 "wladus.l"
-{ yylval.op = (char *) strdup(yytext); return MULT; }
+{ return '*'; }
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
 #line 82 "wladus.l"
-{ yylval.op = (char *) strdup(yytext); return DIV; }
+{ return '/'; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP

@@ -76,10 +76,10 @@ interpol_end        "}"
 <INITIAL,EXP>{cgt}                    { yylval.op = (char *) strdup(yytext); return CGT; }
 <INITIAL,EXP>{cge}                    { yylval.op = (char *) strdup(yytext); return CGE; }
 
-<INITIAL,EXP>{plus}                   { yylval.op = (char *) strdup(yytext); return PLUS; }
-<INITIAL,EXP>{minus}                  { yylval.op = (char *) strdup(yytext); return MINUS; }
-<INITIAL,EXP>{mult}                   { yylval.op = (char *) strdup(yytext); return MULT; }
-<INITIAL,EXP>{div}                    { yylval.op = (char *) strdup(yytext); return DIV; }
+<INITIAL,EXP>{plus}                   { return '+'; }
+<INITIAL,EXP>{minus}                  { return '-'; }
+<INITIAL,EXP>{mult}                   { return '*'; }
+<INITIAL,EXP>{div}                    { return '/'; }
 
 
 <INITIAL,EXP>{integer}                { 
