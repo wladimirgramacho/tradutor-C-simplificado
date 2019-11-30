@@ -216,14 +216,14 @@ expression_statement:
 ;
 
 conditional_statement:
-  startIf '(' expression ')' compound_statement {
+  startIf '(' simple_expression ')' compound_statement {
                                                   $$ = add_ast_node('C', add_ast_node('c', $3, $5), NULL);
                                                   scope *old_scope;
                                                   STACK_POP(scope_stack, old_scope);
                                                   free(old_scope->scope_name);
                                                   free(old_scope);
                                                 }
-| startIf '(' expression ')' compound_statement {
+| startIf '(' simple_expression ')' compound_statement {
                                                   scope *old_scope;
                                                   STACK_POP(scope_stack, old_scope);
                                                   free(old_scope->scope_name);
@@ -256,16 +256,29 @@ startIf:
 ;
 
 iteration_statement:
-  WHILE '(' expression ')' compound_statement   { $$ = add_ast_node('W', $3, $5); }
+  WHILE '(' simple_expression ')'               {
+                                                  scope *new_scope = (scope *)malloc(sizeof *new_scope);
+                                                  scope *top = STACK_TOP(scope_stack);
+                                                  new_scope->scope_name = (char *) strdup(top->scope_name);
+                                                  new_scope->scope_level = top->scope_level + 1;
+                                                  STACK_PUSH(scope_stack, new_scope);
+                                                }
+  compound_statement                            {
+                                                  $$ = add_ast_node('W', $3, $6);
+                                                  scope *old_scope;
+                                                  STACK_POP(scope_stack, old_scope);
+                                                  free(old_scope->scope_name);
+                                                  free(old_scope);
+                                                }
 ;
 
 return_statement:
-  RETURN expression ';'                         { $$ = $2; }
+  RETURN simple_expression ';'                  { $$ = $2; }
 | RETURN ';'                                    { $$ = NULL; }
 ;
 
 expression:
-  var EQ expression                             {
+  var EQ simple_expression                      {
                                                   if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else {
                                                     $$ = add_ast_node('O', $1, $3);

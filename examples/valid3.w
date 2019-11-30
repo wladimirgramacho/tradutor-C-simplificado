@@ -17,6 +17,9 @@ int x(int x, int y) {
 }
 
 int y(int x) {
+  while(1){
+    int x;
+  }
   x = 0;
 }
 
