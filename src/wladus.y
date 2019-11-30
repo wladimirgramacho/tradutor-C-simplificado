@@ -43,7 +43,6 @@ struct ast_node {
   int node_type;
   char dtype;
   char *addr;
-  char *value;
   struct ast_node *left;
   struct ast_node *right;
   union {
@@ -320,7 +319,7 @@ op_expression:
                                                   if(mismatch($1->dtype, $3->dtype)){error_type_mismatch($1->dtype, $3->dtype); }
                                                   else { $$->dtype = $1->dtype; }
                                                   UT_string *tmp = newTemp();
-                                                  gen3("add", utstring_body(tmp), $1->value, $3->value);
+                                                  gen3("add", utstring_body(tmp), $1->addr, $3->addr);
                                                   $$->addr = utstring_body(tmp);
                                                 }
 | op_expression MINUS term                      { $$ = add_ast_node('O', $1, $3); $$->operator = $2; if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); } else { $$->dtype = $1->dtype; } }
@@ -337,8 +336,8 @@ term:
                                                   symbol_node *s = find_symbol($1->func_name);
                                                   if(s != NULL){ $$->dtype = s->type; }
                                                 }
-| NUM                                           { $$ = add_ast_node('I', NULL, NULL); $$->value = $1; $$->dtype = 'i'; }
-| DEC                                           { $$ = add_ast_node('D', NULL, NULL); $$->value = $1; $$->dtype = 'f'; }
+| NUM                                           { $$ = add_ast_node('I', NULL, NULL); $$->addr = $1; $$->dtype = 'i'; }
+| DEC                                           { $$ = add_ast_node('D', NULL, NULL); $$->addr = $1; $$->dtype = 'f'; }
 | QUOTES string QUOTES                          { $$ = $2; $$->dtype = 's'; }
 ;
 
@@ -507,12 +506,12 @@ void print_ast_node(struct ast_node *s, int depth) {
       break;
     case 'I':
       {
-        printf(" (%s) \t\t type = %s\n", s->value, dtype_to_type(s->dtype));
+        printf(" (%s) \t\t type = %s\n", s->addr, dtype_to_type(s->dtype));
       }
       break;
     case 'D':
       {
-        printf(" (%s) \t\t type = %s\n", s->value, dtype_to_type(s->dtype));
+        printf(" (%s) \t\t type = %s\n", s->addr, dtype_to_type(s->dtype));
       }
       break;
     case 'S':

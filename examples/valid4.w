@@ -1,6 +1,6 @@
 int a;
 int main(){
-  a = 3 + 2;
+  a = 1 + 2 + 3;
   write(a);
   return 0;
 }
