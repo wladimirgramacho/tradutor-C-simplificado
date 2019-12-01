@@ -204,7 +204,8 @@ local_var_declaration:
                                                   $$ = add_ast_node('V', NULL, NULL);
                                                   $$->dtype = type_to_dtype($1);
                                                   $$->addr = new_temp();
-                                                  gen2("mov", $$->addr, "0");
+                                                  if ($$->dtype == 'i'){ gen2("mov", $$->addr, "0"); }
+                                                  else if ($$->dtype == 'f'){ gen2("mov", $$->addr, "0.0"); }
                                                   add_symbol($2, $1, 'V', $$->addr);
                                                   free($1);
                                                   free($2);
