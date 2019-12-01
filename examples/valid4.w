@@ -5,7 +5,10 @@ int main(){
   a = (b + 2 + (3 * 4))/5;
   while(a < 3){
     if(a % 2 == 0){
-      write(a);
+      write(2);
+    }
+    else {
+      write(1);
     }
     a = a + 1;
   }

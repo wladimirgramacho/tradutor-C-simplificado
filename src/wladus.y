@@ -232,27 +232,48 @@ conditional_statement:
                                                   $$ = add_ast_node('C', add_ast_node('c', $3, $5), NULL);
                                                   remove_scope();
 
-                                                  code_label *old_code_label;
-                                                  STACK_POP(label_stack, old_code_label);
-                                                  gen_label(old_code_label->name);
-                                                  free(old_code_label->name);
-                                                  free(old_code_label);
+                                                  code_label *after_if_label;
+                                                  STACK_POP(label_stack, after_if_label);
+                                                  gen_label(after_if_label->name);
+                                                  free(after_if_label->name);
+                                                  free(after_if_label);
                                                 }
-| startIf '(' simple_expression ')' compound_statement { remove_scope(); }
+| startIf '(' simple_expression ')' compound_statement {
+                                                  remove_scope();
+
+                                                  char * after_else_label = new_label();
+                                                  gen1("jump", after_else_label);
+
+                                                  code_label *after_if_label;
+                                                  STACK_POP(label_stack, after_if_label);
+                                                  gen_label(after_if_label->name);
+                                                  free(after_if_label->name);
+                                                  free(after_if_label);
+
+                                                  code_label *new_after_else_label = (code_label *)malloc(sizeof *new_after_else_label);
+                                                  new_after_else_label->name = after_else_label;
+                                                  STACK_PUSH(label_stack, new_after_else_label);
+                                                }
   ELSE                                          { create_internal_scope(); }
   compound_statement                            {
                                                   $$ = add_ast_node('C', add_ast_node('c', $3, $5), $9);
                                                   remove_scope();
+
+                                                  code_label *after_else_label;
+                                                  STACK_POP(label_stack, after_else_label);
+                                                  gen_label(after_else_label->name);
+                                                  free(after_else_label->name);
+                                                  free(after_else_label);
                                                 }
 ;
 
 startIf:
   IF                                            {
                                                   create_internal_scope();
-                                                  char * label = new_label();
-                                                  code_label *new_code_label = (code_label *)malloc(sizeof *new_code_label);
-                                                  new_code_label->name = label;
-                                                  STACK_PUSH(label_stack, new_code_label);
+                                                  char * after_if_label = new_label();
+                                                  code_label *new_after_if_label = (code_label *)malloc(sizeof *new_after_if_label);
+                                                  new_after_if_label->name = after_if_label;
+                                                  STACK_PUSH(label_stack, new_after_if_label);
                                                 }
 ;
 
