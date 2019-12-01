@@ -58,12 +58,15 @@ typedef struct code_line {
   struct code_line *next;
 } code_line;
 
-char * newTemp();
+char * new_temp();
 void gen3(char * operation, char * rd, char * rs, char * rt);
 void gen2(char * operation, char * rd, char * rs);
 void gen1(char * operation, char * rd);
+
 void gen_table_symbol(char * type, char * name);
+
 void gen_label(char * label);
+char * new_label();
 
 struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_node *right);
 
@@ -87,7 +90,8 @@ struct ast_node* syntax_tree = NULL;
 struct scope* scope_stack = NULL;
 code_line *tac_code = NULL;
 
-int tmpGenerated = 0;
+int tmp_generated = 0;
+int labels_generated = 0;
 
 extern int has_error;
 %}
@@ -215,9 +219,12 @@ expression_statement:
 ;
 
 conditional_statement:
-  startIf '(' simple_expression ')' compound_statement {
+  startIf '(' simple_expression ')'compound_statement {
                                                   $$ = add_ast_node('C', add_ast_node('c', $3, $5), NULL);
                                                   remove_scope();
+                                                  // char * label = new_label();
+                                                  // gen2("brz", label, $3->addr);
+                                                  // gen_label(label);
                                                 }
 | startIf '(' simple_expression ')' compound_statement { remove_scope(); }
   ELSE                                          { create_internal_scope(); }
@@ -275,6 +282,8 @@ simple_expression:
                                                   $$->operator = $2;
                                                   if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else { $$->dtype = $1->dtype; }
+                                                  $$->addr = new_temp();
+                                                  gen3("seq", $$->addr, $1->addr, $3->addr);
                                                 }
 | op_expression CNE op_expression               {
                                                   $$ = add_ast_node('O', $1, $3);
@@ -314,28 +323,28 @@ op_expression:
                                                   $$ = add_ast_node('A', $1, $3);
                                                   if(mismatch($1->dtype, $3->dtype)){error_type_mismatch($1->dtype, $3->dtype); }
                                                   else { $$->dtype = $1->dtype; }
-                                                  $$->addr = newTemp();
+                                                  $$->addr = new_temp();
                                                   gen3("add", $$->addr, $1->addr, $3->addr);
                                                 }
 | op_expression '-' term                        {
                                                   $$ = add_ast_node('A', $1, $3);
                                                   if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else { $$->dtype = $1->dtype; }
-                                                  $$->addr = newTemp();
+                                                  $$->addr = new_temp();
                                                   gen3("sub", $$->addr, $1->addr, $3->addr);
                                                 }
 | op_expression '*' term                        {
                                                   $$ = add_ast_node('A', $1, $3);
                                                   if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else { $$->dtype = $1->dtype; }
-                                                  $$->addr = newTemp();
+                                                  $$->addr = new_temp();
                                                   gen3("mul", $$->addr, $1->addr, $3->addr);
                                                 }
 | op_expression '/' term                        {
                                                   $$ = add_ast_node('A', $1, $3);
                                                   if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else { $$->dtype = $1->dtype; }
-                                                  $$->addr = newTemp();
+                                                  $$->addr = new_temp();
                                                   gen3("div", $$->addr, $1->addr, $3->addr);
                                                 }
 | term                                          { $$ = $1; }
@@ -365,7 +374,7 @@ call:
 | WRITE '(' simple_expression ')'               {
                                                   $$ = add_ast_node('L', NULL, $3);
                                                   $$->func_name = (char *) strdup("write");
-                                                  gen1("print", "a");
+                                                  gen1("print", $3->addr);
                                                 }
 | READ '(' var ')'                              { $$ = add_ast_node('L', NULL, $3); $$->func_name = (char *) strdup("read"); }
 ;
@@ -388,11 +397,11 @@ string:
 
 %%
 
-char * newTemp(){
+char * new_temp(){
   UT_string *tmp;
   utstring_new(tmp);
-  utstring_printf(tmp, "$%d", tmpGenerated);
-  tmpGenerated++;
+  utstring_printf(tmp, "$%d", tmp_generated);
+  tmp_generated++;
   return utstring_body(tmp);
 }
 
@@ -422,6 +431,14 @@ void gen_table_symbol(char * type, char * name){
   utstring_new(new_line->code);
   utstring_printf(new_line->code, "%s %s\n", type, name);
   DL_PREPEND(tac_code, new_line);
+}
+
+char * new_label(){
+  UT_string *tmp;
+  utstring_new(tmp);
+  utstring_printf(tmp, "L%d", labels_generated);
+  labels_generated++;
+  return utstring_body(tmp);
 }
 
 void gen_label(char * label){
