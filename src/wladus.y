@@ -314,6 +314,10 @@ simple_expression:
                                                   $$->operator = $2;
                                                   if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else { $$->dtype = $1->dtype; }
+                                                  $$->addr = new_temp();
+                                                  code_label *top_label = STACK_TOP(label_stack);
+                                                  gen3("seq", $$->addr, $1->addr, $3->addr);
+                                                  gen2("brnz", top_label->name, $$->addr);
                                                 }
 | op_expression CLT op_expression               {
                                                   $$ = add_ast_node('O', $1, $3);
