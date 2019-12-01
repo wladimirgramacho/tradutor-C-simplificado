@@ -313,7 +313,10 @@ iteration_statement:
 ;
 
 return_statement:
-  RETURN simple_expression ';'                  { $$ = $2; }
+  RETURN simple_expression ';'                  {
+                                                  $$ = $2;
+                                                  gen1("return", $2->addr);
+                                                }
 | RETURN ';'                                    { $$ = NULL; }
 ;
 
@@ -460,6 +463,9 @@ call:
                                                   $$->func_name = (char *) strdup($1);
                                                   symbol_node *s = find_symbol($1);
                                                   if(s == NULL) error_not_declared("function", $1);
+                                                  gen1("call", $1);
+                                                  $$->addr = new_temp();
+                                                  gen1("pop", $$->addr);
                                                   free($1);
                                                 }
 | WRITE '(' simple_expression ')'               {

@@ -1,5 +1,9 @@
 // useless comment
 
+int func(){
+  return 1234;
+}
+
 int main(){
   int a;
   int b;
@@ -7,7 +11,7 @@ int main(){
   float d;
 
   a = 10;
-  b = a * 3;
+  b = func();
   c = 3.14;
 
   while(a <=  20){
@@ -18,9 +22,6 @@ int main(){
   }
   else {
     d = d + 4.5;
-  }
-  if(b <= 1){
-    b = a * 4;
   }
   write(a);
   write(b);
