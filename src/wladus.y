@@ -48,7 +48,6 @@ struct ast_node {
   struct ast_node *right;
   union {
     char *string;
-    char *operator;
     char *func_name;
   };
 };
@@ -127,8 +126,8 @@ extern int has_error;
 %token QUOTES
 %token ITP_START ITP_END
 
-%right <op> EQ
-%left <op> CEQ CNE CLT CLE CGT CGE
+%right EQ
+%left CEQ CNE CLT CLE CGT CGE
 %left '*' '/'
 %left '+' '-'
 
@@ -274,8 +273,7 @@ expression:
   var EQ simple_expression                      {
                                                   if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else {
-                                                    $$ = add_ast_node('O', $1, $3);
-                                                    $$->operator = $2;
+                                                    $$ = add_ast_node('A', $1, $3);
                                                     $$->dtype = $1->dtype;
                                                     gen2("mov", $1->addr, $3->addr);
                                                   }
@@ -300,8 +298,7 @@ var:
 
 simple_expression:
   op_expression CEQ op_expression               {
-                                                  $$ = add_ast_node('O', $1, $3);
-                                                  $$->operator = $2;
+                                                  $$ = add_ast_node('A', $1, $3);
                                                   if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else { $$->dtype = $1->dtype; }
                                                   $$->addr = new_temp();
@@ -310,8 +307,7 @@ simple_expression:
                                                   gen2("brz", top_label->name, $$->addr);
                                                 }
 | op_expression CNE op_expression               {
-                                                  $$ = add_ast_node('O', $1, $3);
-                                                  $$->operator = $2;
+                                                  $$ = add_ast_node('A', $1, $3);
                                                   if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else { $$->dtype = $1->dtype; }
                                                   $$->addr = new_temp();
@@ -320,8 +316,7 @@ simple_expression:
                                                   gen2("brnz", top_label->name, $$->addr);
                                                 }
 | op_expression CLT op_expression               {
-                                                  $$ = add_ast_node('O', $1, $3);
-                                                  $$->operator = $2;
+                                                  $$ = add_ast_node('A', $1, $3);
                                                   if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else { $$->dtype = $1->dtype; }
                                                   $$->addr = new_temp();
@@ -330,8 +325,7 @@ simple_expression:
                                                   gen2("brz", top_label->name, $$->addr);
                                                 }
 | op_expression CLE op_expression               {
-                                                  $$ = add_ast_node('O', $1, $3);
-                                                  $$->operator = $2;
+                                                  $$ = add_ast_node('A', $1, $3);
                                                   if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else { $$->dtype = $1->dtype; }
                                                   $$->addr = new_temp();
@@ -340,8 +334,7 @@ simple_expression:
                                                   gen2("brz", top_label->name, $$->addr);
                                                 }
 | op_expression CGT op_expression               {
-                                                  $$ = add_ast_node('O', $1, $3);
-                                                  $$->operator = $2;
+                                                  $$ = add_ast_node('A', $1, $3);
                                                   if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else { $$->dtype = $1->dtype; }
                                                   $$->addr = new_temp();
@@ -350,8 +343,7 @@ simple_expression:
                                                   gen2("brnz", top_label->name, $$->addr);
                                                 }
 | op_expression CGE op_expression               {
-                                                  $$ = add_ast_node('O', $1, $3);
-                                                  $$->operator = $2;
+                                                  $$ = add_ast_node('A', $1, $3);
                                                   if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else { $$->dtype = $1->dtype; }
                                                   $$->addr = new_temp();
@@ -530,13 +522,6 @@ void print_ast_node(struct ast_node *s, int depth) {
         print_ast_node(s->right, depth+1);
       }
       break;
-    case 'O':
-      {
-        printf(" (%s) \t\t type = %s\n", s->operator, dtype_to_type(s->dtype));
-        print_ast_node(s->left, depth + 1);
-        print_ast_node(s->right, depth + 1);
-      }
-      break;
     case 'c':
       {
         printf("if\n");
@@ -632,14 +617,6 @@ void free_syntax_tree(struct ast_node *s){
       {
         free(s->func_name);
         free_syntax_tree(s->right);
-        free(s);
-      }
-      break;
-    case 'O':
-      {
-        free(s->operator);
-        if(s->left) free_syntax_tree(s->left);
-        if(s->right) free_syntax_tree(s->right);
         free(s);
       }
       break;
