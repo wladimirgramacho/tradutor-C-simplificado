@@ -409,6 +409,13 @@ op_expression:
                                                   $$->addr = new_temp();
                                                   gen3("div", $$->addr, $1->addr, $3->addr);
                                                 }
+| op_expression '%' term                        {
+                                                  $$ = add_ast_node('A', $1, $3);
+                                                  if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
+                                                  else { $$->dtype = $1->dtype; }
+                                                  $$->addr = new_temp();
+                                                  gen3("mod", $$->addr, $1->addr, $3->addr);
+                                                }
 | term                                          { $$ = $1; }
 ;
 

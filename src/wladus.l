@@ -39,6 +39,7 @@ plus                "+"
 minus               "-"
 mult                "*"
 div                 "/"
+mod                 "%"
 
 quotes              \"
 interpol_start      "#{"
@@ -80,6 +81,7 @@ interpol_end        "}"
 <INITIAL,EXP>{minus}                  { return '-'; }
 <INITIAL,EXP>{mult}                   { return '*'; }
 <INITIAL,EXP>{div}                    { return '/'; }
+<INITIAL,EXP>{mod}                    { return '%'; }
 
 
 <INITIAL,EXP>{integer}                { 
