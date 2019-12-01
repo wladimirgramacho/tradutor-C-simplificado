@@ -18,6 +18,7 @@ typedef struct simple_symbol_node {
   char dtype;
   char symbol_type;
   int scope_level;
+  char *temp_name;
   struct simple_symbol_node *next;
 } simple_symbol_node;
 
@@ -70,9 +71,10 @@ char * new_label();
 
 struct ast_node* add_ast_node(int node_type, struct ast_node *left, struct ast_node *right);
 
-void add_symbol(char *name, char *type, char symbol_type);
+void add_symbol(char *name, char *type, char symbol_type, char * temp_name);
 symbol_node* find_symbol(char *name);
-simple_symbol_node* create_simple_symbol_node(char *name, char dtype, char symbol_type, int scope_level);
+simple_symbol_node* find_simple_symbol(char *name);
+simple_symbol_node* create_simple_symbol_node(char *name, char dtype, char symbol_type, int scope_level, char * temp_name);
 void create_internal_scope();
 void remove_scope();
 
@@ -90,7 +92,7 @@ struct ast_node* syntax_tree = NULL;
 struct scope* scope_stack = NULL;
 code_line *tac_code = NULL;
 
-int tmp_generated = 0;
+int temps_generated = 0;
 int labels_generated = 0;
 
 extern int has_error;
@@ -145,7 +147,7 @@ declaration:
 var_declaration:
   TYPE ID ';'                                   {
                                                   $$ = NULL;
-                                                  add_symbol($2, $1, 'V');
+                                                  add_symbol($2, $1, 'V', NULL);
                                                   gen_table_symbol($1, $2);
                                                   free($1);
                                                   free($2);
@@ -154,7 +156,7 @@ var_declaration:
 
 func_declaration:
   TYPE ID                                       {
-                                                  add_symbol($2, $1, 'F');
+                                                  add_symbol($2, $1, 'F', NULL);
                                                   gen_label($2);
                                                   scope *new_scope = (scope *)malloc(sizeof *new_scope);
                                                   new_scope->scope_name = (char *) strdup($2);
@@ -178,8 +180,8 @@ func_declaration:
 ;
 
 params:
-  params ',' TYPE ID                            { $$ = $1; add_symbol($4, $3, 'P'); free($3); free($4); }
-| TYPE ID                                       { $$ = NULL; add_symbol($2, $1, 'P'); free($1); free($2); }
+  params ',' TYPE ID                            { $$ = $1; add_symbol($4, $3, 'P', NULL); free($3); free($4); }
+| TYPE ID                                       { $$ = NULL; add_symbol($2, $1, 'P', NULL); free($1); free($2); }
 |                                               { $$ = NULL; }
 ;
 
@@ -196,8 +198,9 @@ local_var_declaration:
   TYPE ID ';'                                   {
                                                   $$ = add_ast_node('V', NULL, NULL);
                                                   $$->dtype = type_to_dtype($1);
-                                                  add_symbol($2, $1, 'V');
-                                                  // $$->addr = new_temp();
+                                                  $$->addr = new_temp();
+                                                  gen2("mov", $$->addr, "0");
+                                                  add_symbol($2, $1, 'V', $$->addr);
                                                   free($1);
                                                   free($2);
                                                 }
@@ -223,7 +226,7 @@ conditional_statement:
   startIf '(' simple_expression ')'compound_statement {
                                                   $$ = add_ast_node('C', add_ast_node('c', $3, $5), NULL);
                                                   remove_scope();
-                                                  // char * label = new_label();
+                                                  char * label = new_label();
                                                   // gen2("brz", label, $3->addr);
                                                   // gen_label(label);
                                                 }
@@ -268,10 +271,14 @@ expression:
 var:
   ID                                            {
                                                   $$ = add_ast_node('V', NULL, NULL);
-                                                  $$->addr = (char *) strdup($1);
                                                   symbol_node *s = find_symbol($1);
                                                   if(s == NULL){ error_not_declared("variable", $1); }
-                                                  else { $$->dtype = s->type; }
+                                                  else {
+                                                    $$->dtype = s->type;
+                                                    HASH_FIND_STR(symbol_table, $1, s);
+                                                    if(s != NULL){ $$->addr = (char *) strdup($1); } // global variable
+                                                    else { $$->addr = find_simple_symbol($1)->temp_name; }
+                                                  }
                                                   free($1);
                                                 }
 ;
@@ -282,7 +289,7 @@ simple_expression:
                                                   $$->operator = $2;
                                                   if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else { $$->dtype = $1->dtype; }
-                                                  // $$->addr = new_temp();
+                                                  $$->addr = new_temp();
                                                   // gen3("seq", $$->addr, $1->addr, $3->addr);
                                                 }
 | op_expression CNE op_expression               {
@@ -379,7 +386,7 @@ call:
 | READ '(' var ')'                              {
                                                   $$ = add_ast_node('L', NULL, $3);
                                                   $$->func_name = (char *) strdup("read");
-                                                  // gen1("scani", $3->addr);
+                                                  gen1("scani", $3->addr);
                                                 }
 ;
 
@@ -404,8 +411,8 @@ string:
 char * new_temp(){
   UT_string *tmp;
   utstring_new(tmp);
-  utstring_printf(tmp, "$%d", tmp_generated);
-  tmp_generated++;
+  utstring_printf(tmp, "$%d", temps_generated);
+  temps_generated++;
   return utstring_body(tmp);
 }
 
@@ -694,7 +701,19 @@ symbol_node* find_symbol(char *name){
   return (symbol_node *) tmp;
 }
 
-void add_symbol(char *name, char *type, char symbol_type){
+simple_symbol_node* find_simple_symbol(char *name){
+  symbol_node *s;
+
+  scope * top = STACK_TOP(scope_stack);
+  HASH_FIND_STR(symbol_table, top->scope_name, s);
+
+  simple_symbol_node *tmp;
+  for (tmp = s->func_fields.symbols; tmp != NULL && (strcmp(tmp->name, name) != 0); tmp = tmp->next);
+
+  return tmp;
+}
+
+void add_symbol(char *name, char *type, char symbol_type, char * temp_name){
   symbol_node *s;
   scope * top;
 
@@ -733,7 +752,7 @@ void add_symbol(char *name, char *type, char symbol_type){
       simple_symbol_node *tmp, *new_node;
 
       char dtype = type_to_dtype(type);
-      new_node = create_simple_symbol_node(name, dtype, symbol_type, top->scope_level);
+      new_node = create_simple_symbol_node(name, dtype, symbol_type, top->scope_level, temp_name);
 
       if(s->func_fields.symbols == NULL){
         s->func_fields.symbols = new_node;
@@ -759,12 +778,13 @@ void add_symbol(char *name, char *type, char symbol_type){
   }
 }
 
-simple_symbol_node* create_simple_symbol_node(char *name, char dtype, char symbol_type, int scope_level){
+simple_symbol_node* create_simple_symbol_node(char *name, char dtype, char symbol_type, int scope_level, char * temp_name){
   simple_symbol_node *new_node = (simple_symbol_node *)malloc(sizeof *new_node);
   new_node->name = (char *) strdup(name);
   new_node->dtype = dtype;
   new_node->symbol_type = symbol_type;
   new_node->scope_level = scope_level;
+  new_node->temp_name = (char *) strdup(temp_name);
   new_node->next = NULL;
   return new_node;
 }
