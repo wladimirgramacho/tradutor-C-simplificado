@@ -1,6 +1,5 @@
 void func(int value){
   write(value);
-  write(3 > 2);
   return ;
 }
 

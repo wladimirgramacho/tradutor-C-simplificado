@@ -68,6 +68,7 @@ char * new_temp();
 void gen3(char * operation, char * rd, char * rs, char * rt);
 void gen2(char * operation, char * rd, char * rs);
 void gen1(char * operation, char * rd);
+void gen0(char * operation);
 
 void gen_table_symbol(char * type, char * name);
 
@@ -336,7 +337,13 @@ return_statement:
                                                     gen1("return", $2->addr);
                                                   }
                                                 }
-| RETURN ';'                                    { $$ = NULL; }
+| RETURN ';'                                    {
+                                                  $$ = NULL;
+                                                  scope *top = STACK_TOP(scope_stack);
+                                                  if(strcmp(top->scope_name, "main") != 0){
+                                                    gen0("return");
+                                                  }
+                                                }
 ;
 
 expression:
@@ -486,7 +493,9 @@ call:
                                                   else gen1("call", $1);
                                                   params_stacked = 0;
                                                   $$->addr = new_temp();
-                                                  gen1("pop", $$->addr);
+                                                  if(s->type != 'v'){
+                                                    gen1("pop", $$->addr);
+                                                  }
                                                   free($1);
                                                 }
 | WRITE '(' simple_expression ')'               {
@@ -561,6 +570,13 @@ void gen1(char * operation, char * rd){
   code_line *new_line = (code_line *)malloc(sizeof *new_line);
   utstring_new(new_line->code);
   utstring_printf(new_line->code, "%s %s\n", operation, rd);
+  DL_APPEND(tac_code, new_line);
+}
+
+void gen0(char * operation){
+  code_line *new_line = (code_line *)malloc(sizeof *new_line);
+  utstring_new(new_line->code);
+  utstring_printf(new_line->code, "%s\n", operation);
   DL_APPEND(tac_code, new_line);
 }
 

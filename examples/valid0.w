@@ -8,6 +8,11 @@ int sum3(int a){
   return a + 3;
 }
 
+void write10(){
+  write(10);
+  return ;
+}
+
 int main(){
   int a;
   int b;
@@ -31,6 +36,7 @@ int main(){
   write(b);
   write(c);
   write(d);
+  write10();
 
   return 0;
 }
