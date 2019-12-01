@@ -257,10 +257,36 @@ startIf:
 ;
 
 iteration_statement:
-  WHILE '(' simple_expression ')'               { create_internal_scope(); }
+  WHILE                                         {
+                                                  create_internal_scope();
+                                                  char * while_label = new_label();
+                                                  gen_label(while_label);
+                                                  code_label *new_while_label = (code_label *)malloc(sizeof *new_while_label);
+                                                  new_while_label->name = while_label;
+                                                  STACK_PUSH(label_stack, new_while_label);
+
+                                                  char * after_while_label = new_label();
+                                                  code_label *new_after_while_label = (code_label *)malloc(sizeof *new_after_while_label);
+                                                  new_after_while_label->name = after_while_label;
+                                                  STACK_PUSH(label_stack, new_after_while_label);
+                                                }
+  '(' simple_expression ')'                     {;}
   compound_statement                            {
-                                                  $$ = add_ast_node('W', $3, $6);
+                                                  $$ = add_ast_node('W', $4, $7);
                                                   remove_scope();
+
+                                                  code_label *after_while_label;
+                                                  STACK_POP(label_stack, after_while_label);
+                                                  code_label *while_label;
+                                                  STACK_POP(label_stack, while_label);
+
+                                                  gen1("jump", while_label->name);
+                                                  gen_label(after_while_label->name);
+
+                                                  free(after_while_label->name);
+                                                  free(after_while_label);
+                                                  free(while_label->name);
+                                                  free(while_label);
                                                 }
 ;
 
@@ -410,7 +436,7 @@ call:
 | WRITE '(' simple_expression ')'               {
                                                   $$ = add_ast_node('L', NULL, $3);
                                                   $$->func_name = (char *) strdup("write");
-                                                  gen1("print", $3->addr);
+                                                  gen1("println", $3->addr);
                                                 }
 | READ '(' var ')'                              {
                                                   $$ = add_ast_node('L', NULL, $3);
