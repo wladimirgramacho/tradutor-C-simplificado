@@ -59,6 +59,11 @@ typedef struct code_line {
   struct code_line *next;
 } code_line;
 
+typedef struct code_label {
+  char *name;
+  struct code_label *next;
+} code_label;
+
 char * new_temp();
 void gen3(char * operation, char * rd, char * rs, char * rt);
 void gen2(char * operation, char * rd, char * rs);
@@ -90,6 +95,7 @@ char * dtype_to_type(char dtype);
 struct symbol_node *symbol_table = NULL;
 struct ast_node* syntax_tree = NULL;
 struct scope* scope_stack = NULL;
+struct code_label* label_stack = NULL;
 code_line *tac_code = NULL;
 
 int temps_generated = 0;
@@ -226,9 +232,12 @@ conditional_statement:
   startIf '(' simple_expression ')'compound_statement {
                                                   $$ = add_ast_node('C', add_ast_node('c', $3, $5), NULL);
                                                   remove_scope();
-                                                  char * label = new_label();
-                                                  // gen2("brz", label, $3->addr);
-                                                  // gen_label(label);
+
+                                                  code_label *old_code_label;
+                                                  STACK_POP(label_stack, old_code_label);
+                                                  gen_label(old_code_label->name);
+                                                  free(old_code_label->name);
+                                                  free(old_code_label);
                                                 }
 | startIf '(' simple_expression ')' compound_statement { remove_scope(); }
   ELSE                                          { create_internal_scope(); }
@@ -239,7 +248,13 @@ conditional_statement:
 ;
 
 startIf:
-  IF                                            { create_internal_scope(); }
+  IF                                            {
+                                                  create_internal_scope();
+                                                  char * label = new_label();
+                                                  code_label *new_code_label = (code_label *)malloc(sizeof *new_code_label);
+                                                  new_code_label->name = label;
+                                                  STACK_PUSH(label_stack, new_code_label);
+                                                }
 ;
 
 iteration_statement:
@@ -290,7 +305,9 @@ simple_expression:
                                                   if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else { $$->dtype = $1->dtype; }
                                                   $$->addr = new_temp();
-                                                  // gen3("seq", $$->addr, $1->addr, $3->addr);
+                                                  code_label *top_label = STACK_TOP(label_stack);
+                                                  gen3("seq", $$->addr, $1->addr, $3->addr);
+                                                  gen2("brz", top_label->name, $$->addr);
                                                 }
 | op_expression CNE op_expression               {
                                                   $$ = add_ast_node('O', $1, $3);
