@@ -197,6 +197,7 @@ local_var_declaration:
                                                   $$ = add_ast_node('V', NULL, NULL);
                                                   $$->dtype = type_to_dtype($1);
                                                   add_symbol($2, $1, 'V');
+                                                  // $$->addr = new_temp();
                                                   free($1);
                                                   free($2);
                                                 }
@@ -260,7 +261,6 @@ expression:
                                                     $$->dtype = $1->dtype;
                                                     gen2("mov", $1->addr, $3->addr);
                                                   }
-
                                                 }
 | simple_expression                             { $$ = $1; }
 ;
@@ -282,8 +282,8 @@ simple_expression:
                                                   $$->operator = $2;
                                                   if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
                                                   else { $$->dtype = $1->dtype; }
-                                                  $$->addr = new_temp();
-                                                  gen3("seq", $$->addr, $1->addr, $3->addr);
+                                                  // $$->addr = new_temp();
+                                                  // gen3("seq", $$->addr, $1->addr, $3->addr);
                                                 }
 | op_expression CNE op_expression               {
                                                   $$ = add_ast_node('O', $1, $3);
@@ -376,7 +376,11 @@ call:
                                                   $$->func_name = (char *) strdup("write");
                                                   gen1("print", $3->addr);
                                                 }
-| READ '(' var ')'                              { $$ = add_ast_node('L', NULL, $3); $$->func_name = (char *) strdup("read"); }
+| READ '(' var ')'                              {
+                                                  $$ = add_ast_node('L', NULL, $3);
+                                                  $$->func_name = (char *) strdup("read");
+                                                  // gen1("scani", $3->addr);
+                                                }
 ;
 
 args:
@@ -863,6 +867,11 @@ int main (int argc, char **argv){
   utstring_new(table_section->code);
   utstring_printf(table_section->code, ".table\n");
   DL_PREPEND(tac_code, table_section);
+
+  code_line *eof_line = (code_line *)malloc(sizeof *eof_line);
+  utstring_new(eof_line->code);
+  utstring_printf(eof_line->code, "println\n");
+  DL_APPEND(tac_code, eof_line);
 
   DL_FOREACH(tac_code, line) printf("%s", utstring_body(line->code));
 
