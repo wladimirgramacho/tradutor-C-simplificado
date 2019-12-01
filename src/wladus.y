@@ -91,6 +91,7 @@ int mismatch(char left_dtype, char right_dtype);
 
 char type_to_dtype(char *type);
 char * dtype_to_type(char dtype);
+char * i_to_str(int integer);
 
 struct symbol_node *symbol_table = NULL;
 struct ast_node* syntax_tree = NULL;
@@ -476,15 +477,8 @@ call:
                                                   $$->func_name = (char *) strdup($1);
                                                   symbol_node *s = find_symbol($1);
                                                   if(s == NULL) error_not_declared("function", $1);
-                                                  if(params_stacked) {
-                                                    UT_string * aux;
-                                                    utstring_new(aux);
-                                                    utstring_printf(aux, "%d", params_stacked);
-                                                    gen2("call", $1, utstring_body(aux));
-                                                  }
-                                                  else {
-                                                    gen1("call", $1);
-                                                  }
+                                                  if(params_stacked) gen2("call", $1, i_to_str(params_stacked));
+                                                  else gen1("call", $1);
                                                   $$->addr = new_temp();
                                                   gen1("pop", $$->addr);
                                                   free($1);
@@ -773,6 +767,13 @@ char * dtype_to_type(char dtype){
   else if(dtype == 'f') { return "float"; }
   else if(dtype == 's') { return "string"; }
   else if(dtype == 'v') { return "void"; }
+}
+
+char * i_to_str(int integer){
+  UT_string * aux;
+  utstring_new(aux);
+  utstring_printf(aux, "%d", integer);
+  return utstring_body(aux);
 }
 
 void create_internal_scope(){
