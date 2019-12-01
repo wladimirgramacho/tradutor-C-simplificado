@@ -13,13 +13,14 @@ void write10(){
   return ;
 }
 
-int main(){
+int main(int x){
   int a;
   int b;
   float c;
   float d;
 
-  a = double(10);
+  x = 3;
+  a = double(x);
   b = sum3(a);
   c = 3.14;
 

@@ -201,7 +201,15 @@ param:
   TYPE ID                                       {
                                                   $$ = add_ast_node('P', NULL, NULL);
                                                   $$->dtype = type_to_dtype($1);
-                                                  $$->addr = new_param();
+                                                  scope *top = STACK_TOP(scope_stack);
+                                                  if(strcmp(top->scope_name, "main") == 0){
+                                                    $$->addr = new_temp();
+                                                    if ($$->dtype == 'i'){ gen2("mov", $$->addr, "0"); }
+                                                    else if ($$->dtype == 'f'){ gen2("mov", $$->addr, "0.0"); }
+                                                  }
+                                                  else {
+                                                    $$->addr = new_param();
+                                                  }
                                                   add_symbol($2, $1, 'P', $$->addr);
                                                   free($1);
                                                   free($2);
@@ -366,7 +374,7 @@ var:
                                                   else {
                                                     $$->dtype = s->type;
                                                     HASH_FIND_STR(symbol_table, $1, s);
-                                                    if(s != NULL){ $$->addr = (char *) strdup($1); } // global variable
+                                                    if(s != NULL && s->symbol_type != 'F'){ $$->addr = (char *) strdup($1); } // global variable
                                                     else { $$->addr = find_simple_symbol($1)->temp_name; }
                                                   }
                                                   free($1);
