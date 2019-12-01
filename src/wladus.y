@@ -331,7 +331,10 @@ iteration_statement:
 return_statement:
   RETURN simple_expression ';'                  {
                                                   $$ = $2;
-                                                  gen1("return", $2->addr);
+                                                  scope *top = STACK_TOP(scope_stack);
+                                                  if(strcmp(top->scope_name, "main") != 0){
+                                                    gen1("return", $2->addr);
+                                                  }
                                                 }
 | RETURN ';'                                    { $$ = NULL; }
 ;
