@@ -165,6 +165,8 @@ var_declaration:
 
 func_declaration:
   TYPE ID                                       {
+                                                  temps_generated = 0;
+                                                  params_generated = 0;
                                                   add_symbol($2, $1, 'F', NULL);
                                                   gen_label($2);
                                                   scope *new_scope = (scope *)malloc(sizeof *new_scope);
@@ -479,6 +481,7 @@ call:
                                                   if(s == NULL) error_not_declared("function", $1);
                                                   if(params_stacked) gen2("call", $1, i_to_str(params_stacked));
                                                   else gen1("call", $1);
+                                                  params_stacked = 0;
                                                   $$->addr = new_temp();
                                                   gen1("pop", $$->addr);
                                                   free($1);

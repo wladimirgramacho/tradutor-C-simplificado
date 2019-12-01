@@ -1,7 +1,11 @@
 // useless comment
 
-int func(int a){
-  return 1234 * a;
+int double(int a){
+  return 2 * a;
+}
+
+int sum3(int a){
+  return a + 3;
 }
 
 int main(){
@@ -10,8 +14,8 @@ int main(){
   float c;
   float d;
 
-  a = 10;
-  b = func(a);
+  a = double(10);
+  b = sum3(a);
   c = 3.14;
 
   while(a <=  20){
