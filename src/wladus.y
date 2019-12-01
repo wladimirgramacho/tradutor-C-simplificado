@@ -63,6 +63,7 @@ typedef struct code_label {
   struct code_label *next;
 } code_label;
 
+char * new_param();
 char * new_temp();
 void gen3(char * operation, char * rd, char * rs, char * rt);
 void gen2(char * operation, char * rd, char * rs);
@@ -97,6 +98,8 @@ struct scope* scope_stack = NULL;
 struct code_label* label_stack = NULL;
 code_line *tac_code = NULL;
 
+int params_stacked = 0;
+int params_generated = 0;
 int temps_generated = 0;
 int labels_generated = 0;
 
@@ -112,7 +115,7 @@ extern int has_error;
 
   struct ast_node *ast;
 }
-%type <ast> prog declarations declaration var_declaration func_declaration params
+%type <ast> prog declarations declaration var_declaration func_declaration params param
 %type <ast> local_declarations statement_list compound_statement statement local_var_declaration
 %type <ast> expression_statement conditional_statement iteration_statement return_statement
 %type <ast> expression var simple_expression op_expression term call args arg_list string
@@ -185,10 +188,20 @@ func_declaration:
 ;
 
 params:
-  params ',' TYPE ID                            { $$ = $1; add_symbol($4, $3, 'P', NULL); free($3); free($4); }
-| TYPE ID                                       { $$ = NULL; add_symbol($2, $1, 'P', NULL); free($1); free($2); }
+  params ',' param                              { $$ = add_ast_node('A', $1, $3); }
+| param                                         { $$ = $1; }
 |                                               { $$ = NULL; }
 ;
+
+param:
+  TYPE ID                                       {
+                                                  $$ = add_ast_node('P', NULL, NULL);
+                                                  $$->dtype = type_to_dtype($1);
+                                                  $$->addr = new_param();
+                                                  add_symbol($2, $1, 'P', $$->addr);
+                                                  free($1);
+                                                  free($2);
+                                                }
 
 compound_statement:
   '{' local_declarations statement_list '}'     { $$ = add_ast_node('A', $2, $3); }
@@ -463,7 +476,15 @@ call:
                                                   $$->func_name = (char *) strdup($1);
                                                   symbol_node *s = find_symbol($1);
                                                   if(s == NULL) error_not_declared("function", $1);
-                                                  gen1("call", $1);
+                                                  if(params_stacked) {
+                                                    UT_string * aux;
+                                                    utstring_new(aux);
+                                                    utstring_printf(aux, "%d", params_stacked);
+                                                    gen2("call", $1, utstring_body(aux));
+                                                  }
+                                                  else {
+                                                    gen1("call", $1);
+                                                  }
                                                   $$->addr = new_temp();
                                                   gen1("pop", $$->addr);
                                                   free($1);
@@ -486,8 +507,16 @@ args:
 ;
 
 arg_list:
-  arg_list ',' simple_expression                { $$ = add_ast_node('A', $1, $3); }
-| simple_expression                             { $$ = $1; }
+  arg_list ',' simple_expression                {
+                                                  $$ = add_ast_node('A', $1, $3);
+                                                  params_stacked++;
+                                                  gen1("param", $3->addr);
+                                                }
+| simple_expression                             {
+                                                  $$ = $1;
+                                                  params_stacked++;
+                                                  gen1("param", $1->addr);
+                                                }
 ;
 
 string:
@@ -497,6 +526,14 @@ string:
 ;
 
 %%
+
+char * new_param(){
+  UT_string *tmp;
+  utstring_new(tmp);
+  utstring_printf(tmp, "#%d", params_generated);
+  params_generated++;
+  return utstring_body(tmp);
+}
 
 char * new_temp(){
   UT_string *tmp;
@@ -650,6 +687,11 @@ void print_ast_node(struct ast_node *s, int depth) {
         printf(" (ID) \t\t type = %s\n", dtype_to_type(s->dtype));
       }
       break;
+    case 'P':
+      {
+        printf(" (param) \t\t type = %s\n", dtype_to_type(s->dtype));
+      }
+      break;
   }  
 }
 
@@ -670,6 +712,7 @@ void free_syntax_tree(struct ast_node *s){
     case 'c':
     case 'W':
     case 'V':
+    case 'P':
       if(s->left) free_syntax_tree(s->left);
       if(s->right) free_syntax_tree(s->right);
       free(s);

@@ -1,7 +1,7 @@
 // useless comment
 
-int func(){
-  return 1234;
+int func(int a){
+  return 1234 * a;
 }
 
 int main(){
@@ -11,7 +11,7 @@ int main(){
   float d;
 
   a = 10;
-  b = func();
+  b = func(a);
   c = 3.14;
 
   while(a <=  20){
