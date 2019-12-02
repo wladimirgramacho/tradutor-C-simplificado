@@ -514,7 +514,12 @@ call:
 | READ '(' var ')'                              {
                                                   $$ = add_ast_node('L', NULL, $3);
                                                   $$->func_name = (char *) strdup("read");
-                                                  gen1("scani", $3->addr);
+                                                  if($3->dtype == 'i'){
+                                                    gen1("scani", $3->addr);
+                                                  }
+                                                  else if($3->dtype == 'f') {
+                                                    gen1("scanf", $3->addr);
+                                                  }
                                                 }
 ;
 

@@ -580,7 +580,7 @@ static const yytype_uint16 yyrline[] =
      267,   297,   307,   320,   307,   341,   348,   358,   366,   370,
      385,   394,   403,   412,   421,   430,   439,   443,   450,   457,
      464,   471,   478,   482,   483,   484,   489,   490,   491,   495,
-     509,   514,   522,   523,   527,   532,   540,   541,   542
+     509,   514,   527,   528,   532,   537,   545,   546,   547
 };
 #endif
 
@@ -2128,63 +2128,68 @@ yyreduce:
     {
                                                   (yyval.ast) = add_ast_node('L', NULL, (yyvsp[-1].ast));
                                                   (yyval.ast)->func_name = (char *) strdup("read");
-                                                  gen1("scani", (yyvsp[-1].ast)->addr);
+                                                  if((yyvsp[-1].ast)->dtype == 'i'){
+                                                    gen1("scani", (yyvsp[-1].ast)->addr);
+                                                  }
+                                                  else if((yyvsp[-1].ast)->dtype == 'f') {
+                                                    gen1("scanf", (yyvsp[-1].ast)->addr);
+                                                  }
                                                 }
-#line 2134 "wladus.tab.c" /* yacc.c:1646  */
+#line 2139 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 62:
-#line 522 "wladus.y" /* yacc.c:1646  */
+#line 527 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = (yyvsp[0].ast); }
-#line 2140 "wladus.tab.c" /* yacc.c:1646  */
+#line 2145 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 63:
-#line 523 "wladus.y" /* yacc.c:1646  */
+#line 528 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = NULL; }
-#line 2146 "wladus.tab.c" /* yacc.c:1646  */
+#line 2151 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 64:
-#line 527 "wladus.y" /* yacc.c:1646  */
+#line 532 "wladus.y" /* yacc.c:1646  */
     {
                                                   (yyval.ast) = add_ast_node('A', (yyvsp[-2].ast), (yyvsp[0].ast));
                                                   params_stacked++;
                                                   gen1("param", (yyvsp[0].ast)->addr);
                                                 }
-#line 2156 "wladus.tab.c" /* yacc.c:1646  */
+#line 2161 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 65:
-#line 532 "wladus.y" /* yacc.c:1646  */
+#line 537 "wladus.y" /* yacc.c:1646  */
     {
                                                   (yyval.ast) = (yyvsp[0].ast);
                                                   params_stacked++;
                                                   gen1("param", (yyvsp[0].ast)->addr);
                                                 }
-#line 2166 "wladus.tab.c" /* yacc.c:1646  */
+#line 2171 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 66:
-#line 540 "wladus.y" /* yacc.c:1646  */
+#line 545 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node('S', NULL, (yyvsp[-1].ast)); (yyval.ast)->string = (char *) strdup("string"); free((yyvsp[0].str)); }
-#line 2172 "wladus.tab.c" /* yacc.c:1646  */
+#line 2177 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 67:
-#line 541 "wladus.y" /* yacc.c:1646  */
+#line 546 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node('T', (yyvsp[-3].ast), (yyvsp[-1].ast));  (yyval.ast)->string = (char *) strdup("interpolated string"); }
-#line 2178 "wladus.tab.c" /* yacc.c:1646  */
+#line 2183 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
   case 68:
-#line 542 "wladus.y" /* yacc.c:1646  */
+#line 547 "wladus.y" /* yacc.c:1646  */
     { (yyval.ast) = add_ast_node('S', NULL, NULL);  (yyval.ast)->string = (char *) strdup("empty string"); }
-#line 2184 "wladus.tab.c" /* yacc.c:1646  */
+#line 2189 "wladus.tab.c" /* yacc.c:1646  */
     break;
 
 
-#line 2188 "wladus.tab.c" /* yacc.c:1646  */
+#line 2193 "wladus.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2419,7 +2424,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 545 "wladus.y" /* yacc.c:1906  */
+#line 550 "wladus.y" /* yacc.c:1906  */
 
 
 char * new_param(){
