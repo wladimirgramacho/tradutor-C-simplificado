@@ -64,10 +64,11 @@ typedef struct code_label {
   struct code_label *next;
 } code_label;
 
-typedef struct string_part {
+typedef struct string_target {
   char *temp_name;
-  struct string_part *next;
-} string_part;
+  struct string_target *next;
+} string_target;
+
 
 char * new_param();
 char * new_temp();
@@ -98,13 +99,15 @@ int mismatch(char left_dtype, char right_dtype);
 
 char type_to_dtype(char *type);
 char * dtype_to_type(char dtype);
+int is_array(char * temp_name);
 char * i_to_str(int integer);
 char * array_string(char * array, char * pos);
+char * reference(char * temp_name);
 
 struct symbol_node *symbol_table = NULL;
 struct ast_node* syntax_tree = NULL;
 struct scope* scope_stack = NULL;
-struct string_part* string_stack = NULL;
+struct string_target* string_target_stack = NULL;
 struct code_label* label_stack = NULL;
 code_line *tac_code = NULL;
 
@@ -363,12 +366,21 @@ return_statement:
 ;
 
 expression:
-  var EQ simple_expression                      {
-                                                  if(mismatch($1->dtype, $3->dtype)){ error_type_mismatch($1->dtype, $3->dtype); }
+  var EQ                                        {
+                                                  if($1->dtype == 's'){
+                                                    string_target *new_string_target = (string_target *)malloc(sizeof *new_string_target);
+                                                    new_string_target->temp_name = $1->addr;
+                                                    STACK_PUSH(string_target_stack, new_string_target);
+                                                  }
+                                                }
+  simple_expression                             {
+                                                  if(mismatch($1->dtype, $4->dtype)){ error_type_mismatch($1->dtype, $4->dtype); }
                                                   else {
-                                                    $$ = add_ast_node('A', $1, $3);
+                                                    $$ = add_ast_node('A', $1, $4);
                                                     $$->dtype = $1->dtype;
-                                                    gen2("mov", $1->addr, $3->addr);
+                                                    if($$->dtype != 's'){
+                                                      gen2("mov", $1->addr, $4->addr);
+                                                    }
                                                   }
                                                 }
 | simple_expression                             { $$ = $1; }
@@ -582,19 +594,8 @@ string:
                                                   $$ = add_ast_node('S', NULL, $1);
                                                   $$->string = (char *) strdup($2);
 
-                                                  string_part *s = STACK_TOP(string_stack);
-                                                  if(s != NULL){
-                                                    $$->addr = s->temp_name;
-                                                  }
-                                                  else {
-                                                    $$->addr = new_temp();
-                                                    char * temp_name = $$->addr;
-                                                    string_part *new_str = (string_part *)malloc(sizeof *new_str);
-                                                    new_str->temp_name = temp_name;
-                                                    STACK_PUSH(string_stack, new_str);
-                                                  }
-
                                                   int str_len = strlen($$->string);
+                                                  $$->addr = new_temp();
                                                   $1->addr = $$->addr;
                                                   $1->string_size = str_len;
                                                   int i = 0;
@@ -602,24 +603,40 @@ string:
                                                   for (; i < str_len; ++i){
                                                     gen2("mov", array_string($$->addr, i_to_str(i)), i_to_str($$->string[i]));
                                                   }
-                                                  gen2("mov", array_string($$->addr, i_to_str(i)), "0");
+                                                  char * string_end = array_string($$->addr, i_to_str(i));
+                                                  gen2("mov", string_end, "0");
+
+                                                  string_target *s;
+                                                  STACK_POP(string_target_stack, s);
+                                                  if(is_array(s->temp_name)){
+                                                    gen2("mov", s->temp_name, reference($$->addr));
+                                                  }
+                                                  else {
+                                                    gen2("mov", s->temp_name, $$->addr);
+                                                  }
+
+                                                  string_target *new_string_target = (string_target *)malloc(sizeof *new_string_target);
+                                                  new_string_target->temp_name = string_end;
+                                                  STACK_PUSH(string_target_stack, new_string_target);
+
                                                   free($2);
                                                 }
 | string ITP_START simple_expression ITP_END    {
                                                   $$ = add_ast_node('T', $1, $3);
                                                   $$->string = (char *) strdup("interpolated string");
 
-                                                  string_part *s = STACK_TOP(string_stack);
-                                                  if(s != NULL){
-                                                    $$->addr = s->temp_name;
-                                                  }
-                                                  else {
-                                                    $$->addr = new_temp();
-                                                    char * temp_name = $$->addr;
-                                                    string_part *new_str = (string_part *)malloc(sizeof *new_str);
-                                                    new_str->temp_name = temp_name;
-                                                    STACK_PUSH(string_stack, new_str);
-                                                  }
+                                                  // string_part *s = STACK_TOP(string_stack);
+                                                  // if(s != NULL){
+                                                  //   STACK_POP(string_stack, s);
+                                                  //   $$->addr = s->temp_name;
+                                                  // }
+                                                  // else {
+                                                  //   $$->addr = new_temp();
+                                                  //   char * temp_name = $$->addr;
+                                                  //   string_part *new_str = (string_part *)malloc(sizeof *new_str);
+                                                  //   new_str->temp_name = temp_name;
+                                                  //   STACK_PUSH(string_stack, new_str);
+                                                  // }
                                                   // char *pos = new_temp();
                                                   // gen2("mov", pos, "0");
 
@@ -629,7 +646,6 @@ string:
 |                                               {
                                                   $$ = add_ast_node('S', NULL, NULL);
                                                   $$->string = (char *) strdup("");
-                                                  // gen2("mov", array_string($$->addr, i_to_str($$->string_size)), "0");
                                                 }
 ;
 
@@ -890,6 +906,14 @@ char * dtype_to_type(char dtype){
   else if(dtype == 'v') { return "void"; }
 }
 
+int is_array(char * temp_name){
+  UT_string * aux;
+  utstring_new(aux);
+  utstring_printf(aux, "%s", temp_name);
+  int found = utstring_find(aux, 0, "[", 1);
+  return found != -1 ? 1 : 0;
+}
+
 char * i_to_str(int integer){
   UT_string * aux;
   utstring_new(aux);
@@ -901,6 +925,13 @@ char * array_string(char * array, char * pos){
   UT_string * aux;
   utstring_new(aux);
   utstring_printf(aux, "%s[%s]", array, pos);
+  return utstring_body(aux);
+}
+
+char * reference(char * temp_name){
+  UT_string * aux;
+  utstring_new(aux);
+  utstring_printf(aux, "*%s", temp_name);
   return utstring_body(aux);
 }
 

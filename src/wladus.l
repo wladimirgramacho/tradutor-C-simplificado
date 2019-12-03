@@ -65,7 +65,7 @@ interpol_end        "}"
                                         else              { return yytext[0]; }
                                       }
 <EXP>{interpol_end}                   {
-                                        if(inside_string) { BEGIN(0); return ITP_END; }
+                                        if(inside_string) { BEGIN(STRING); return ITP_END; }
                                         else              { return yytext[0]; }
                                       }
 

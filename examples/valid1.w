@@ -12,7 +12,7 @@ int main(){
   a = 4;
   b = 2;
   var = 8;
-  str = "asdf";
+  str = "asdf #{a} bbbb";
   write(str);
 
   if(var >= 3){
