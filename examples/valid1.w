@@ -11,6 +11,7 @@ int main(){
 
   var = 8;
   str = "asdf";
+  write(str);
 
   if(var >= 3){
     // str = "this is another string with interpolation #{a + (b * var)}";

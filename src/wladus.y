@@ -93,7 +93,7 @@ int mismatch(char left_dtype, char right_dtype);
 char type_to_dtype(char *type);
 char * dtype_to_type(char dtype);
 char * i_to_str(int integer);
-char * array_string(char * array, int pos);
+char * array_string(char * array, char * pos);
 
 struct symbol_node *symbol_table = NULL;
 struct ast_node* syntax_tree = NULL;
@@ -510,7 +510,29 @@ call:
 | WRITE '(' simple_expression ')'               {
                                                   $$ = add_ast_node('L', NULL, $3);
                                                   $$->func_name = (char *) strdup("write");
-                                                  gen1("println", $3->addr);
+                                                  if($3->dtype == 's'){
+                                                    char *pos = new_temp();
+                                                    gen2("mov", pos, "0");
+
+                                                    char * while_label = new_label();
+                                                    gen_label(while_label);
+                                                    char * after_while_label = new_label();
+
+                                                    char *value = new_temp();
+                                                    gen2("mov", value, array_string($3->addr, pos));
+                                                    char *aux = new_temp();
+                                                    gen3("seq", aux, value, "0");
+                                                    gen2("brnz", after_while_label, aux);
+                                                    gen2("inttoch", value, value);
+                                                    gen1("print", value);
+                                                    gen3("add", pos, pos, "1");
+                                                    gen1("jump", while_label);
+                                                    gen_label(after_while_label);
+                                                    gen1("println", "");
+                                                  }
+                                                  else {
+                                                    gen1("println", $3->addr);
+                                                  }
                                                 }
 | READ '(' var ')'                              {
                                                   $$ = add_ast_node('L', NULL, $3);
@@ -551,9 +573,9 @@ string:
                                                   int i = 0;
                                                   gen2("mema", $$->addr, i_to_str(str_len + 1));
                                                   for (; i < str_len; ++i){
-                                                    gen2("mov", array_string($$->addr, i), i_to_str($$->string[i]));
+                                                    gen2("mov", array_string($$->addr, i_to_str(i)), i_to_str($$->string[i]));
                                                   }
-                                                  gen2("mov", array_string($$->addr, i), "0");
+                                                  gen2("mov", array_string($$->addr, i_to_str(i)), "0");
                                                   free($2);
                                                 }
 | ITP_START simple_expression ITP_END string    {
@@ -830,10 +852,10 @@ char * i_to_str(int integer){
   return utstring_body(aux);
 }
 
-char * array_string(char * array, int pos){
+char * array_string(char * array, char * pos){
   UT_string * aux;
   utstring_new(aux);
-  utstring_printf(aux, "%s[%d]", array, pos);
+  utstring_printf(aux, "%s[%s]", array, pos);
   return utstring_body(aux);
 }
 
