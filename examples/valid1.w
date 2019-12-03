@@ -9,12 +9,15 @@ int main(){
   int a;
   int b;
 
+  a = 4;
+  b = 2;
   var = 8;
   str = "asdf";
   write(str);
 
   if(var >= 3){
-    // str = "this is another string with interpolation #{a + (b * var)}";
+    str = "4 + (2 * 8) = #{a + (b * var)}";
+    write(str);
   }
   else{
     var = 1;

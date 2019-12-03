@@ -44,6 +44,7 @@ struct ast_node {
   int node_type;
   char dtype;
   char *addr;
+  int string_size;
   struct ast_node *left;
   struct ast_node *right;
   union {
@@ -62,6 +63,11 @@ typedef struct code_label {
   char *name;
   struct code_label *next;
 } code_label;
+
+typedef struct string_part {
+  char *temp_name;
+  struct string_part *next;
+} string_part;
 
 char * new_param();
 char * new_temp();
@@ -98,6 +104,7 @@ char * array_string(char * array, char * pos);
 struct symbol_node *symbol_table = NULL;
 struct ast_node* syntax_tree = NULL;
 struct scope* scope_stack = NULL;
+struct string_part* string_stack = NULL;
 struct code_label* label_stack = NULL;
 code_line *tac_code = NULL;
 
@@ -489,7 +496,13 @@ term:
                                                 }
 | NUM                                           { $$ = add_ast_node('I', NULL, NULL); $$->addr = $1; $$->dtype = 'i'; }
 | DEC                                           { $$ = add_ast_node('D', NULL, NULL); $$->addr = $1; $$->dtype = 'f'; }
-| QUOTES string QUOTES                          { $$ = $2; $$->dtype = 's'; }
+| QUOTES                                        {
+                                                  
+                                                }
+  string QUOTES                                 {
+                                                  $$ = $3;
+                                                  $$->dtype = 's';
+                                                }
 ;
 
 call:
@@ -565,11 +578,25 @@ arg_list:
 ;
 
 string:
-  STR string                                    {
-                                                  $$ = add_ast_node('S', NULL, $2);
-                                                  $$->string = (char *) strdup($1);
-                                                  $$->addr = new_temp();
+  string STR                                    {
+                                                  $$ = add_ast_node('S', NULL, $1);
+                                                  $$->string = (char *) strdup($2);
+
+                                                  string_part *s = STACK_TOP(string_stack);
+                                                  if(s != NULL){
+                                                    $$->addr = s->temp_name;
+                                                  }
+                                                  else {
+                                                    $$->addr = new_temp();
+                                                    char * temp_name = $$->addr;
+                                                    string_part *new_str = (string_part *)malloc(sizeof *new_str);
+                                                    new_str->temp_name = temp_name;
+                                                    STACK_PUSH(string_stack, new_str);
+                                                  }
+
                                                   int str_len = strlen($$->string);
+                                                  $1->addr = $$->addr;
+                                                  $1->string_size = str_len;
                                                   int i = 0;
                                                   gen2("mema", $$->addr, i_to_str(str_len + 1));
                                                   for (; i < str_len; ++i){
@@ -578,13 +605,31 @@ string:
                                                   gen2("mov", array_string($$->addr, i_to_str(i)), "0");
                                                   free($2);
                                                 }
-| ITP_START simple_expression ITP_END string    {
-                                                  $$ = add_ast_node('T', $2, $4);
+| string ITP_START simple_expression ITP_END    {
+                                                  $$ = add_ast_node('T', $1, $3);
                                                   $$->string = (char *) strdup("interpolated string");
+
+                                                  string_part *s = STACK_TOP(string_stack);
+                                                  if(s != NULL){
+                                                    $$->addr = s->temp_name;
+                                                  }
+                                                  else {
+                                                    $$->addr = new_temp();
+                                                    char * temp_name = $$->addr;
+                                                    string_part *new_str = (string_part *)malloc(sizeof *new_str);
+                                                    new_str->temp_name = temp_name;
+                                                    STACK_PUSH(string_stack, new_str);
+                                                  }
+                                                  // char *pos = new_temp();
+                                                  // gen2("mov", pos, "0");
+
+                                                  // char * while_label = new_label();
+                                                  // gen_label(while_label);
                                                 }
 |                                               {
                                                   $$ = add_ast_node('S', NULL, NULL);
                                                   $$->string = (char *) strdup("");
+                                                  // gen2("mov", array_string($$->addr, i_to_str($$->string_size)), "0");
                                                 }
 ;
 
