@@ -93,6 +93,7 @@ int mismatch(char left_dtype, char right_dtype);
 char type_to_dtype(char *type);
 char * dtype_to_type(char dtype);
 char * i_to_str(int integer);
+char * array_string(char * array, int pos);
 
 struct symbol_node *symbol_table = NULL;
 struct ast_node* syntax_tree = NULL;
@@ -542,9 +543,27 @@ arg_list:
 ;
 
 string:
-  string STR                                    { $$ = add_ast_node('S', NULL, $1); $$->string = (char *) strdup("string"); free($2); }
-| string ITP_START simple_expression ITP_END    { $$ = add_ast_node('T', $1, $3);  $$->string = (char *) strdup("interpolated string"); }
-|                                               { $$ = add_ast_node('S', NULL, NULL);  $$->string = (char *) strdup("empty string"); }
+  STR string                                    {
+                                                  $$ = add_ast_node('S', NULL, $2);
+                                                  $$->string = (char *) strdup($1);
+                                                  $$->addr = new_temp();
+                                                  int str_len = strlen($$->string);
+                                                  int i = 0;
+                                                  gen2("mema", $$->addr, i_to_str(str_len + 1));
+                                                  for (; i < str_len; ++i){
+                                                    gen2("mov", array_string($$->addr, i), i_to_str($$->string[i]));
+                                                  }
+                                                  gen2("mov", array_string($$->addr, i), "0");
+                                                  free($2);
+                                                }
+| ITP_START simple_expression ITP_END string    {
+                                                  $$ = add_ast_node('T', $2, $4);
+                                                  $$->string = (char *) strdup("interpolated string");
+                                                }
+|                                               {
+                                                  $$ = add_ast_node('S', NULL, NULL);
+                                                  $$->string = (char *) strdup("");
+                                                }
 ;
 
 %%
@@ -811,6 +830,13 @@ char * i_to_str(int integer){
   return utstring_body(aux);
 }
 
+char * array_string(char * array, int pos){
+  UT_string * aux;
+  utstring_new(aux);
+  utstring_printf(aux, "%s[%d]", array, pos);
+  return utstring_body(aux);
+}
+
 void create_internal_scope(){
   scope *new_scope = (scope *)malloc(sizeof *new_scope);
   scope *top = STACK_TOP(scope_stack);
@@ -1044,7 +1070,7 @@ int main (int argc, char **argv){
 
   code_line *eof_line = (code_line *)malloc(sizeof *eof_line);
   utstring_new(eof_line->code);
-  utstring_printf(eof_line->code, "println\n");
+  utstring_printf(eof_line->code, "nop\n");
   DL_APPEND(tac_code, eof_line);
 
   DL_FOREACH(tac_code, line) printf("%s", utstring_body(line->code));

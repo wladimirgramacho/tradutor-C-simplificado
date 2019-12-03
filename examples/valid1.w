@@ -9,10 +9,11 @@ int main(){
   int a;
   int b;
 
-  str = "";
+  var = 8;
+  str = "asdf";
 
   if(var >= 3){
-    str = "this is another string with interpolation #{a + (b * var)}";
+    // str = "this is another string with interpolation #{a + (b * var)}";
   }
   else{
     var = 1;
@@ -20,9 +21,9 @@ int main(){
 
   // this is a comment
 
-  while(var){
+  while(var < 10){
     func(var);
-    var = var - 1;
+    var = var + 1;
   }
 
   return 0;
