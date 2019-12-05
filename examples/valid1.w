@@ -11,6 +11,10 @@ int main(){
   a = 4;
   b = 2;
   var = 8;
+
+  str = "asdf";
+  write(str);
+
   str = "asdf #{a} bbbb";
   write(str);
 

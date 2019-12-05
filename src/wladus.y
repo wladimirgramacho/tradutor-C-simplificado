@@ -103,6 +103,7 @@ int is_array(char * temp_name);
 char * i_to_str(int integer);
 char * array_string(char * array, char * pos);
 char * reference(char * temp_name);
+char * extract_pos(char * array_string);
 
 struct symbol_node *symbol_table = NULL;
 struct ast_node* syntax_tree = NULL;
@@ -624,7 +625,15 @@ string:
                                                   string_target *s;
                                                   STACK_POP(string_target_stack, s);
                                                   if(is_array(s->temp_name)){
-                                                    gen2("mov", s->temp_name, reference($$->addr));
+                                                    char * aux = new_temp();
+                                                    for (i = 0; i < str_len; ++i){
+                                                      gen2("mov", aux, array_string($$->addr, i_to_str(i)));
+                                                      gen2("mov", s->temp_name, aux);
+                                                      gen3("add", extract_pos(s->temp_name), extract_pos(s->temp_name), "1");
+                                                    }
+                                                    gen2("mov", aux, array_string($$->addr, i_to_str(i)));
+                                                    gen2("mov", s->temp_name, aux);
+                                                    gen3("add", extract_pos(s->temp_name), extract_pos(s->temp_name), "1");
                                                   }
                                                   else {
                                                     gen2("mov", s->temp_name, $$->addr);
@@ -639,71 +648,70 @@ string:
 | string ITP_START simple_expression ITP_END    {
                                                   $$ = add_ast_node('T', $1, $3);
                                                   $$->string = (char *) strdup("interpolated string");
-                                                  // $$->addr = new_temp();
-                                                  // gen2("mov", $$->addr, $3->addr);
-                                                  // char * string_pointer = new_temp();
-                                                  // gen2("mema", string_pointer, "20");
+                                                  $$->addr = new_temp();
+                                                  gen2("mov", $$->addr, $3->addr);
+                                                  char * string_pointer = new_temp();
+                                                  gen2("mema", string_pointer, "20");
 
-                                                  // char * pos = new_temp();
-                                                  // gen2("mov", pos, "0");
+                                                  char * pos = new_temp();
+                                                  gen2("mov", pos, "0");
 
-                                                  // char *num = new_temp();
-                                                  // gen2("mov", num, $$->addr);
+                                                  char *num = new_temp();
+                                                  gen2("mov", num, $$->addr);
 
-                                                  // char *div = new_temp();
-                                                  // gen2("mov", div, "10");
+                                                  char *div = new_temp();
+                                                  gen2("mov", div, "10");
 
-                                                  // char * find_char_label = new_label();
-                                                  // gen_label(find_char_label);
+                                                  char * find_char_label = new_label();
+                                                  gen_label(find_char_label);
 
-                                                  // char * store_char_label = new_label();
-                                                  // char * div_label = new_label();
-                                                  // char *temp = new_temp();
-                                                  // gen3("slt", temp, num, "10");
-                                                  // gen2("brz", div_label, temp);
+                                                  char * store_char_label = new_label();
+                                                  char * div_label = new_label();
+                                                  char *temp = new_temp();
+                                                  gen3("slt", temp, num, "10");
+                                                  gen2("brz", div_label, temp);
                                                   
-                                                  // char *aux = new_temp();
-                                                  // gen2("mov", aux, num);
-                                                  // gen1("jump", store_char_label);
+                                                  char *aux = new_temp();
+                                                  gen2("mov", aux, num);
+                                                  gen1("jump", store_char_label);
 
-                                                  // gen_label(div_label);
-                                                  // gen3("div", aux, num, div);
-                                                  // gen3("slt", temp, aux, "10");
-                                                  // gen2("brnz", store_char_label, temp);
-                                                  // gen3("mul", div, div, "10");
-                                                  // gen1("jump", find_char_label);
+                                                  gen_label(div_label);
+                                                  gen3("div", aux, num, div);
+                                                  gen3("slt", temp, aux, "10");
+                                                  gen2("brnz", store_char_label, temp);
+                                                  gen3("mul", div, div, "10");
+                                                  gen1("jump", find_char_label);
 
-                                                  // gen_label(store_char_label);
-                                                  // char *int_to_char_aux = new_temp();
-                                                  // gen3("add", int_to_char_aux, aux, "48");
-                                                  // gen2("mov", array_string(string_pointer, pos), int_to_char_aux);
+                                                  gen_label(store_char_label);
+                                                  char *int_to_char_aux = new_temp();
+                                                  gen3("add", int_to_char_aux, aux, "48");
+                                                  gen2("mov", array_string(string_pointer, pos), int_to_char_aux);
+                                                  gen3("add", pos, pos, "1");
 
-                                                  // char *after_string_build_label = new_label();
-                                                  // gen3("slt", temp, num, "10");
-                                                  // gen2("brz", after_string_build_label, temp);
+                                                  char *after_string_build_label = new_label();
+                                                  gen3("slt", temp, num, "10");
+                                                  gen2("brnz", after_string_build_label, temp);
 
-                                                  // gen3("add", pos, pos, "1");
-                                                  // gen3("mod", num, num, div);
-                                                  // gen2("mov", div, "10");
-                                                  // gen1("jump", find_char_label);
+                                                  gen3("mod", num, num, div);
+                                                  gen2("mov", div, "10");
+                                                  gen1("jump", find_char_label);
 
-                                                  // gen_label(after_string_build_label);
+                                                  gen_label(after_string_build_label);
+                                                  char * string_end = array_string(string_pointer, pos);
+                                                  gen2("mov", string_end, "0");
 
-                                                  // char * string_end = array_string(string_pointer, pos);
-                                                  // gen2("mov", string_end, "0");
+                                                  string_target *s;
+                                                  STACK_POP(string_target_stack, s);
+                                                  if(is_array(s->temp_name)){
+                                                    gen2("mov", s->temp_name, reference(string_pointer));
+                                                  }
+                                                  else {
+                                                    gen2("mov", s->temp_name, $$->addr);
+                                                  }
 
-                                                  // string_target *s;
-                                                  // STACK_POP(string_target_stack, s);
-                                                  // if(is_array(s->temp_name)){
-                                                  //   gen2("mov", s->temp_name, reference(string_pointer));
-                                                  // }
-                                                  // else {
-                                                  //   gen2("mov", s->temp_name, $$->addr);
-                                                  // }
-
-                                                  // string_target *new_string_target = (string_target *)malloc(sizeof *new_string_target);
-                                                  // new_string_target->temp_name = string_end;
-                                                  // STACK_PUSH(string_target_stack, new_string_target);
+                                                  string_target *new_string_target = (string_target *)malloc(sizeof *new_string_target);
+                                                  new_string_target->temp_name = string_end;
+                                                  STACK_PUSH(string_target_stack, new_string_target);
                                                 }
 |                                               {
                                                   $$ = add_ast_node('S', NULL, NULL);
@@ -995,6 +1003,22 @@ char * reference(char * temp_name){
   utstring_new(aux);
   utstring_printf(aux, "*%s", temp_name);
   return utstring_body(aux);
+}
+
+char * extract_pos(char * array_string){
+  int i = 0;
+  UT_string * aux;
+  utstring_new(aux);
+  utstring_printf(aux, "%s", array_string);
+  int start = utstring_find(aux, 0, "[", 1);
+  int end = utstring_find(aux, 0, "]", 1);
+  int size = end - start;
+  char pos[size];
+  for (; i < size - 1; ++i){
+    pos[i] = utstring_body(aux)[start + i + 1];
+  }
+  pos[i] = '\0';
+  return strdup(pos);
 }
 
 void create_internal_scope(){
