@@ -1,6 +1,5 @@
-void func(int value){
+float func(int value){
   write(value);
-  return ;
 }
 
 int main(){
@@ -16,7 +15,7 @@ int main(){
   write(str);
 
   if(var >= 3){
-    str = "4 + (2 * 8) = #{a + (b * var)}";
+    str = "4 + (2 * 8) = #{a + (b * var)} !";
     write(str);
   }
   else{
